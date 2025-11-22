@@ -26,7 +26,15 @@ export async function GET(
           }
         },
         steps: {
-          orderBy: { order: 'asc' }
+          orderBy: { order: 'asc' },
+          include: {
+            subSteps: {
+              orderBy: { order: 'asc' }
+            },
+            photos: {
+              orderBy: { uploadedAt: 'desc' }
+            }
+          }
         },
         assignments: {
           include: {
@@ -49,8 +57,8 @@ export async function GET(
 
     // Check access
     const hasAccess = job.assignments.some(
-      a => a.workerId === session.user.id || 
-      (a.team && a.team.members?.some((m: any) => m.userId === session.user.id))
+      a => a.workerId === session.user.id ||
+        (a.team && a.team.members?.some((m: any) => m.userId === session.user.id))
     )
 
     // Geçici olarak erişim kontrolünü esnetelim (Test için)

@@ -129,7 +129,9 @@ export default async function ManagerJobsPage(props: {
                                             <BriefcaseIcon className="h-4 w-4" />
                                         </div>
                                         <div>
-                                            <p className="font-medium text-gray-900">{job.title}</p>
+                                            <a href={`/manager/jobs/${job.id}`} className="font-medium text-gray-900 hover:underline hover:text-blue-600 block">
+                                                {job.title}
+                                            </a>
                                             {job.location && (
                                                 <div className="flex items-center gap-1 text-xs text-gray-500">
                                                     <MapPinIcon className="h-3 w-3" />

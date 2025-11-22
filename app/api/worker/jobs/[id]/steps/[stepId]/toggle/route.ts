@@ -21,11 +21,45 @@ export async function POST(
       return NextResponse.json({ error: 'Step not found' }, { status: 404 })
     }
 
+    // 1. Check if previous steps are completed
+    if (!step.isCompleted && step.order > 1) {
+      const previousStep = await prisma.jobStep.findFirst({
+        where: {
+          jobId: step.jobId,
+          order: step.order - 1
+        }
+      })
+
+      if (previousStep && !previousStep.isCompleted) {
+        return NextResponse.json(
+          { error: 'Önceki adımı tamamlamadan bu adıma geçemezsiniz.' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // 2. Check if all substeps are completed
+    const subSteps = await prisma.jobSubStep.findMany({
+      where: { stepId: params.stepId }
+    })
+
+    if (!step.isCompleted && subSteps.length > 0) {
+      const incompleteSubSteps = subSteps.filter(s => !s.isCompleted)
+      if (incompleteSubSteps.length > 0) {
+        return NextResponse.json(
+          { error: 'Tüm alt görevleri tamamlamadan bu adımı tamamlayamazsınız.' },
+          { status: 400 }
+        )
+      }
+    }
+
     const updatedStep = await prisma.jobStep.update({
       where: { id: params.stepId },
       data: {
         isCompleted: !step.isCompleted,
-        completedAt: !step.isCompleted ? new Date() : null
+        completedAt: !step.isCompleted ? new Date() : null,
+        completedById: !step.isCompleted ? session.user.id : null,
+        startedAt: !step.isCompleted && !step.startedAt ? new Date() : step.startedAt
       }
     })
 

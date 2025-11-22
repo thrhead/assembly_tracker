@@ -34,6 +34,8 @@ model User {
   notifications   Notification[]
   approvals       Approval[]    @relation("Approver")
   requestedApprovals Approval[] @relation("Requester")
+  completedSteps  JobStep[]     @relation("StepCompleter")
+  uploadedPhotos  StepPhoto[]
 
   @@map("users")
 }
@@ -92,6 +94,8 @@ model Job {
   status         String    @default("PENDING") // JobStatus
   priority       String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
   location       String?
+  latitude       Float?
+  longitude      Float?
   scheduledDate  DateTime?
   completedDate  DateTime?
   createdAt      DateTime  @default(now())
@@ -114,15 +118,55 @@ model JobStep {
   description String?
   isCompleted Boolean  @default(false)
   completedAt DateTime?
+  startedAt   DateTime?
+  blockedAt   DateTime?
+  blockedReason String?  // POWER_OUTAGE, MATERIAL_SHORTAGE, etc.
+  blockedNote String?
   order       Int
   
   // Fotoğraf veya not eklenebilir
   notes       String?
   photoUrl    String?
 
+  completedById String?
+  completedBy   User?    @relation("StepCompleter", fields: [completedById], references: [id])
+
+  subSteps    JobSubStep[]
+  photos      StepPhoto[]
+
   job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@map("job_steps")
+}
+
+model JobSubStep {
+  id          String   @id @default(cuid())
+  stepId      String
+  title       String
+  isCompleted Boolean  @default(false)
+  completedAt DateTime?
+  startedAt   DateTime?
+  blockedAt   DateTime?
+  blockedReason String?
+  blockedNote String?
+  order       Int
+
+  step        JobStep  @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@map("job_sub_steps")
+}
+
+model StepPhoto {
+  id          String   @id @default(cuid())
+  stepId      String
+  url         String
+  uploadedAt  DateTime @default(now())
+  uploadedById String
+  
+  step        JobStep  @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  uploadedBy  User     @relation(fields: [uploadedById], references: [id])
+
+  @@map("step_photos")
 }
 
 model JobAssignment {

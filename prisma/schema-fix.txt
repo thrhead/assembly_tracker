@@ -1,0 +1,41 @@
+// Prisma Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Enums removed for SQLite compatibility
+// UserRole: ADMIN, MANAGER, TEAM_LEAD, WORKER, CUSTOMER
+// JobStatus: PENDING, IN_PROGRESS, COMPLETED, ON_HOLD, CANCELLED
+// ApprovalStatus: PENDING, APPROVED, REJECTED
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  passwordHash  String
+  role          String    @default("WORKER") // UserRole
+  phone         String?
+  avatarUrl     String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  customerProfile Customer?
+  teamMember      TeamMember?
+  managedTeams    Team[]        @relation("TeamLead")
+  assignedJobs    JobAssignment[]
+  createdJobs     Job[]         @relation("JobCreator")
+  notifications   Notification[]
+  approvals       Approval[]    @relation("Approver")
+  requestedApprovals Approval[] @relation("Requester")
+  completedSteps  JobStep[]     @relation("StepCompleter")
+  uploadedPhotos  StepPhoto[]
+
+  @@map("users")
+}

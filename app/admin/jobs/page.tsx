@@ -99,9 +99,9 @@ export default async function JobsPage(props: {
           <div className="relative max-w-sm">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <form>
-              <Input 
-                name="search" 
-                placeholder="İş, müşteri veya firma ara..." 
+              <Input
+                name="search"
+                placeholder="İş, müşteri veya firma ara..."
                 className="pl-10"
                 defaultValue={searchParams.search}
               />
@@ -129,7 +129,9 @@ export default async function JobsPage(props: {
                       <BriefcaseIcon className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{job.title}</p>
+                      <a href={`/admin/jobs/${job.id}`} className="font-medium text-gray-900 hover:underline hover:text-blue-600 block">
+                        {job.title}
+                      </a>
                       {job.location && (
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                           <MapPinIcon className="h-3 w-3" />
@@ -165,7 +167,7 @@ export default async function JobsPage(props: {
                 <TableCell>
                   <div className="flex items-center gap-1 text-sm text-gray-600">
                     <CalendarIcon className="h-3 w-3" />
-                    {job.scheduledDate 
+                    {job.scheduledDate
                       ? format(new Date(job.scheduledDate), 'd MMM', { locale: tr })
                       : format(new Date(job.createdAt), 'd MMM', { locale: tr })
                     }

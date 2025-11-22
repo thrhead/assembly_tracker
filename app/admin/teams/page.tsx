@@ -11,8 +11,9 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { SearchIcon, BriefcaseIcon, UsersIcon } from "lucide-react"
+import { SearchIcon, BriefcaseIcon, UsersIcon, Edit } from "lucide-react"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 
@@ -69,9 +70,9 @@ export default async function TeamsPage(props: {
           <div className="relative max-w-sm">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <form>
-              <Input 
-                name="search" 
-                placeholder="Ekip adı ara..." 
+              <Input
+                name="search"
+                placeholder="Ekip adı ara..."
                 className="pl-10"
                 defaultValue={searchParams.search}
               />
@@ -88,6 +89,7 @@ export default async function TeamsPage(props: {
               <TableHead>Aktif İşler</TableHead>
               <TableHead>Durum</TableHead>
               <TableHead>Oluşturulma</TableHead>
+              <TableHead className="text-right">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -136,6 +138,22 @@ export default async function TeamsPage(props: {
                 </TableCell>
                 <TableCell>
                   {format(new Date(team.createdAt), 'd MMM yyyy', { locale: tr })}
+                </TableCell>
+                <TableCell className="text-right">
+                  <TeamDialog
+                    team={{
+                      id: team.id,
+                      name: team.name,
+                      description: team.description,
+                      leadId: team.leadId,
+                      isActive: team.isActive
+                    }}
+                    trigger={
+                      <Button variant="ghost" size="sm">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    }
+                  />
                 </TableCell>
               </TableRow>
             ))}
