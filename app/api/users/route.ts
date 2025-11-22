@@ -50,6 +50,15 @@ export async function GET(req: Request) {
             assignedJobs: true,
             createdJobs: true
           }
+        },
+        teamMember: {
+          select: {
+            team: {
+              select: {
+                name: true
+              }
+            }
+          }
         }
       }
     })

@@ -7,6 +7,7 @@ const teamSchema = z.object({
   name: z.string().min(2, 'Ekip adı en az 2 karakter olmalıdır'),
   description: z.string().optional(),
   leadId: z.string().optional(), // Opsiyonel, sonra da atanabilir
+  memberIds: z.array(z.string()).optional(),
 })
 
 export async function GET(req: Request) {
@@ -60,20 +61,35 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { name, description, leadId } = teamSchema.parse(body)
+    const { name, description, leadId, memberIds } = teamSchema.parse(body)
 
     const team = await prisma.team.create({
       data: {
         name,
         description,
         leadId: leadId || null,
-        isActive: true
+        isActive: true,
+        members: memberIds && memberIds.length > 0 ? {
+          create: memberIds.map(userId => ({
+            userId
+          }))
+        } : undefined
       },
       include: {
         lead: {
           select: {
             id: true,
             name: true
+          }
+        },
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
           }
         }
       }
