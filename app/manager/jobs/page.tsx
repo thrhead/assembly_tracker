@@ -1,4 +1,5 @@
-import { auth } from "@/lib/auth"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/db"
 import { JobDialog } from "@/components/admin/job-dialog"
@@ -77,7 +78,7 @@ export default async function ManagerJobsPage(props: {
     searchParams: Promise<{ search?: string }>
 }) {
     const searchParams = await props.searchParams
-    const session = await auth()
+    const session = await getServerSession(authOptions)
     if (!session || session.user.role !== "MANAGER") {
         redirect("/login")
     }

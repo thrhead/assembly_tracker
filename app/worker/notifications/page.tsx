@@ -1,4 +1,5 @@
-import { auth } from '@/lib/auth'
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,7 +16,7 @@ async function getNotifications(userId: string) {
 }
 
 export default async function NotificationsPage() {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   if (!session) {
     redirect('/login')
   }
@@ -78,9 +79,8 @@ export default async function NotificationsPage() {
               href={notification.link || '#'}
               className="block"
             >
-              <Card className={`hover:shadow-md transition-shadow ${
-                !notification.isRead ? getNotificationBgColor(notification.type) : ''
-              }`}>
+              <Card className={`hover:shadow-md transition-shadow ${!notification.isRead ? getNotificationBgColor(notification.type) : ''
+                }`}>
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <span className="text-2xl">{getNotificationIcon(notification.type)}</span>

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
-import { auth } from '@/lib/auth'
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 
 const jobSchema = z.object({
   title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
@@ -19,7 +20,7 @@ const jobSchema = z.object({
 
 export async function GET(req: Request) {
   try {
-    const session = await auth()
+    const session = await getServerSession(authOptions)
     if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'MANAGER')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -73,7 +74,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await auth()
+    const session = await getServerSession(authOptions)
     if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'MANAGER')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

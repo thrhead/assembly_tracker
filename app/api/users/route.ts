@@ -3,11 +3,12 @@ import { prisma } from '@/lib/db'
 import { hash } from 'bcryptjs'
 import { z } from 'zod'
 import { registerSchema } from '@/lib/validations'
-import { auth } from '@/lib/auth'
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 
 export async function GET(req: Request) {
   try {
-    const session = await auth()
+    const session = await getServerSession(authOptions)
     if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -72,7 +73,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await auth()
+    const session = await getServerSession(authOptions)
     if (!session || session.user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

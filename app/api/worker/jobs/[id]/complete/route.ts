@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 
 export async function POST(
   req: Request,
   props: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
+    const session = await getServerSession(authOptions)
     if (!session || !['WORKER', 'TEAM_LEAD'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -40,15 +41,15 @@ export async function POST(
     // Check if all steps are completed
     const allStepsCompleted = job.steps.every(step => step.isCompleted)
     if (!allStepsCompleted) {
-      return NextResponse.json({ 
-        error: 'Tüm adımlar tamamlanmadan iş tamamlanamaz' 
+      return NextResponse.json({
+        error: 'Tüm adımlar tamamlanmadan iş tamamlanamaz'
       }, { status: 400 })
     }
 
     // Update job status to COMPLETED
     await prisma.job.update({
       where: { id: jobId },
-      data: { 
+      data: {
         status: 'COMPLETED',
         completedDate: new Date()
       }
@@ -64,8 +65,8 @@ export async function POST(
     })
 
     if (!approver) {
-      return NextResponse.json({ 
-        error: 'No approver found' 
+      return NextResponse.json({
+        error: 'No approver found'
       }, { status: 500 })
     }
 
@@ -84,10 +85,10 @@ export async function POST(
     const { notifyJobCompletion } = await import('@/lib/notifications')
     await notifyJobCompletion(jobId, approver.id)
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'İş tamamlandı ve onay için gönderildi',
-      approval 
+      approval
     })
   } catch (error) {
     console.error('Complete job error:', error)

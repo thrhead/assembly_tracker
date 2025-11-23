@@ -1,4 +1,5 @@
-import { auth } from "@/lib/auth"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/db"
 import { CustomerDialog } from "@/components/admin/customer-dialog"
@@ -53,7 +54,7 @@ export default async function CustomersPage(props: {
   searchParams: Promise<{ search?: string }>
 }) {
   const searchParams = await props.searchParams
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   if (!session || session.user.role !== "ADMIN") {
     redirect("/login")
   }
@@ -75,9 +76,9 @@ export default async function CustomersPage(props: {
           <div className="relative max-w-sm">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <form>
-              <Input 
-                name="search" 
-                placeholder="Firma, isim veya e-posta ara..." 
+              <Input
+                name="search"
+                placeholder="Firma, isim veya e-posta ara..."
                 className="pl-10"
                 defaultValue={searchParams.search}
               />

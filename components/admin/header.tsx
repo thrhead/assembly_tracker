@@ -11,13 +11,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { signOut } from 'next-auth/react'
+import { toast } from 'sonner'
 
 export function AdminHeader() {
+  const handleNotificationClick = () => {
+    toast.info('Bildirim sistemi', {
+      description: 'Henüz yeni bildiriminiz yok.'
+    })
+  }
+
   return (
     <header className="h-16 border-b bg-white flex items-center justify-between px-4 sticky top-0 z-30">
       <div className="flex items-center gap-3 lg:hidden">
-        {/* Mobile menu trigger is handled by Sidebar component */}
-        <div className="w-8" /> 
+        <div className="w-8" />
         <h1 className="font-bold text-lg text-indigo-600">Montaj Takip</h1>
       </div>
       <div className="hidden lg:block">
@@ -25,9 +31,13 @@ export function AdminHeader() {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          onClick={handleNotificationClick}
+        >
           <BellIcon className="h-5 w-5 text-gray-500" />
-          <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full" />
         </Button>
 
         <DropdownMenu>

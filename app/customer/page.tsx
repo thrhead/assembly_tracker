@@ -1,4 +1,5 @@
-import { auth } from '@/lib/auth'
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { redirect } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -24,7 +25,7 @@ async function getCustomerDashboardData(userId: string) {
 
   // Since we can't easily pass auth in server component, let's use prisma directly
   const { prisma } = await import('@/lib/db')
-  
+
   const customer = await prisma.customer.findUnique({
     where: { userId }
   })
@@ -58,7 +59,7 @@ async function getCustomerDashboardData(userId: string) {
     pendingJobs: allJobs.filter(j => j.status === 'PENDING').length,
     inProgressJobs: allJobs.filter(j => j.status === 'IN_PROGRESS').length,
     completedJobs: allJobs.filter(j => j.status === 'COMPLETED').length,
-    completionRate: allJobs.length > 0 
+    completionRate: allJobs.length > 0
       ? Math.round((allJobs.filter(j => j.status === 'COMPLETED').length / allJobs.length) * 100)
       : 0
   }
@@ -80,7 +81,7 @@ async function getCustomerDashboardData(userId: string) {
 }
 
 export default async function CustomerDashboard() {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   if (!session || session.user.role !== 'CUSTOMER') {
     redirect('/login')
   }

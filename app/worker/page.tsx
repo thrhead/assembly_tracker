@@ -1,4 +1,5 @@
-import { auth } from "@/lib/auth"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/db"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -75,7 +76,7 @@ const statusLabels: Record<string, string> = {
 }
 
 export default async function WorkerDashboard() {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   if (!session || (session.user.role !== "WORKER" && session.user.role !== "TEAM_LEAD")) {
     redirect("/login")
   }
@@ -113,11 +114,11 @@ export default async function WorkerDashboard() {
                 <MapPinIcon className="h-4 w-4 mt-0.5 shrink-0 text-gray-400" />
                 <span className="line-clamp-2">{job.location || job.customer.address || "Adres belirtilmemiş"}</span>
               </div>
-              
+
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <CalendarIcon className="h-4 w-4 shrink-0 text-gray-400" />
                 <span>
-                  {job.scheduledDate 
+                  {job.scheduledDate
                     ? format(new Date(job.scheduledDate), 'd MMM yyyy, HH:mm', { locale: tr })
                     : "Tarih belirtilmemiş"
                   }

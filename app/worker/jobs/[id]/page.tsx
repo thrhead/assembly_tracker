@@ -17,6 +17,7 @@ import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 import { BlockTaskDialog } from '@/components/worker/block-task-dialog'
+import { SubStepTimeDialog } from '@/components/worker/substep-time-dialog'
 import { CostDialog } from '@/components/worker/cost-dialog'
 import { toast } from 'sonner'
 
@@ -68,6 +69,7 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null)
   const [blockingTask, setBlockingTask] = useState<{ id: string, type: 'step' | 'substep', parentId?: string, title: string } | null>(null)
   const [showCostDialog, setShowCostDialog] = useState(false)
+  const [subStepDialog, setSubStepDialog] = useState<{ open: boolean, stepId: string, subStepId: string, title: string } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -129,17 +131,25 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
     }
   }
 
-  const toggleSubStep = async (stepId: string, subStepId: string) => {
+  const toggleSubStep = async (stepId: string, subStepId: string, startTime?: Date, endTime?: Date) => {
     try {
       const res = await fetch(`/api/worker/jobs/${params.id}/steps/${stepId}/substeps/${subStepId}/toggle`, {
-        method: 'POST'
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startTime: startTime?.toISOString(),
+          endTime: endTime?.toISOString()
+        })
       })
 
       if (res.ok) {
         fetchJob()
+      } else {
+        toast.error('İşlem başarısız')
       }
     } catch (error) {
       console.error(error)
+      toast.error('Bir hata oluştu')
     }
   }
 
@@ -458,7 +468,16 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
                                 "flex items-center gap-3 p-2 rounded border cursor-pointer transition-colors",
                                 isSubBlocked ? "bg-red-50 border-red-200" : "bg-white border-gray-200 hover:border-indigo-300"
                               )}
-                              onClick={() => !step.isCompleted && !isSubBlocked && toggleSubStep(step.id, subStep.id)}
+                              onClick={() => {
+                                if (step.isCompleted || isSubBlocked) return
+                                // Open dialog to select start/end times
+                                setSubStepDialog({
+                                  open: true,
+                                  stepId: step.id,
+                                  subStepId: subStep.id,
+                                  title: subStep.title
+                                })
+                              }}
                             >
                               <div className={cn(
                                 "h-4 w-4 rounded border flex items-center justify-center",
@@ -592,6 +611,17 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
           // Optional: fetchJob() if we want to show costs
         }}
       />
+      {subStepDialog && (
+        <SubStepTimeDialog
+          open={subStepDialog.open}
+          onClose={() => setSubStepDialog(null)}
+          subStepTitle={subStepDialog.title}
+          onSave={async (startTime, endTime) => {
+            await toggleSubStep(subStepDialog.stepId, subStepDialog.subStepId, startTime, endTime)
+            setSubStepDialog(null)
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -340,6 +340,7 @@ export function JobDialog() {
         throw new Error(error.error || 'Bir hata oluştu')
       }
 
+      toast.success('İş başarıyla oluşturuldu!')
       setOpen(false)
       reset()
       setSteps([])

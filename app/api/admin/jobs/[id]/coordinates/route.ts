@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { z } from 'zod'
 
 const coordinatesSchema = z.object({
@@ -14,7 +15,7 @@ export async function PATCH(
 ) {
     const params = await props.params
     try {
-        const session = await auth()
+        const session = await getServerSession(authOptions)
         if (!session || session.user.role !== 'ADMIN') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }

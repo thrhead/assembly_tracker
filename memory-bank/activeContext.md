@@ -1,227 +1,154 @@
-# Aktif Bağlam
-
-## Şu Anda Üzerinde Çalışılan
-
-### Mevcut Durum
-
-- Proje temel yapısı ve ana özellikler tamamlandı.
-- Worker checklist sistemi geliştirildi (bloklama özelliği eklendi).
-- Bildirim sistemi aktif (polling ile).
-- Müşteri paneli ve yönetici raporları sayfası oluşturuldu.
-- Teknik stack: Next.js + PostgreSQL (SQLite dev) + Prisma + NextAuth.js
-
-### Son Değişiklikler (Kasım 2025)
-
-1. **Ekip Performans Grafikleri Tamamlandı**:
-   - Ekip detay sayfası oluşturuldu (`/admin/teams/[id]`)
-   - İş dağılımı, durum grafikleri ve üye performansı eklendi
-   - Recharts ile görselleştirme
-
-2. **Maliyet Takibi Modülü Tamamlandı**:
-   - Schema güncellendi (`receiptUrl`, `status`, `createdById`, `approvedById`, `rejectionReason`)
-   - Worker API: Masraf girişi (`POST /api/worker/costs`)
-   - Admin API: Listeleme ve onay (`GET/PATCH /api/admin/costs`)
-   - Worker UI: `CostDialog` komponenti ile masraf girişi
-   - Admin UI: Masraf yönetim sayfası (`/admin/costs`)
-
-3. **Alt Görevler ve Zaman Takibi**:
-   - İş şemasına `scheduledEndDate` eklendi
-   - JobDialog güncellendi: Alt görev oluşturma desteği
-   - Başlangıç-bitiş tarih/saat seçimi
-   - Şablonlara otomatik alt görevler eklendi (Klima, Silo)
-
-4. **UX İyileştirmeleri Tamamlandı**:
-   - **Toast Notifications**: 27 alert() → modern toast (sonner)
-   - **Loading Skeletons**: JobList, TeamStats, CostList skeleton componentleri
-   - **Error Boundaries**: React component error handling
-   - **Error Pages**: 404 ve global error handler
-   - **Form İyileştirmeleri**: Loading states ve validation
-
-## Sonraki Adımlar
-
-### Hemen Yapılacaklar
-
-1. Cost tracking (maliyet takibi) modülünün geliştirilmesi.
-2. Kullanıcı deneyimi iyileştirmeleri (loading states, error handling).
-3. Detaylı testler (manuel ve otomatik).
-
-### Kısa Vadeli (Bu Sprint)
-
-1. Kullanıcı giriş sistemi
-2. Basit dashboard sayfaları
-3. Database kurulumu
-4. Temel API endpoints
-
-### Orta Vadeli
-
-1. Montaj takip sistemi
-2. Checklist fonksiyonalitesi
-3. Bildirim sistemi
-4. Müşteri paneli
-
-## Aktif Kararlar ve Düşünceler
-
-### Teknoloji Seçimleri
-
-**Next.js vs Ayrı Backend**
-
-- Karar: Next.js (full-stack framework)
-- Sebep: Tek projede hem frontend hem backend, hızlı development
-- Alternatif: İleride trafik artarsa backend'i ayırma seçeneği
-
-**Database Seçimi**
-
-- Karar: PostgreSQL + Prisma
-- Sebep: Güçlü ilişkisel veri modeli, type-safety
-- Alternatif: Supabase (hosted PostgreSQL + auth)
-
-**Authentication**
-
-- Karar: NextAuth.js
-- Sebep: Next.js ile entegrasyon, çok sayıda provider desteği
-- Alternatif: Supabase Auth (eğer Supabase kullanırsak)
-
-**UI Framework**
-
-- Karar: TailwindCSS + shadcn/ui
-- Sebep: Modern, özelleştirilebilir, best practices
-- Alternatif: MUI, Chakra UI
-
-### Mimari Kararlar
-
-**Rol Yapısı**
-
-- Admin: Tüm yetkiler, sistem yönetimi
-- Manager: Ekip yönetimi, raporlama, onaylar
-- Team Lead: Günlük iş yönetimi, ekip takibi
-- Worker: Sadece kendi işlerini görür ve günceller
-- Customer: Sadece kendi montajlarını görür
-
-**Database Schema Yaklaşımı**
-
-- Modüler tablo yapısı
-- Flexibility için JSONB alanlar (ileride özelleştirme)
-- Soft delete (silme yerine arşivleme)
-- Audit trail (kim ne zaman değiştirdi)
-
-**Bildirim Mekanizması**
-
-- İlk aşama: Basit database-based notifications
-- İleride: Real-time WebSocket veya Supabase Realtime
-- Push notifications: PWA ile
-
-### UI/UX Tercihleri
-
-**Dashboard Layout**
-
-- Sidebar navigation
-- Top bar (user menu, notifications)
-- Main content area
-- Responsive (mobile hamburger menu)
-
-**Renk Şeması**
-
-- Professional ve clean design
-- Durum renkleri:
-  - Bekliyor: Turuncu
-  - Devam Ediyor: Mavi
-  - Tamamlandı: Yeşil
-  - İptal: Kırmızı
-
-**Grafik Stilleri**
-
-- Recharts kütüphanesi
-- Bar charts (iş sayıları)
-- Line charts (zaman bazlı ilerlemeler)
-- Pie charts (durum dağılımı)
-
-## Önemli Desenler ve Tercihler
-
-### Code Organization
-
-- Feature-based folder structure
-- Shared components ayrı klasör
-- API routes domain bazlı gruplandırma
-
-### Naming Conventions
-
-- camelCase: Değişkenler ve fonksiyonlar
-- PascalCase: Componentler ve tipler
-- kebab-case: Dosya isimleri
-- UPPER_CASE: Sabitler
-
-### TypeScript Kullanımı
-
-- Strict mode enabled
-- Interface'ler tipler için
-- Zod ile runtime validation
-- Prisma generate ile DB tipleri
-
-### Form Handling
-
-- React Hook Form + Zod
-- Controlled components
-- Inline validation
-- User-friendly error messages
-
-## Öğrenimler ve Proje İçgörüleri
-
-### Kullanıcı İhtiyaçları
-
-- Basitlik ve hız çok önemli (montaj ekipleri sahada)
-- Mobil kullanım öncelikli
-- Offline çalışma ileride kritik olabilir
-- Bildirimler gerçek zamanlı olmalı
-
-### Teknik Zorluklar (Öngörülen)
-
-1. Real-time notifications
-2. Mobil performans
-3. Database query optimization (çok sayıda ilişki)
-4. Role-based access control complexity
-
-### Risk Alanları
-
-1. Scalability: Çok sayıda kullanıcı ve iş olduğunda
-2. Data consistency: Concurrent updates
-3. Security: Rollerin doğru uygulanması
-4. Mobile performance: Büyük listeler ve grafikler
-
-### Best Practices
-
-- Server Components kullanımı (SEO ve performance)
-- API rate limiting
-- Input sanitization
-- Error logging
-- Regular database backups
-- Security audits
-
-## Gelecek İçin Notlar
-
-### MVP Sonrası Özellikler
-
-- Fotoğraf yükleme (AWS S3 veya Cloudinary)
-- PDF rapor oluşturma
-- Email notifications
-- SMS bildirimleri
-- Gelişmiş raporlama ve analytics
-- Multi-tenant support (farklı fabrikalar)
-- Mobile app (React Native)
-
-### Optimizasyon Alanları
-
-- Database indexing
-- Redis caching
-- CDN kullanımı
-- Image optimization
-- Lazy loading
-- Code splitting
-
-### İzlenecek Metrikler
-
-- Page load times
-- API response times
-- Database query times
-- User engagement
-- Error rates
-- Mobile vs desktop kullanım
+# Assembly Tracker - Aktif Geliştirme Bağlamı
+
+**Son Güncelleme:** 23 Kasım 2024
+
+## 🎯 Son Tamamlanan Özellikler
+
+### 1. Login Page Redesign (Tamamlandı ✅)
+- Yeni modern tasarım (beyaz arka plan, teal renk #008080)
+- SVG logo ile FactoryOps branding
+- Password visibility toggle
+- Toast notifications (sonner)
+- Responsive footer
+
+### 2. NextAuth v4 Migration (Tamamlandı ✅)
+- **lib/auth.ts**: `authOptions` export
+- **middleware.ts**: `withAuth` kullanımı
+- **API route**: `app/api/auth/[...nextauth]/route.ts`
+- **50+ dosya**: Tüm page ve API route'larda `auth()` → `getServerSession(authOptions)` değişimi
+- Turbopack uyumluluğu için v4 tercih edildi
+
+### 3. Modern Dashboard Implementation (Tamamlandı ✅)
+- **Green Theme**: #16A34A (Green-600) primary color
+- **Dark Mode**: Tailwind dark mode desteği
+- **Mobile-first**: Responsive tasarım, max-w-7xl container
+- **KPI Cards**: 
+  - Tamamlanan Görevler (bugün)
+  - Bekleyen Görevler
+  - Toplam Maliyetler (₺ formatı, bu hafta)
+- **Real-time Team Status**: Aktif ekiplerin durumu
+- **Ongoing Tasks**: Progress barlarla gösterim
+- **Bottom Navigation**: Dashboard, Ekipler, Görevler, Raporlar, Ayarlar
+- **Sticky Header**: User icon (profil linki), başlık, notification kaldırıldı
+
+### 4. Raporlar Sayfası (Tamamlandı ✅)
+- **Admin Reports**: `/admin/reports` sayfası
+- İş durumlarına göre istatistikler (Beklemede, Devam Ediyor, Tamamlandı)
+- Tüm işlerin listesi, her bir iş için:
+  - Durum badge'i
+  - Müşteri ve ekip bilgisi
+  - Aşama ilerlemesi (completed/total steps)
+  - Progress bar ve yüzde gösterimi
+  - Lokasyon bilgisi
+
+### 5. Alt Görev Zaman Takibi (Tamamlandı ✅)
+- **SubStepTimeDialog**: Datetime picker ile başlama/bitiş zamanı seçimi
+- **Validasyon**: 
+  - Bitiş > Başlama kontrolü
+  - Gelecek tarih kontrolü
+  - Geçersiz format kontrolü
+- **API Güncelleme**: Toggle API custom `startTime` ve `endTime` kabul ediyor
+- **Otomatik Parent Tamamlama**: 
+  - Tüm alt görevler tamamlanınca ana checklist otomatik tamamlanır
+  - En son alt görevin bitiş zamanı kullanılır
+- **Geri Alma**: Alt görev geri alınırsa ana checklist de geri alınır
+
+### 6. Eksik Paketler Yüklendi (Tamamlandı ✅)
+- `@radix-ui/react-tabs`
+- `@radix-ui/react-progress`
+- `leaflet`, `react-leaflet` (harita için)
+- `recharts` (grafikler için)
+- `@hookform/resolvers`, `react-hook-form`
+- `@radix-ui/react-label`, `@radix-ui/react-select`, `@radix-ui/react-dialog`
+- `class-variance-authority`, `date-fns`, `lucide-react`, `sonner`
+
+## 🐛 Düzeltilen Hatalar
+
+1. ✅ **Auth Import Hatası**: 50+ dosyada `auth()` kullanımı NextAuth v4 uyumlu hale getirildi
+2. ✅ **Prisma Schema**: Job modelinde `team` relation eksikliği düzeltildi (assignments üzerinden erişim)
+3. ✅ **Progress Field**: Job modelinde olmayan `progress` alanı için dinamik hesaplama eklendi
+4. ✅ **Toplam Maliyet**: Currency formatı $ → ₺ olarak değiştirildi, Türk Lirası formatı eklendi
+5. ✅ **Dashboard Container**: max-w-md → max-w-7xl, kartlar artık daha geniş ve okunabilir
+6. ✅ **Navigation**: Raporlar butonu `/admin/approvals` → `/admin/reports` düzeltildi
+
+## 📋 Aktif Sorunlar ve Notlar
+
+### Database
+- **Provider**: Neon Serverless PostgreSQL (Cloud-hosted, AWS us-east-1)
+- **Connection**: Connection Pooling (Prisma ile optimize)
+- **Optimization**: Indexing (User, Job, Team, Substeps, Notifications)
+- **Seed Data**: Test kullanıcıları ve örnek işler mevcut
+
+### Test Kullanıcıları
+- Admin: `admin@example.com` / `admin123`
+- Manager: `manager@example.com` / `manager123`
+- Worker: `ali@example.com` / `worker123`
+- Worker: `mehmet@example.com` / `worker123`
+- Customer: `musteri@example.com` / `customer123`
+
+### Kullanıcı Deneyimi
+- **Mobile-first**: Tüm sayfalar responsive
+- **Dark Mode**: Sistem genelinde dark mode desteği
+- **Türkçe**: Tüm metinler Türkçe
+- **Currency**: ₺ (Türk Lirası) kullanılıyor
+
+## 🔄 Devam Eden İşler
+
+### Planlanmış Özellikler
+- [ ] Fotoğraf yüklemesinin Cloudinary entegrasyonu ile test edilmesi
+- [ ] Real-time notifications (Socket.IO mevcut ama tam entegre değil)
+- [ ] PDF rapor oluşturma
+- [ ] Email notifications
+- [ ] Advanced filtering (tarih, durum, ekip bazlı)
+
+### Teknik Borç
+- [ ] TypeScript strict mode iyileştirmeleri
+- [ ] Lint hatalarının temizlenmesi
+- [ ] Test coverage artırılması
+- [ ] Performance optimizasyonu (lazy loading, code splitting)
+
+## 🎨 Design System
+
+### Renk Paleti
+- **Primary**: #16A34A (Green-600)
+- **Background Light**: #F8FAFC (Slate-50)
+- **Background Dark**: #0D1117 (Custom Dark Gray)
+- **Teal Accent**: #008080 (Login page)
+
+### Typography
+- **Font**: Inter (Google Fonts)
+- **Headings**: Bold, slate-900 dark:slate-100
+- **Body**: Regular, slate-700 dark:slate-300
+- **Muted**: slate-500 dark:slate-400
+
+### Components
+- **Cards**: Rounded-lg, shadow-sm, p-5
+- **Buttons**: Primary green, ghost, outline variants
+- **Badges**: Status-based colors (green, orange, blue, red)
+- **Progress Bars**: Green primary color, 1.5 height
+
+## 📝 Son Deployment Notları
+
+### Environment Setup
+```env
+DATABASE_URL=postgresql://...neon.tech/neondb
+NEXTAUTH_SECRET=<güçlü secret>
+NEXTAUTH_URL=http://localhost:3000
+```
+
+### Scripts
+- `npm run dev`: Development server (Turbopack)
+- `npm run build`: Production build
+- `npx prisma db seed`: Test data oluşturma
+
+### Known Issues
+- Turbopack bazı paketlerle uyumsuz olabilir (transpilePackages gerekebilir)
+- Neon free tier limitleri (500 MB, 1 GB transfer)
+
+## 🚀 Sonraki Adımlar
+
+1. **User Testing**: Tüm rollerin işlevlerini test et
+2. **Performance**: Büyük veri setleriyle test
+3. **Security Review**: Auth flow ve API güvenliği
+4. **Documentation**: API endpoints dokumentasyonu
+5. **Deployment**: Production environment setup

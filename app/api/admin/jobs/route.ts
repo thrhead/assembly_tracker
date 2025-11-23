@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { z } from 'zod'
 
 const createJobSchema = z.object({
@@ -27,7 +28,7 @@ const createJobSchema = z.object({
 
 export async function POST(req: Request) {
     try {
-        const session = await auth()
+        const session = await getServerSession(authOptions)
 
         if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

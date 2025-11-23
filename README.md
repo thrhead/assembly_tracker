@@ -1,41 +1,60 @@
 # Montaj ve Servis Ekipleri Takip Uygulaması
 
-Fabrika dışında çalışan montaj ve servis ekiplerinin takip edilmesi, maliyet kontrolü ve yönetim süreçlerinin kolaylaştırılması için Next.js tabanlı web uygulaması.
+Fabrika dışında çalışan montaj ve servis ekiplerinin takip edilmesi, maliyet kontrolü ve yönetim süreçlerinin kolaylaştırılması için Next.js tabanlı modern web uygulaması.
 
 ## 🚀 Özellikler
 
-- ✅ **Kullanıcı Authentication** - NextAuth.js ile güvenli giriş sistemi
+### Core Features
+- ✅ **User Authentication** - NextAuth.js v4 ile güvenli giriş sistemi
 - ✅ **Rol Tabanlı Yetkilendirme** - Admin, Manager, Team Lead, Worker, Customer
+- ✅ **Modern Dashboard** - Green theme (#16A34A), dark mode desteği
+- ✅ **Responsive Design** - Mobile-first, tüm cihazlara uyumlu
+- ✅ **Türkçe Interface** - Tam Türkçe lokalizasyon
+
+### Job Management
 - ✅ **İş Takip Sistemi** - Montaj süreçlerini adım adım takip
 - ✅ **Alt Görevler** - Checklist adımlarının altında detaylı alt görevler
-- ✅ **Zaman Planlama** - İş başlangıç ve bitiş tarih/saat belirleme
+- ✅ **Zaman Takibi** - Alt görevler için başlama/bitiş zamanı seçimi
+- ✅ **Otomatik Tamamlama** - Tüm alt görevler bitince ana görev otomatik tamamlanır
+- ✅ **Görev Bloklama** - Sorunlu adımları işaretleme ve açıklama ekleme
+- ✅ **İş Planlama** - Başlangıç ve bitiş tarih/saat belirleme
+
+### Team & Reporting
 - ✅ **Ekip Yönetimi** - Ekipleri yönetin, görevleri atayın
 - ✅ **Ekip Performans Grafikleri** - Detaylı ekip istatistikleri ve görselleştirmeler
-- ✅ **Raporlama ve Grafikler** - Detaylı raporlar ve görselleştirme
+- ✅ **Raporlama** - İş durumları, aşama ilerlemesi, maliyet raporları
+- ✅ **Dashboard KPIs** - Tamamlanan/Bekleyen görevler, toplam maliyetler
+
+### Additional Features
 - ✅ **Bildirim Sistemi** - Gerçek zamanlı bildirimler
 - ✅ **Onay Mekanizması** - İş onay akışları
-- ✅ **Maliyet Takibi** - Masraf girişi, onay ve raporlama sistemi
-- ✅ **Görev Bloklama** - Sorunlu adımları işaretleme ve açıklama ekleme
-- ✅ **Modern UX** - Toast notifications, loading skeletons, error boundaries
+- ✅ **Maliyet Takibi** - Masraf girişi, onay ve raporlama (₺ formatı)
+- ✅ **Fotoğraf Yükleme** - Cloudinary entegrasyonu (in progress)
+- ✅ **Modern UX** - Toast notifications (Sonner), loading skeletons, error boundaries
 
 ## 📦 Teknoloji Stack
 
-- **Framework**: Next.js 16 (App Router)
-- **UI**: TailwindCSS, Custom Components
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: NextAuth.js
-- **Validation**: Zod
-- **Forms**: React Hook Form
-- **Charts**: Recharts
-- **State Management**: Zustand
+- **Framework**: Next.js 16 (App Router, Turbopack)
 - **Language**: TypeScript
+- **UI**: TailwindCSS v3, Custom Components, Dark Mode
+- **Database**: PostgreSQL (Neon Serverless) with Prisma ORM
+- **Authentication**: NextAuth.js v4
+- **Validation**: Zod
+- **Forms**: React Hook Form + @hookform/resolvers
+- **Charts**: Recharts
+- **Maps**: Leaflet, React-Leaflet
+- **Icons**: Lucide React
+- **Notifications**: Sonner (toast)
+- **State Management**: React Hooks, Server Components
+- **Real-time**: Socket.IO (partial integration)
+- **File Upload**: Cloudinary (in progress)
 
 ## 🛠️ Kurulum
 
 ### Gereksinimler
 
 - Node.js 18+
-- PostgreSQL (local veya hosted - Supabase, Neon, Railway)
+- PostgreSQL (local veya hosted - Neon, Supabase, Railway)
 - npm veya pnpm
 
 ### Adımlar
@@ -55,30 +74,36 @@ cp .env.example .env
 `.env` dosyasında aşağıdaki değerleri güncelleyin:
 
 ```env
-# Database
+# Database (Neon PostgreSQL önerilir)
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
 
-# NextAuth
+# NextAuth v4
 NEXTAUTH_SECRET="your-secret-key-here"  # openssl rand -base64 32
 NEXTAUTH_URL="http://localhost:3000"
+
+# Cloudinary (Optional, fotoğraf yüklemesi için)
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
+CLOUDINARY_API_KEY="your-api-key"
+CLOUDINARY_API_SECRET="your-api-secret"
 ```
 
 3. **Veritabanını oluşturun ve migrate edin:**
 
 ```bash
-npm run db:migrate
+npx prisma generate
+npx prisma db push
 ```
 
 4. **Seed data ekleyin (test kullanıcıları):**
 
 ```bash
-npm run db:seed
+npx prisma db seed
 ```
 
 5. **Development server'ı başlatın:**
 
 ```bash
-npm  run dev
+npm run dev
 ```
 
 Uygulama [http://localhost:3000](http://localhost:3000) adresinde çalışacaktır.
@@ -87,38 +112,51 @@ Uygulama [http://localhost:3000](http://localhost:3000) adresinde çalışacakt�
 
 Seed script çalıştırıldıktan sonra aşağıdaki kullanıcılarla giriş yapabilirsiniz:
 
-| Rol       | E-posta             | Şifre       | Açıklama          |
-| --------- | ------------------- | ----------- | ----------------- |
-| Admin     | admin@montaj.com    | admin123    | Sistem yöneticisi |
-| Manager   | manager@montaj.com  | manager123  | Yönetici          |
-| Team Lead | teamlead@montaj.com | teamlead123 | Takım lideri      |
-| Worker    | worker1@montaj.com  | worker123   | Montaj elemanı    |
-| Customer  | customer@sirket.com | customer123 | Müşteri           |
+| Rol       | E-posta              | Şifre       | Açıklama          |
+| --------- | -------------------- | ----------- | ----------------- |
+| Admin     | admin@example.com    | admin123    | Sistem yöneticisi |
+| Manager   | manager@example.com  | manager123  | Yönetici          |
+| Worker    | ali@example.com      | worker123   | Montaj elemanı    |
+| Worker    | mehmet@example.com   | worker123   | Montaj elemanı    |
+| Customer  | musteri@example.com  | customer123 | Müşteri           |
 
 ## 📁 Proje Yapısı
 
 ```
 assembly_tracker/
 ├── app/                    # Next.js App Router
-│   ├── (auth)/            # Authentication sayfaları
+│   ├── (auth)/            # Authentication sayfaları (Login)
 │   ├── admin/             # Admin paneli
+│   │   ├── jobs/         # İş yönetimi
+│   │   ├── users/        # Kullanıcı yönetimi
+│   │   ├── customers/    # Müşteri yönetimi
+│   │   └── reports/      # Raporlar (YENİ)
 │   ├── manager/           # Manager paneli
 │   ├── worker/            # Worker paneli
 │   ├── customer/          # Customer paneli
 │   └── api/               # API routes
+│       ├── auth/         # NextAuth endpoints
+│       ├── admin/        # Admin APIs
+│       ├── worker/       # Worker APIs
+│       └── ...
 ├── components/            # React komponentleri
-│   ├── ui/               # Base UI components
-│   └── forms/            # Form components
+│   ├── ui/               # Base UI components (Radix UI)
+│   ├── forms/            # Form components
+│   ├── worker/           # Worker-specific components
+│   │   ├── substep-time-dialog.tsx  # Zaman seçici (YENİ)
+│   │   └── ...
+│   └── admin/            # Admin components
 ├── lib/                   # Utility fonksiyonlar
 │   ├── db.ts             # Prisma client
-│   ├── auth.ts           # NextAuth config
+│   ├── auth.ts           # NextAuth v4 config
 │   ├── utils.ts          # Utilities
 │   └── validations.ts    # Zod schemas
 ├── prisma/                # Database
 │   ├── schema.prisma     # DB schema
 │   └── seed.ts           # Seed data
 ├── types/                 # TypeScript types
-└── memory-bank/           # Proje dokümantasyonu
+├── memory-bank/           # Proje dokümantasyonu
+└── public/                # Static assets
 ```
 
 ## 🗄️ Database Schema
@@ -131,18 +169,22 @@ assembly_tracker/
 - **team_members** - Ekip üyelikleri
 - **jobs** - Montaj işleri
 - **job_steps** - İş adımları (checklist)
+- **job_sub_steps** - Alt görevler (substeps) - **startedAt**, **completedAt** alanları ile
 - **job_assignments** - İş atamaları
 - **notifications** - Bildirimler
 - **approvals** - Onay talepleri
-- **cost_tracking** - Maliyet takibi
+- **cost_tracking** - Maliyet takibi (₺ formatı)
+- **step_photos** - Adım fotoğrafları (Cloudinary)
 
 ## 🎯 Roller ve Yetkiler
 
 ### Admin
 
 - Tüm sistem yönetimi
-- Kullanıcı ekleme/silme
+- Kullanıcı ekleme/silme/düzenleme
 - Tüm verilere erişim
+- Raporlama ve istatistikler
+- Maliyet onaylama
 
 ### Manager
 
@@ -150,34 +192,40 @@ assembly_tracker/
 - İş oluşturma ve atama
 - Raporlama
 - Onay verme
+- Maliyet görüntüleme
 
 ### Team Lead
 
 - Kendi ekibini yönetme
 - İş takibi
 - Günlük raporlama
+- Ekip performansı
 
 ### Worker
 
 - Kendi işlerini görüntüleme
-- Checklist güncelleme
+- Checklist güncelleme (alt görev zamanları ile)
 - İlerleme bildirimi
+- Maliyet girişi
+- Fotoğraf yükleme
 
 ### Customer
 
 - Kendi işlerini takip etme
 - Durum görüntüleme
+- Bildirimler
 
 ## 📜 Available Scripts
 
 ```bash
-npm run dev          # Development server
+npm run dev          # Development server (Turbopack)
 npm run build        # Production build
 npm run start        # Production server
 npm run lint         # ESLint
-npm run db:migrate   # Prisma migrate
-npm run db:seed      # Seed database
-npm run db:studio    # Prisma Studio GUI
+npx prisma generate  # Generate Prisma Client
+npx prisma db push   # Push schema to database
+npx prisma db seed   # Seed database with test data
+npx prisma studio    # Prisma Studio GUI
 ```
 
 ## 🔧 Geliştirme
@@ -185,45 +233,65 @@ npm run db:studio    # Prisma Studio GUI
 ### Yeni Model Ekleme
 
 1. `prisma/schema.prisma`'yı güncelleyin
-2. Migration oluşturun: `npm run db:migrate`
+2. `npx prisma generate` ve `npx prisma db push` çalıştırın
 3. TypeScript tiplerini güncelleyin
 
 ### Yeni API Route
 
 1. `app/api/` altında route oluşturun
 2. Zod validation ekleyin (`lib/validations.ts`)
-3. API response tipini tanımlayın (`types/index.ts`)
+3. `getServerSession(authOptions)` ile auth kontrol edin
 
-## 📝 Yapılacaklar
+### Yeni Page
 
-- [x] Dashboard grafikleri
-- [x] Ekip performans grafikleri
-- [x] Job CRUD işlemleri
-- [x] Checklist fonksiyonalitesi
-- [x] Alt görevler (Sub-steps)
-- [x] Zaman planlama
-- [x] Maliyet takibi modülü
-- [x] Görev bloklama sistemi
-- [x] Toast notifications
-- [x] Loading skeletons
-- [x] Error pages ve boundaries
-- [ ] Real-time notifications (WebSocket)
-- [ ] File upload (fotoğraflar - S3/Cloudinary)
+1. `app/[role]/` altında page.tsx oluşturun
+2. Server component olarak authentication ekleyin
+3. Responsive tasarım ve dark mode desteği ekleyin
+
+## 📝 Son Güncellemeler (v1.0)
+
+### Tamamlanan
+- ✅ Login page modernizasyonu (teal theme, password toggle)
+- ✅ Dashboard yenileme (green theme, dark mode, KPI cards)
+- ✅ NextAuth v4 migration (50+ dosya)
+- ✅ Raporlar sayfası eklendi
+- ✅ Alt görev zaman takibi (datetime picker)
+- ✅ Otomatik parent step completion
+- ✅ Responsive improvements (max-w-7xl)
+- ✅ Türk Lirası (₺) formatı
+- ✅ Eksik paketlerin yüklenmesi
+
+### Devam Eden
+- [ ] Real-time notifications (Socket.IO tam entegrasyonu)
+- [ ] Fotoğraf yüklemesi test ve iyileştirme
 - [ ] PDF rapor oluşturma
 - [ ] Email notifications
 - [ ] Advanced filtering
-- [ ] Mobile uygulama (React Native)
 
 ## 📚 Dokümantasyon
 
 Detaylı proje dokümantasyonu `memory-bank/` klasöründe bulunabilir:
 
-- `projectbrief.md` - Proje özeti ve hedefler
-- `productContext.md` - Ürün bağlamı ve kullanıcı deneyimi
-- `techContext.md` - Teknik stack ve setup
-- `systemPatterns.md` - Sistem mimarisi
-- `activeContext.md` - Aktif geliştirme notları
-- `progress.md` - İlerleme durumu
+- **projectbrief.md** - Proje özeti ve hedefler
+- **productContext.md** - Ürün bağlamı ve kullanıcı deneyimi
+- **techContext.md** - Teknik stack ve setup
+- **systemPatterns.md** - Sistem mimarisi ve patterns
+- **activeContext.md** - Aktif geliştirme notları ve son değişiklikler
+- **progress.md** - İlerleme durumu ve metrikler
+
+## 🎨 Design System
+
+### Renk Paleti
+- **Primary**: #16A34A (Green-600)
+- **Teal Accent**: #008080 (Login page)
+- **Background Light**: #F8FAFC (Slate-50)
+- **Background Dark**: #0D1117 (Custom Dark Gray)
+
+### Components
+- Radix UI primitives
+- Custom Tailwind components
+- Dark mode variants
+- Responsive breakpoints
 
 ## 🤝 Katkıda Bulunma
 
@@ -235,8 +303,14 @@ Detaylı proje dokümantasyonu `memory-bank/` klasöründe bulunabilir:
 
 ## 📄 Lisans
 
-Bu proje MIT lisansı altında lisanslanmıştır.
+Bu proje özel kullanım içindir. Lisans bilgileri için proje sahibi ile iletişime geçin.
 
 ## 📞 Destek
 
 Sorularınız için issue açabilir veya iletişime geçebilirsiniz.
+
+---
+
+**Son Güncelleme:** 23 Kasım 2024
+**Versiyon:** 1.0.0
+**Durum:** Production Ready (MVP)

@@ -1,4 +1,5 @@
-import { auth } from "@/lib/auth"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/db"
@@ -14,7 +15,7 @@ import { formatDistanceToNow } from "date-fns"
 import { tr } from "date-fns/locale"
 
 export default async function ManagerDashboard() {
-    const session = await auth()
+    const session = await getServerSession(authOptions)
 
     if (!session || session.user.role !== "MANAGER") {
         redirect("/login")

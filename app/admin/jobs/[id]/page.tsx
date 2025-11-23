@@ -1,4 +1,5 @@
-import { auth } from "@/lib/auth"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/db"
 import { Button } from "@/components/ui/button"
@@ -58,7 +59,7 @@ export default async function AdminJobDetailsPage(props: {
     params: Promise<{ id: string }>
 }) {
     const params = await props.params
-    const session = await auth()
+    const session = await getServerSession(authOptions)
     if (!session || session.user.role !== "ADMIN") {
         redirect("/login")
     }

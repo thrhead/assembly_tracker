@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { z } from 'zod'
 import { notifyApprovalApproved, notifyApprovalRejected } from '@/lib/notifications'
 
@@ -14,7 +15,7 @@ export async function PATCH(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
+    const session = await getServerSession(authOptions)
     if (!session || !['ADMIN', 'MANAGER', 'TEAM_LEAD'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -56,12 +57,12 @@ export async function PATCH(
     if (status === 'APPROVED') {
       await prisma.job.update({
         where: { id: approval.jobId },
-        data: { 
+        data: {
           status: 'COMPLETED',
           completedDate: new Date()
         }
       })
-      
+
       // Notify requester
       await notifyApprovalApproved(approval.jobId, approval.requesterId)
     } else if (status === 'REJECTED') {
@@ -69,7 +70,7 @@ export async function PATCH(
         where: { id: approval.jobId },
         data: { status: 'IN_PROGRESS' }
       })
-      
+
       // Notify requester
       await notifyApprovalRejected(approval.jobId, approval.requesterId, notes)
     }

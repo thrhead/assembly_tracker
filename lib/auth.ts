@@ -1,4 +1,4 @@
-import NextAuth, { DefaultSession, NextAuthConfig } from "next-auth"
+import { NextAuthOptions, DefaultSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { compare } from "bcryptjs"
 import { prisma } from "@/lib/db"
@@ -19,7 +19,7 @@ declare module "next-auth" {
   }
 }
 
-export const authConfig: NextAuthConfig = {
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -85,5 +85,3 @@ export const authConfig: NextAuthConfig = {
   },
   secret: process.env.NEXTAUTH_SECRET,
 }
-
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig)

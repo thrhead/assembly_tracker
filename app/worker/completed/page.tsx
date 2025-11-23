@@ -1,4 +1,5 @@
-import { auth } from '@/lib/auth'
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -48,7 +49,7 @@ async function getCompletedJobs(userId: string) {
 }
 
 export default async function CompletedJobsPage() {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   if (!session || (session.user.role !== 'WORKER' && session.user.role !== 'TEAM_LEAD')) {
     redirect('/login')
   }

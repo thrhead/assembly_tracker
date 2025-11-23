@@ -4,10 +4,13 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="w-full max-w-md">
+    <div className="bg-white min-h-screen flex flex-col items-center justify-between p-4 sm:p-6 font-sans">
+      <div className="flex flex-col items-center justify-center flex-grow w-full max-w-md">
         {children}
       </div>
+      <footer className="mt-8 mb-4 text-gray-500 text-xs">
+        © 2024 FactoryOps Solutions. All rights reserved.
+      </footer>
     </div>
   )
 }

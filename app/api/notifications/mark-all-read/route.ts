@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 import { markAllNotificationsAsRead } from '@/lib/notifications'
 
 export async function PATCH(req: Request) {

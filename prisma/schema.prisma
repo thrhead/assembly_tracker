@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -39,6 +39,10 @@ model User {
   createdCosts    CostTracking[] @relation("CostCreator")
   approvedCosts   CostTracking[] @relation("CostApprover")
 
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+  @@index([createdAt])
   @@map("users")
 }
 
@@ -55,6 +59,8 @@ model Customer {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   jobs        Job[]
 
+  @@index([userId])
+  @@index([company])
   @@map("customers")
 }
 
@@ -71,6 +77,9 @@ model Team {
   members     TeamMember[]
   assignments JobAssignment[]
 
+  @@index([leadId])
+  @@index([isActive])
+  @@index([name])
   @@map("teams")
 }
 
@@ -84,6 +93,8 @@ model TeamMember {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
   @@map("team_members")
 }
 
@@ -111,6 +122,15 @@ model Job {
   costs          CostTracking[]
   approvals      Approval[]
 
+  @@index([customerId])
+  @@index([creatorId])
+  @@index([status])
+  @@index([priority])
+  @@index([scheduledDate])
+  @@index([completedDate])
+  @@index([createdAt])
+  @@index([status, priority])
+  @@index([customerId, status])
   @@map("jobs")
 }
 
@@ -130,6 +150,7 @@ model JobStep {
   // Fotoğraf veya not eklenebilir
   notes       String?
   photoUrl    String?
+  photoUrls   String?  // JSON array of Cloudinary URLs
 
   completedById String?
   completedBy   User?    @relation("StepCompleter", fields: [completedById], references: [id])
@@ -139,6 +160,11 @@ model JobStep {
 
   job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
+  @@index([jobId])
+  @@index([isCompleted])
+  @@index([completedById])
+  @@index([order])
+  @@index([jobId, isCompleted])
   @@map("job_steps")
 }
 
@@ -153,9 +179,14 @@ model JobSubStep {
   blockedReason String?
   blockedNote String?
   order       Int
+  photoUrls   String?  // JSON array of Cloudinary URLs
 
   step        JobStep  @relation(fields: [stepId], references: [id], onDelete: Cascade)
 
+  @@index([stepId])
+  @@index([isCompleted])
+  @@index([order])
+  @@index([stepId, isCompleted])
   @@map("job_sub_steps")
 }
 
@@ -169,6 +200,9 @@ model StepPhoto {
   step        JobStep  @relation(fields: [stepId], references: [id], onDelete: Cascade)
   uploadedBy  User     @relation(fields: [uploadedById], references: [id])
 
+  @@index([stepId])
+  @@index([uploadedById])
+  @@index([uploadedAt])
   @@map("step_photos")
 }
 
@@ -183,6 +217,11 @@ model JobAssignment {
   team      Team?    @relation(fields: [teamId], references: [id])
   worker    User?    @relation(fields: [workerId], references: [id])
 
+  @@index([jobId])
+  @@index([teamId])
+  @@index([workerId])
+  @@index([assignedAt])
+  @@index([jobId, teamId])
   @@map("job_assignments")
 }
 
@@ -198,6 +237,10 @@ model Notification {
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([userId, isRead])
   @@map("notifications")
 }
 
@@ -216,6 +259,12 @@ model Approval {
   requester   User     @relation("Requester", fields: [requesterId], references: [id])
   approver    User?    @relation("Approver", fields: [approverId], references: [id])
 
+  @@index([jobId])
+  @@index([status])
+  @@index([requesterId])
+  @@index([approverId])
+  @@index([createdAt])
+  @@index([status, jobId])
   @@map("approvals")
 }
 
@@ -242,5 +291,11 @@ model CostTracking {
   createdBy   User     @relation("CostCreator", fields: [createdById], references: [id])
   approvedBy  User?    @relation("CostApprover", fields: [approvedById], references: [id])
 
+  @@index([jobId])
+  @@index([createdById])
+  @@index([approvedById])
+  @@index([status])
+  @@index([createdAt])
+  @@index([jobId, status])
   @@map("cost_tracking")
 }

@@ -1,42 +1,54 @@
-import { auth } from "@/lib/auth"
+import { withAuth } from "next-auth/middleware"
 import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
 
-export async function middleware(request: NextRequest) {
-  const session = await auth()
-  
-  const isAuthPage = request.nextUrl.pathname.startsWith("/login") || 
-                     request.nextUrl.pathname.startsWith("/register")
-  
-  const isDashboardPage = request.nextUrl.pathname.startsWith("/admin") ||
-                          request.nextUrl.pathname.startsWith("/manager") ||
-                          request.nextUrl.pathname.startsWith("/worker") ||
-                          request.nextUrl.pathname.startsWith("/customer")
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token
+    const isAuth = !!token
+    const isAuthPage = req.nextUrl.pathname.startsWith("/login") ||
+      req.nextUrl.pathname.startsWith("/register")
 
-  // Eğer kullanıcı giriş yapmışsa ve auth sayfasındaysa, dashboard'a yönlendir
-  if (session && isAuthPage) {
-    const role = session.user?.role?.toLowerCase()
-    return NextResponse.redirect(new URL(`/${role}`, request.url))
-  }
-
-  // Eğer kullanıcı giriş yapmamışsa ve protected sayfadaysa, login'e yönlendir  
-  if (!session && isDashboardPage) {
-    return NextResponse.redirect(new URL("/login", request.url))
-  }
-
-  // Role-based access control
-  if (session && isDashboardPage) {
-    const role = session.user?.role?.toLowerCase()
-    const currentPath = request.nextUrl.pathname
-
-    // Kullanıcı kendi rolüne ait olmayan bir sayfaya erişmeye çalışıyorsa
-    if (!currentPath.startsWith(`/${role}`) && !currentPath.startsWith("/api")) {
-      return NextResponse.redirect(new URL(`/${role}`, request.url))
+    if (isAuthPage) {
+      if (isAuth) {
+        const role = token?.role?.toString().toLowerCase()
+        return NextResponse.redirect(new URL(`/${role}`, req.url))
+      }
+      return null
     }
-  }
 
-  return NextResponse.next()
-}
+    if (!isAuth) {
+      let from = req.nextUrl.pathname;
+      if (req.nextUrl.search) {
+        from += req.nextUrl.search;
+      }
+      return NextResponse.redirect(
+        new URL(`/login?from=${encodeURIComponent(from)}`, req.url)
+      );
+    }
+
+    const role = token?.role?.toString().toLowerCase()
+    const path = req.nextUrl.pathname
+
+    // Role based access control
+    if (path.startsWith("/admin") && role !== "admin") {
+      return NextResponse.redirect(new URL(`/${role}`, req.url))
+    }
+    if (path.startsWith("/manager") && role !== "manager") {
+      return NextResponse.redirect(new URL(`/${role}`, req.url))
+    }
+    if (path.startsWith("/worker") && role !== "worker") {
+      return NextResponse.redirect(new URL(`/${role}`, req.url))
+    }
+    if (path.startsWith("/customer") && role !== "customer") {
+      return NextResponse.redirect(new URL(`/${role}`, req.url))
+    }
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => true, // Let the middleware function handle the logic
+    },
+  }
+)
 
 export const config = {
   matcher: [

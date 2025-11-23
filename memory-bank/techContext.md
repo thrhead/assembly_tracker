@@ -20,8 +20,9 @@
 
 ### Veritabanı
 
-- **Ana Veritabanı**: PostgreSQL
+- **Ana Veritabanı**: PostgreSQL (Neon Serverless)
 - **ORM**: Prisma
+- **Özellikler**: Serverless, Branching, Auto-scaling
 - **Alternatif**: Supabase (hızlı başlangıç için)
 
 ### Authentication
