@@ -309,8 +309,51 @@ Bu proje özel kullanım içindir. Lisans bilgileri için proje sahibi ile ileti
 
 Sorularınız için issue açabilir veya iletişime geçebilirsiniz.
 
+
 ---
 
-**Son Güncelleme:** 23 Kasım 2024
-**Versiyon:** 1.0.0
+##FIKIRLER
+-montaj klavuz resimleri eklenebilir
+-admin veya manager, yeni ve istediği checklist i kendisi sıfırdan yaratsın.
+-başka survey ve maintanince app. lerine bakılacak.
+-admin ve manager anasayfasında, pojelere ait ilerleme durumunu ve en çok çalışan ilk 10 çalışana ait çalışma saatini göstersin.
+-worker lara ait arayüz cok basit olmalı.
+
+
+
+https://www.pocketsurvey.org/reports/analytics-dashboard.htm
+
+-Map View of Your Portfolio
+Clear. See your entire portfolio on a clear, easy-to-read map. This visual approach makes it effortless to identify trends, high-activity areas, or locations requiring more attention.
+
+Pinpoint. Whether you're managing a regional or national portfolio, the map helps you pinpoint issues and opportunities, so you can optimise your resources and plan smarter.
+
+Bird's Eye View. It's an invaluable tool for making your data come to life and driving effective decision-making.
+
+-pie chard
+Pie Charts
+Simple. Pie charts offer a simple way to understand the status of inspections, property conditions, building archetypes, and planned costs.
+
+Insights. These clear visuals take complex data and turn it into easy-to-digest insights. Instead of sifting through rows of data, you can quickly identify areas needing attention or improvement.
+
+Time Saver Save time and ensure you stay focused on what matters most, making data-driven decisions faster and easier.
+
+-Short-Term Work Costs
+Remedials. Our pivot chart focused on minor repairs gives you an instant overview of short-term remedial costs at a property level.
+
+Identify. Perfect for identifying and addressing small tasks while keeping your overall strategy on track.
+
+Balance. With this clear view of smaller projects, you can balance immediate needs with long-term goals, ensuring nothing falls through the cracks.
+
+-Dive into Decent Homes Details
+Detail. Drill down into each property to get a detailed view of the areas it meets the Decent Homes Standards.
+
+Highlight. This functionality lets you see exactly which areas comply and which need attention, providing actionable insights at the property level.
+
+Standards. By breaking down compliance into manageable steps, you can effectively plan improvements and maintain standards across your entire portfolio.
+
+---------------
+
+**Son Güncelleme:** 23 Kasım 2025
+**Versiyon:** 0.0.4_beta
 **Durum:** Production Ready (MVP)
