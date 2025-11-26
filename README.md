@@ -1,5 +1,9 @@
 # 🛠️ Montaj Takip Sistemi (Assembly Tracker)
 
+<<<<<<< HEAD
+=======
+  
+>>>>>>> d7db9ca4a10e89f86dc1a46c6568bf1feef1e3a8
 
 **Fabrika dışında çalışan montaj ve servis ekiplerinin gerçek zamanlı takibi, maliyet kontrolü ve iş yönetim süreçlerini dijitalleştiren modern web ve mobil uygulaması.**
 
