@@ -4,7 +4,18 @@ import type { NextRequest } from "next/server"
 
 export async function middleware(request: NextRequest) {
   console.log(`[Middleware] ${request.method} ${request.nextUrl.pathname} - Auth: ${request.headers.get("authorization") ? "Present" : "Missing"}`)
-  const session = await auth()
+
+  // Skip middleware for mobile login to avoid NextAuth issues
+  if (request.nextUrl.pathname.startsWith("/api/mobile/login")) {
+    return NextResponse.next()
+  }
+
+  let session = null
+  try {
+    session = await auth()
+  } catch (err) {
+    console.error("[Middleware] Auth error:", err)
+  }
 
   const isAuthPage = request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/register")

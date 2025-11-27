@@ -5,15 +5,18 @@ import { verifyAuth } from '@/lib/auth-helper'
 export async function GET(req: Request) {
   try {
     const session = await verifyAuth(req)
-    if (!session || (session.user.role !== 'WORKER' && session.user.role !== 'TEAM_LEAD')) {
+    if (!session || !['WORKER', 'TEAM_LEAD', 'ADMIN', 'MANAGER'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status')
 
-    const where: any = {
-      assignments: {
+    const where: any = {}
+
+    // If not ADMIN or MANAGER, filter by assignments
+    if (!['ADMIN', 'MANAGER'].includes(session.user.role)) {
+      where.assignments = {
         some: {
           OR: [
             { workerId: session.user.id }, // Doğrudan atananlar

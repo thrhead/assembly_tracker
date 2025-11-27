@@ -13,8 +13,11 @@ export async function verifyAuth(req: Request) {
     if (authHeader?.startsWith("Bearer ")) {
         const token = authHeader.split(" ")[1]
         try {
-            const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || "fallback_secret")
+            const secretKey = process.env.NEXTAUTH_SECRET || "fallback_secret"
+            console.log("verifyAuth: Verifying token with secret length:", secretKey.length)
+            const secret = new TextEncoder().encode(secretKey)
             const { payload } = await jwtVerify(token, secret)
+            console.log("verifyAuth: Token verified, role:", payload.role)
 
             // Return a session-like object
             return {

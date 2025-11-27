@@ -15,6 +15,7 @@ import AdminDashboardScreen from './src/screens/admin/AdminDashboardScreen';
 import UserManagementScreen from './src/screens/admin/UserManagementScreen';
 import CustomerManagementScreen from './src/screens/admin/CustomerManagementScreen';
 import CostManagementScreen from './src/screens/manager/CostManagementScreen';
+import NotificationsScreen from './src/screens/worker/NotificationsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -31,12 +32,15 @@ function AppNavigator() {
   const getInitialRoute = () => {
     if (!user) return "Login";
 
-    switch (user.role) {
-      case 'admin':
+    const role = user.role?.toUpperCase();
+
+    switch (role) {
+      case 'ADMIN':
         return 'AdminDashboard';
-      case 'manager':
+      case 'MANAGER':
         return 'ManagerDashboard';
-      case 'worker':
+      case 'WORKER':
+      case 'TEAM_LEAD':
       default:
         return 'WorkerDashboard';
     }
@@ -106,6 +110,11 @@ function AppNavigator() {
               name="Profile"
               component={ProfileScreen}
               options={{ title: 'Profil ve Ayarlar' }}
+            />
+            <Stack.Screen
+              name="Notifications"
+              component={NotificationsScreen}
+              options={{ title: 'Bildirimler' }}
             />
 
             {/* Legacy Home Screen */}

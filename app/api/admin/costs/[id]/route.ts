@@ -5,7 +5,7 @@ import { z } from 'zod'
 
 const updateCostSchema = z.object({
     status: z.enum(['APPROVED', 'REJECTED']),
-    rejectionReason: z.string().optional()
+    rejectionReason: z.string().nullable().optional()
 })
 
 export async function PATCH(
@@ -28,8 +28,29 @@ export async function PATCH(
                 status: data.status,
                 rejectionReason: data.status === 'REJECTED' ? data.rejectionReason : null,
                 approvedById: session.user.id
+            },
+            include: {
+                job: {
+                    select: { title: true }
+                }
             }
         })
+
+        // Notify the user who created the cost
+        if (cost.createdById) {
+            const isApproved = data.status === 'APPROVED'
+            await prisma.notification.create({
+                data: {
+                    userId: cost.createdById,
+                    title: isApproved ? 'Masraf Onaylandı ✅' : 'Masraf Reddedildi ❌',
+                    message: isApproved
+                        ? `"${cost.job.title}" işi için girilen ${cost.amount} ${cost.currency} tutarındaki masraf onaylandı.`
+                        : `"${cost.job.title}" işi için girilen ${cost.amount} ${cost.currency} tutarındaki masraf reddedildi. Sebep: ${data.rejectionReason}`,
+                    type: isApproved ? 'SUCCESS' : 'ERROR',
+                    link: `/jobs/${cost.jobId}`
+                }
+            })
+        }
 
         return NextResponse.json(cost)
     } catch (error) {

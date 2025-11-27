@@ -21,18 +21,37 @@ export async function POST(
         const file = formData.get('photo') as File
         const subStepId = formData.get('subStepId') as string | null
 
+        console.log('[Photo Upload] Received request:', {
+            stepId: params.stepId,
+            subStepId,
+            fileName: file?.name,
+            fileSize: file?.size,
+            fileType: file?.type
+        })
+
         if (!file) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 })
         }
 
-        const bytes = await file.arrayBuffer()
-        const buffer = Buffer.from(bytes)
+        let buffer: Buffer
+        try {
+            if (typeof file.arrayBuffer === 'function') {
+                const bytes = await file.arrayBuffer()
+                buffer = Buffer.from(bytes)
+            } else {
+                console.log('[Photo Upload] arrayBuffer missing, trying Response workaround')
+                const bytes = await new Response(file).arrayBuffer()
+                buffer = Buffer.from(bytes)
+            }
+        } catch (err) {
+            console.error('[Photo Upload] Error reading file buffer:', err)
+            return NextResponse.json({ error: 'Failed to read file' }, { status: 500 })
+        }
 
         // Create directory if not exists
         const uploadDir = join(process.cwd(), 'public', 'uploads', 'jobs', params.id)
         await mkdir(uploadDir, { recursive: true })
 
-        // Generate unique filename
         const filename = `${params.stepId}_${Date.now()}_${file.name}`
         const filepath = join(uploadDir, filename)
 

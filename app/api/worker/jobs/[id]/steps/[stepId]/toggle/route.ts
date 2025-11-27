@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 
 export async function POST(
   req: Request,
@@ -8,8 +8,8 @@ export async function POST(
 ) {
   const params = await props.params
   try {
-    const session = await auth()
-    if (!session || (session.user.role !== 'WORKER' && session.user.role !== 'TEAM_LEAD')) {
+    const session = await verifyAuth(req)
+    if (!session || !['WORKER', 'TEAM_LEAD', 'ADMIN', 'MANAGER'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -59,7 +59,11 @@ export async function POST(
         isCompleted: !step.isCompleted,
         completedAt: !step.isCompleted ? new Date() : null,
         completedById: !step.isCompleted ? session.user.id : null,
-        startedAt: !step.isCompleted && !step.startedAt ? new Date() : step.startedAt
+        startedAt: !step.isCompleted && !step.startedAt ? new Date() : step.startedAt,
+        approvalStatus: !step.isCompleted ? 'PENDING' : 'PENDING', // Reset to PENDING on change
+        rejectionReason: !step.isCompleted ? null : step.rejectionReason, // Clear rejection reason if completing again
+        approvedById: null,
+        approvedAt: null
       }
     })
 

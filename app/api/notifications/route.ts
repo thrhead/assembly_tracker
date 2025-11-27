@@ -1,78 +1,60 @@
-<<<<<<< Updated upstream
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
-=======
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/db';
->>>>>>> Stashed changes
+import { verifyAuth } from '@/lib/auth-helper'
 
-export async function GET(request: NextRequest) {
+export async function GET(req: Request) {
   try {
-<<<<<<< Updated upstream
-    const session = await auth()
+    const session = await verifyAuth(req)
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-=======
-    const session = await getServerSession(authOptions);
-    
-    if (!session || !session.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
->>>>>>> Stashed changes
     }
 
-    const limit = request.nextUrl.searchParams.get('limit') || '20';
-    
     const notifications = await prisma.notification.findMany({
-      where: {
-        userId: session.user.id,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      take: parseInt(limit),
-    });
+      where: { userId: session.user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 50
+    })
 
-    return NextResponse.json(notifications, { status: 200 });
+    return NextResponse.json(notifications)
   } catch (error) {
-    console.error('[Notifications] Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch notifications' },
-      { status: 500 }
-    );
+    console.error('Notifications fetch error:', error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
 
-export async function POST(request: NextRequest) {
+export async function PATCH(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session || !session.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const session = await verifyAuth(req)
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json();
-    const { title, message, type = 'INFO', jobId } = body;
+    const body = await req.json().catch(() => ({}))
+    const { id } = body
 
-    const notification = await prisma.notification.create({
-      data: {
-        userId: session.user.id,
-        title,
-        message,
-        type,
-        jobId,
-        read: false,
-      },
-    });
+    if (id) {
+      // Mark specific notification as read
+      await prisma.notification.update({
+        where: {
+          id,
+          userId: session.user.id
+        },
+        data: { isRead: true }
+      })
+    } else {
+      // Mark all as read
+      await prisma.notification.updateMany({
+        where: {
+          userId: session.user.id,
+          isRead: false
+        },
+        data: { isRead: true }
+      })
+    }
 
-    return NextResponse.json(notification, { status: 201 });
+    return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('[Notifications] Create Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to create notification' },
-      { status: 500 }
-    );
+    console.error('Notifications update error:', error)
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

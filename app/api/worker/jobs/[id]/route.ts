@@ -9,7 +9,7 @@ export async function GET(
   const params = await props.params
   try {
     const session = await verifyAuth(req)
-    if (!session || (session.user.role !== 'WORKER' && session.user.role !== 'TEAM_LEAD')) {
+    if (!session || !['WORKER', 'TEAM_LEAD', 'ADMIN', 'MANAGER'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -62,15 +62,17 @@ export async function GET(
     }
 
     // Check access
-    const hasAccess = job.assignments.some(
-      a => a.workerId === session.user.id ||
-        (a.team && a.team.members?.some((m: any) => m.userId === session.user.id))
-    )
+    // Check access (skip for ADMIN/MANAGER)
+    if (!['ADMIN', 'MANAGER'].includes(session.user.role)) {
+      const hasAccess = job.assignments.some(
+        a => a.workerId === session.user.id ||
+          (a.team && a.team.members?.some((m: any) => m.userId === session.user.id))
+      )
 
-    // Geçici olarak erişim kontrolünü esnetelim (Test için)
-    // if (!hasAccess) {
-    //   return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    // }
+      if (!hasAccess) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    }
 
     return NextResponse.json(job)
   } catch (error) {
@@ -86,7 +88,7 @@ export async function PATCH(
   const params = await props.params
   try {
     const session = await verifyAuth(req)
-    if (!session || (session.user.role !== 'WORKER' && session.user.role !== 'TEAM_LEAD')) {
+    if (!session || !['WORKER', 'TEAM_LEAD', 'ADMIN', 'MANAGER'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

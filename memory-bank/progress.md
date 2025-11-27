@@ -100,8 +100,9 @@
 - [x] Notification model
 - [x] Notification oluşturma
 - [x] Notification listesi
-- [x] Mark as read
+- [x] Mark as read (Click to remove)
 - [x] Real-time updates (basit polling)
+- [x] Notification Badge (Admin & Worker)
 
 ### Uzun Vadeli (Gelecek)
 
@@ -125,7 +126,10 @@
 - [x] Toast Notifications sistemi
 - [x] Loading states ve skeletons
 - [x] Error boundaries
+- [x] Error boundaries
 - [x] Error pages (404, 500)
+- [x] Next.js 16 API Compatibility (await params)
+- [x] Admin Dashboard Layout Fix
 - [ ] Performance optimization
 - [ ] SEO improvements
 - [ ] Accessibility (WCAG)

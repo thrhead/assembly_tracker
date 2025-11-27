@@ -1,7 +1,7 @@
 # Aktif Bağlam
 
-**Son Güncelleme:** 26 Kasım 2024  
-**Versiyon:** 2.3.0 (Mobile Beta & Photo Constraints)
+**Son Güncelleme:** 28 Kasım 2024  
+**Versiyon:** 2.4.0 (Notifications & API Fixes)
 
 ### Mevcut Durum
 
@@ -70,6 +70,17 @@
     - **Kısıtlamalar**: Min 1 (tamamlamak için), Max 3 (sınır) fotoğraf kuralı.
     - **Yerel Depolama**: Cloudinary yerine `public/uploads` klasörüne yerel kayıt desteği.
     - **Sıralı İlerleme**: Alt görevlerin sırayla tamamlanması zorunluluğu.
+
+6.  **Bildirim Sistemi İyileştirmeleri (v2.4)**:
+    - **Admin & Worker Badge**: Dashboard ve header'da okunmamış bildirim sayısı (kırmızı nokta) gösterimi.
+    - **Akıllı Bildirim Yönetimi**: Bildirime tıklandığında otomatik "okundu" işaretleme ve listeden kaldırma.
+    - **API Entegrasyonu**: Onay, Red ve Kabul işlemlerinde otomatik bildirim gönderimi (`notification-helper`).
+
+7.  **Kritik API ve UI Düzeltmeleri (v2.4)**:
+    - **Next.js 16 Uyumluluğu**: API route'larında `params` promise yapısına uygun hale getirildi (`await params`).
+    - **Auth Entegrasyonu**: Tüm kritik endpoint'ler `verifyAuth` ile hem Web hem Mobil (Bearer) token destekler hale geldi.
+    - **Admin Dashboard**: Layout merge conflict sorunu çözüldü, dashboard yapısı düzeltildi.
+    - **UI/UX**: Türkçe karakter sorunları giderildi, onay/red butonları modernize edildi.
 
 ## Sonraki Adımlar
 

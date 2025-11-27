@@ -83,8 +83,9 @@ const jobService = {
                 `/api/worker/jobs/${jobId}/steps/${stepId}/photos`,
                 formData,
                 {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
+                    transformRequest: (data, headers) => {
+                        // Do not stringify FormData
+                        return data;
                     },
                 }
             );
@@ -136,6 +137,51 @@ const jobService = {
     assignJob: async (jobId, workerId) => {
         try {
             const response = await api.post(`/api/admin/jobs/${jobId}/assign`, { workerId });
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    approveStep: async (stepId) => {
+        try {
+            const response = await api.post(`/api/manager/steps/${stepId}/approve`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    rejectStep: async (stepId, reason) => {
+        try {
+            const response = await api.post(`/api/manager/steps/${stepId}/reject`, { reason });
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    approveSubstep: async (substepId) => {
+        try {
+            const response = await api.post(`/api/manager/substeps/${substepId}/approve`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    rejectSubstep: async (substepId, reason) => {
+        try {
+            const response = await api.post(`/api/manager/substeps/${substepId}/reject`, { reason });
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    acceptJob: async (jobId) => {
+        try {
+            const response = await api.post(`/api/manager/jobs/${jobId}/accept`);
             return response.data;
         } catch (error) {
             throw error;

@@ -23,6 +23,7 @@ api.interceptors.request.use(
     async (config) => {
         try {
             const token = await AsyncStorage.getItem('authToken');
+            console.log('[API] Interceptor - Token:', token ? 'Present' : 'Missing');
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
@@ -92,7 +93,9 @@ api.interceptors.response.use(
 // Helper functions
 export const setAuthToken = async (token) => {
     try {
+        console.log('AsyncStorage.setItem authToken called');
         await AsyncStorage.setItem('authToken', token);
+        console.log('AsyncStorage.setItem authToken success');
     } catch (error) {
         console.error('Error saving auth token:', error);
     }

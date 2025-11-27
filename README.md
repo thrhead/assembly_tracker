@@ -1,9 +1,6 @@
 # 🛠️ Montaj Takip Sistemi (Assembly Tracker)
 
-<<<<<<< HEAD
-=======
-  
->>>>>>> d7db9ca4a10e89f86dc1a46c6568bf1feef1e3a8
+
 
 **Fabrika dışında çalışan montaj ve servis ekiplerinin gerçek zamanlı takibi, maliyet kontrolü ve iş yönetim süreçlerini dijitalleştiren modern web ve mobil uygulaması.**
 
@@ -203,10 +200,20 @@ Projenin detaylı teknik dokümantasyonu `memory-bank/` klasöründe yer almakta
 
 Bu proje özel kullanım içindir. Ticari kullanım ve dağıtım hakları saklıdır. Detaylar için proje sahibi ile iletişime geçin.
 
-**Son Güncelleme:** 26 Kasım 2025
-**Versiyon:** 2.3.0 (Mobil Entegrasyon & API Güncellemeleri)
+**Son Güncelleme:** 28 Kasım 2024
+**Versiyon:** 2.4.0 (Notifications & API Fixes)
 
-## 🚀 Son Güncellemeler (v2.3.0)
+## 🚀 Son Güncellemeler (v2.4.0)
+
+### 🔔 Bildirim Sistemi
+*   **Badge Desteği:** Admin ve Worker dashboard'larında okunmamış bildirim sayısı (kırmızı nokta).
+*   **Akıllı Yönetim:** Bildirime tıklandığında otomatik "okundu" işaretleme ve listeden kaldırma.
+*   **API Entegrasyonu:** İş onay/red süreçlerinde otomatik bildirim gönderimi.
+
+### 🔧 Backend & API
+*   **Next.js 16 Uyumluluğu:** Tüm API route'larında `params` promise yapısına geçildi.
+*   **Auth Güvenliği:** `verifyAuth` ile tüm endpoint'ler hem Web hem Mobil (Bearer) token destekler hale geldi.
+*   **Admin Dashboard:** Layout sorunları giderildi, stabilite artırıldı.
 
 ### 📱 Mobil Uygulama (React Native / Expo)
 *   **Worker Paneli:** İş listesi ve detay ekranları tamamlandı.

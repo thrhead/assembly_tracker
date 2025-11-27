@@ -34,6 +34,9 @@ async function getJob(id: string) {
                     subSteps: {
                         orderBy: {
                             order: 'asc'
+                        },
+                        include: {
+                            photos: true
                         }
                     },
                     photos: {

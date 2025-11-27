@@ -14,8 +14,12 @@ const authService = {
                 password,
             });
 
+            console.log('Login response:', response.data);
             if (response.data.token) {
+                console.log('Calling setAuthToken with:', response.data.token);
                 await setAuthToken(response.data.token);
+            } else {
+                console.error('No token in login response');
             }
 
             return response.data;

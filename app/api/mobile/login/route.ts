@@ -5,6 +5,7 @@ import { loginSchema } from "@/lib/validations"
 import { SignJWT } from "jose"
 
 export async function POST(req: Request) {
+    console.log("Mobile login request received")
     try {
         const body = await req.json()
         const { email, password } = loginSchema.parse(body)
@@ -51,6 +52,9 @@ export async function POST(req: Request) {
         })
     } catch (error) {
         console.error("Mobile login error:", error)
-        return NextResponse.json({ error: "Giriş yapılamadı" }, { status: 500 })
+        return NextResponse.json({
+            error: "Giriş yapılamadı",
+            details: error instanceof Error ? error.message : String(error)
+        }, { status: 500 })
     }
 }

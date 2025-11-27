@@ -24,6 +24,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json()
+        console.log('Create Cost Request Body:', body)
         const data = createCostSchema.parse(body)
 
         // Verify job exists
@@ -101,6 +102,7 @@ export async function POST(req: Request) {
     } catch (error) {
         console.error('Create cost error:', error)
         if (error instanceof z.ZodError) {
+            console.error('Create Cost Validation Error:', JSON.stringify(error.issues, null, 2))
             return NextResponse.json({ error: 'Invalid data', details: error.issues }, { status: 400 })
         }
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

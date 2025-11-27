@@ -35,9 +35,12 @@ model User {
   approvals       Approval[]    @relation("Approver")
   requestedApprovals Approval[] @relation("Requester")
   completedSteps  JobStep[]     @relation("StepCompleter")
+  approvedSteps   JobStep[]     @relation("StepApprover")
   uploadedPhotos  StepPhoto[]
   createdCosts    CostTracking[] @relation("CostCreator")
   approvedCosts   CostTracking[] @relation("CostApprover")
+  approvedSubSteps JobSubStep[]  @relation("SubStepApprover")
+  acceptedJobs    Job[]         @relation("JobAccepter")
 
   @@map("users")
 }
@@ -111,6 +114,14 @@ model Job {
   costs          CostTracking[]
   approvals      Approval[]
 
+  // Acceptance fields
+  acceptanceStatus String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  rejectionReason  String?
+  acceptedById     String?
+  acceptedAt       DateTime?
+  
+  acceptedBy       User?    @relation("JobAccepter", fields: [acceptedById], references: [id])
+
   @@map("jobs")
 }
 
@@ -131,8 +142,15 @@ model JobStep {
   notes       String?
   photoUrl    String?
 
+  // Approval fields
+  approvalStatus  String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  rejectionReason String?
+  approvedById    String?
+  approvedAt      DateTime?
+
   completedById String?
   completedBy   User?    @relation("StepCompleter", fields: [completedById], references: [id])
+  approvedBy    User?    @relation("StepApprover", fields: [approvedById], references: [id])
 
   subSteps    JobSubStep[]
   photos      StepPhoto[]
@@ -156,6 +174,14 @@ model JobSubStep {
 
   step        JobStep  @relation(fields: [stepId], references: [id], onDelete: Cascade)
   photos      StepPhoto[]
+
+  // Approval fields
+  approvalStatus  String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  rejectionReason String?
+  approvedById    String?
+  approvedAt      DateTime?
+  
+  approvedBy      User?    @relation("SubStepApprover", fields: [approvedById], references: [id])
 
   @@map("job_sub_steps")
 }

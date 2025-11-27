@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
+import notificationService from '../../services/notification.service';
 
 export default function WorkerDashboardScreen({ navigation }) {
     const [stats, setStats] = useState(null);
     const [recentJobs, setRecentJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
     const { logout } = useAuth();
 
     useEffect(() => {
@@ -56,6 +58,11 @@ export default function WorkerDashboardScreen({ navigation }) {
                 setLoading(false);
                 setRefreshing(false);
             }, 500);
+
+            // Fetch notifications for badge
+            const notifications = await notificationService.getNotifications();
+            const unread = notifications.filter(n => !n.isRead).length;
+            setUnreadCount(unread);
         } catch (error) {
             console.error('Error loading dashboard:', error);
             setLoading(false);
@@ -126,6 +133,12 @@ export default function WorkerDashboardScreen({ navigation }) {
                     <Text style={styles.headerSubtitle}>Hoş geldiniz! 👋</Text>
                 </View>
                 <View style={styles.headerButtons}>
+                    <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Notifications')}>
+                        <View>
+                            <Text style={styles.headerButtonIcon}>🔔</Text>
+                            {unreadCount > 0 && <View style={styles.badge} />}
+                        </View>
+                    </TouchableOpacity>
                     <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Profile')}>
                         <Text style={styles.headerButtonIcon}>⚙️</Text>
                     </TouchableOpacity>
@@ -402,5 +415,16 @@ const styles = StyleSheet.create({
         color: '#16A34A',
         width: 40,
         textAlign: 'right',
+    },
+    badge: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#EF4444',
+        borderWidth: 1,
+        borderColor: '#fff',
     },
 });

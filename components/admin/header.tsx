@@ -12,12 +12,37 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { signOut } from 'next-auth/react'
 
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+
 export function AdminHeader() {
+  const [unreadCount, setUnreadCount] = useState(0)
+  const router = useRouter()
+
+  useEffect(() => {
+    fetchNotifications()
+    // Poll every minute
+    const interval = setInterval(fetchNotifications, 60000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch('/api/notifications')
+      if (res.ok) {
+        const data = await res.json()
+        const unread = data.filter((n: any) => !n.isRead).length
+        setUnreadCount(unread)
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error)
+    }
+  }
   return (
     <header className="h-16 border-b bg-white flex items-center justify-between px-4 sticky top-0 z-30">
       <div className="flex items-center gap-3 lg:hidden">
         {/* Mobile menu trigger is handled by Sidebar component */}
-        <div className="w-8" /> 
+        <div className="w-8" />
         <h1 className="font-bold text-lg text-indigo-600">Montaj Takip</h1>
       </div>
       <div className="hidden lg:block">
@@ -25,9 +50,11 @@ export function AdminHeader() {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative" onClick={() => router.push('/admin/notifications')}>
           <BellIcon className="h-5 w-5 text-gray-500" />
-          <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full" />
+          {unreadCount > 0 && (
+            <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full" />
+          )}
         </Button>
 
         <DropdownMenu>

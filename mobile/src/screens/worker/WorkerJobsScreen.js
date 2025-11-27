@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, RefreshControl, ScrollView, Alert } from 'react-native';
 import jobService from '../../services/job.service';
+import { useAuth } from '../../context/AuthContext';
 
 export default function WorkerJobsScreen({ navigation }) {
+    const { user } = useAuth();
     const [jobs, setJobs] = useState([]);
     const [filteredJobs, setFilteredJobs] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -10,6 +12,8 @@ export default function WorkerJobsScreen({ navigation }) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('ALL');
     const [error, setError] = useState(null);
+
+    const isManagerOrAdmin = ['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase());
 
     const statusFilters = [
         { key: 'ALL', label: 'Tümü' },
@@ -163,7 +167,17 @@ export default function WorkerJobsScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <View style={styles.headerContainer}>
-                <Text style={styles.header}>Atanan İşler</Text>
+                <View style={styles.headerRow}>
+                    <Text style={styles.header}>
+                        {isManagerOrAdmin ? 'Tüm İşler' : 'Atanan İşler'}
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.notificationButton}
+                        onPress={() => navigation.navigate('Notifications')}
+                    >
+                        <Text style={styles.notificationIcon}>🔔</Text>
+                    </TouchableOpacity>
+                </View>
 
                 {/* Search Bar */}
                 <View style={styles.searchContainer}>
@@ -245,8 +259,21 @@ const styles = StyleSheet.create({
     header: {
         fontSize: 24,
         fontWeight: 'bold',
+    },
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         padding: 16,
         paddingBottom: 12,
+    },
+    notificationButton: {
+        padding: 8,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 20,
+    },
+    notificationIcon: {
+        fontSize: 20,
     },
     searchContainer: {
         flexDirection: 'row',

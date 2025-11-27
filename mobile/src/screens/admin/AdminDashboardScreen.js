@@ -86,21 +86,26 @@ export default function AdminDashboardScreen({ navigation }) {
                 <View style={[styles.quickActions, { marginTop: 12 }]}>
                     <TouchableOpacity
                         style={styles.actionButtonActive}
+                        onPress={() => navigation.navigate('WorkerJobs')}
+                    >
+                        <Text style={styles.actionIcon}>📋</Text>
+                        <Text style={styles.actionText}>İş Yönetimi</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.actionButtonActive}
                         onPress={() => navigation.navigate('CostManagement')}
                     >
                         <Text style={styles.actionIcon}>💰</Text>
                         <Text style={styles.actionText}>Masraflar</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton} disabled>
-                        <Text style={styles.actionIcon}>📋</Text>
-                        <Text style={styles.actionText}>Şablonlar</Text>
-                        <Text style={styles.comingSoonBadge}>Yakında</Text>
-                    </TouchableOpacity>
+                </View>
+                <View style={[styles.quickActions, { marginTop: 12 }]}>
                     <TouchableOpacity style={styles.actionButton} disabled>
                         <Text style={styles.actionIcon}>⚙️</Text>
                         <Text style={styles.actionText}>Ayarlar</Text>
                         <Text style={styles.comingSoonBadge}>Yakında</Text>
                     </TouchableOpacity>
+                    <View style={{ flex: 1, marginRight: 8 }} />
                 </View>
             </View>
         </ScrollView>

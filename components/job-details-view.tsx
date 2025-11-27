@@ -43,6 +43,10 @@ interface JobDetailsProps {
                 title: string
                 isCompleted: boolean
                 order: number
+                photos?: {
+                    id: string
+                    url: string
+                }[]
             }[]
             photos?: {
                 id: string
@@ -57,6 +61,7 @@ interface JobDetailsProps {
 }
 
 export function JobDetailsView({ job }: JobDetailsProps) {
+    console.log('JobDetailsView received job:', JSON.stringify(job, null, 2))
     const [expandedSteps, setExpandedSteps] = useState<Record<string, boolean>>({})
 
     const getStatusColor = (status: string) => {
@@ -265,24 +270,40 @@ export function JobDetailsView({ job }: JobDetailsProps) {
                                                     <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                                                         Alt Görevler
                                                     </h4>
-                                                    <div className="space-y-2">
+                                                    <div className="space-y-4">
                                                         {step.subSteps!.map(subStep => (
-                                                            <div
-                                                                key={subStep.id}
-                                                                className="flex items-center gap-3 bg-white p-2 rounded border border-gray-200"
-                                                            >
-                                                                <div className={cn(
-                                                                    "h-4 w-4 rounded border flex items-center justify-center",
-                                                                    subStep.isCompleted ? "bg-indigo-500 border-indigo-500 text-white" : "border-gray-300"
-                                                                )}>
-                                                                    {subStep.isCompleted && <CheckCircle2 className="h-3 w-3" />}
+                                                            <div key={subStep.id} className="space-y-2">
+                                                                <div
+                                                                    className="flex items-center gap-3 bg-white p-2 rounded border border-gray-200"
+                                                                >
+                                                                    <div className={cn(
+                                                                        "h-4 w-4 rounded border flex items-center justify-center",
+                                                                        subStep.isCompleted ? "bg-indigo-500 border-indigo-500 text-white" : "border-gray-300"
+                                                                    )}>
+                                                                        {subStep.isCompleted && <CheckCircle2 className="h-3 w-3" />}
+                                                                    </div>
+                                                                    <span className={cn(
+                                                                        "text-sm",
+                                                                        subStep.isCompleted ? "text-gray-500 line-through" : "text-gray-700"
+                                                                    )}>
+                                                                        {subStep.title}
+                                                                    </span>
                                                                 </div>
-                                                                <span className={cn(
-                                                                    "text-sm",
-                                                                    subStep.isCompleted ? "text-gray-500 line-through" : "text-gray-700"
-                                                                )}>
-                                                                    {subStep.title}
-                                                                </span>
+
+                                                                {/* Substep Photos */}
+                                                                {subStep.photos && subStep.photos.length > 0 && (
+                                                                    <div className="ml-8 grid grid-cols-4 gap-2">
+                                                                        {subStep.photos.map(photo => (
+                                                                            <div key={photo.id} className="relative aspect-square rounded overflow-hidden border border-gray-200">
+                                                                                <img
+                                                                                    src={photo.url}
+                                                                                    alt="Alt görev fotoğrafı"
+                                                                                    className="w-full h-full object-cover"
+                                                                                />
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         ))}
                                                     </div>
