@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import notificationService from '../../services/notification.service';
 
 export default function NotificationsScreen({ navigation }) {
@@ -7,9 +8,11 @@ export default function NotificationsScreen({ navigation }) {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    useEffect(() => {
-        loadNotifications();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadNotifications();
+        }, [])
+    );
 
     const loadNotifications = async () => {
         try {

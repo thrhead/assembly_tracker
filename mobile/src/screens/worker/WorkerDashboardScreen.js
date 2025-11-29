@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import notificationService from '../../services/notification.service';
 
@@ -11,9 +12,11 @@ export default function WorkerDashboardScreen({ navigation }) {
     const [unreadCount, setUnreadCount] = useState(0);
     const { logout } = useAuth();
 
-    useEffect(() => {
-        loadDashboardData();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadDashboardData();
+        }, [])
+    );
 
     const loadDashboardData = async () => {
         try {

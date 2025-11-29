@@ -42,6 +42,20 @@ async function getJobs(search?: string) {
           team: true
         }
       },
+      steps: {
+        where: {
+          subSteps: {
+            some: {
+              approvalStatus: 'PENDING'
+            }
+          }
+        },
+        select: { id: true }
+      },
+      costs: {
+        where: { status: 'PENDING' },
+        select: { id: true }
+      },
       _count: {
         select: {
           steps: true
@@ -144,6 +158,11 @@ export default async function JobsPage(props: {
                 <TableCell>
                   <div className="font-medium">{job.customer.company}</div>
                   <div className="text-sm text-gray-500">{job.customer.user.name}</div>
+                  {(job.steps.length > 0 || job.costs.length > 0) && (
+                    <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                      ⚠️ Onay Bekliyor
+                    </div>
+                  )}
                 </TableCell>
                 <TableCell>
                   {job.assignments.length > 0 && job.assignments[0].team ? (
@@ -185,6 +204,6 @@ export default async function JobsPage(props: {
           </TableBody>
         </Table>
       </div>
-    </div>
+    </div >
   )
 }

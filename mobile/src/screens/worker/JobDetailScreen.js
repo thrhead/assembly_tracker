@@ -360,7 +360,14 @@ export default function JobDetailScreen({ route, navigation }) {
                 {
                     job.steps && job.steps.map((step, index) => {
                         const isLocked = index > 0 && !job.steps[index - 1].isCompleted;
-                        console.log(`Rendering step ${step.id}: isCompleted=${step.isCompleted}, approvalStatus=${step.approvalStatus}, userRole=${userRole}`);
+                        const allSubstepsApproved = !step.subSteps || step.subSteps.every(s => s.isCompleted && s.approvalStatus === 'APPROVED');
+                        console.log(`Rendering step ${step.id}:`, {
+                            title: step.title,
+                            approvalStatus: step.approvalStatus,
+                            subStepsCount: step.subSteps ? step.subSteps.length : 0,
+                            allSubstepsApproved,
+                            shouldShowBadge: (step.approvalStatus && step.approvalStatus !== 'PENDING') && allSubstepsApproved
+                        });
 
                         return (
                             <View key={step.id} style={[styles.stepCard, isLocked && styles.lockedCard]}>
@@ -373,16 +380,18 @@ export default function JobDetailScreen({ route, navigation }) {
                                             {step.title || step.name}
                                         </Text>
                                         {/* Status Badge in Header */}
-                                        {(step.approvalStatus && step.approvalStatus !== 'PENDING') && (
-                                            <View style={[
-                                                styles.statusBadge,
-                                                step.approvalStatus === 'APPROVED' ? styles.badgeApproved : styles.badgeRejected
-                                            ]}>
-                                                <Text style={styles.statusBadgeText}>
-                                                    {step.approvalStatus === 'APPROVED' ? 'ONAYLANDI' : 'REDDEDİLDİ'}
-                                                </Text>
-                                            </View>
-                                        )}
+                                        {/* Status Badge in Header - Only show if ALL substeps are approved */}
+                                        {(step.approvalStatus && step.approvalStatus !== 'PENDING') &&
+                                            (!step.subSteps || step.subSteps.every(s => s.isCompleted && s.approvalStatus === 'APPROVED')) && (
+                                                <View style={[
+                                                    styles.statusBadge,
+                                                    step.approvalStatus === 'APPROVED' ? styles.badgeApproved : styles.badgeRejected
+                                                ]}>
+                                                    <Text style={styles.statusBadgeText}>
+                                                        {step.approvalStatus === 'APPROVED' ? 'ONAYLANDI' : 'REDDEDİLDİ'}
+                                                    </Text>
+                                                </View>
+                                            )}
                                     </View>
                                     {isLocked && <Text style={styles.lockedText}>(Kilitli)</Text>}
                                 </View>

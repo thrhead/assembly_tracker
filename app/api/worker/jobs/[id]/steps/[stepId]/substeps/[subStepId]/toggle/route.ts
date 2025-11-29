@@ -26,8 +26,19 @@ export async function POST(
             data: {
                 isCompleted: !subStep.isCompleted,
                 completedAt: !subStep.isCompleted ? new Date() : null,
-                startedAt: !subStep.isCompleted && !subStep.startedAt ? new Date() : subStep.startedAt
+                startedAt: !subStep.isCompleted && !subStep.startedAt ? new Date() : subStep.startedAt,
+                // If completing and was rejected, reset to pending for re-approval
+                approvalStatus: (!subStep.isCompleted && subStep.approvalStatus === 'REJECTED') ? 'PENDING' : subStep.approvalStatus,
+                rejectionReason: (!subStep.isCompleted && subStep.approvalStatus === 'REJECTED') ? null : subStep.rejectionReason
             }
+        })
+
+        console.log('Toggle Substep:', {
+            id: params.subStepId,
+            oldStatus: subStep.approvalStatus,
+            oldCompleted: subStep.isCompleted,
+            newStatus: updatedSubStep.approvalStatus,
+            newCompleted: updatedSubStep.isCompleted
         })
 
         // Check if all substeps are completed

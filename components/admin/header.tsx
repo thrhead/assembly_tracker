@@ -32,6 +32,7 @@ export function AdminHeader() {
       if (res.ok) {
         const data = await res.json()
         const unread = data.filter((n: any) => !n.isRead).length
+        console.log('AdminHeader: Fetched notifications', { total: data.length, unread })
         setUnreadCount(unread)
       }
     } catch (error) {
