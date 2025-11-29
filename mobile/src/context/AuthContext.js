@@ -36,11 +36,17 @@ export const AuthProvider = ({ children }) => {
             // Call real API
             const response = await authService.login(email, password);
 
-            if (response.user) {
-                // Save user data
+            if (response.user && response.token) {
+                // Save user data and token explicitly
                 await AsyncStorage.setItem('user', JSON.stringify(response.user));
+                await setAuthToken(response.token);
                 setUser(response.user);
 
+                return { success: true };
+            } else if (response.user) {
+                // Fallback if token is not in response root but handled by authService (though we prefer explicit)
+                await AsyncStorage.setItem('user', JSON.stringify(response.user));
+                setUser(response.user);
                 return { success: true };
             } else {
                 return { success: false, error: 'Login failed' };

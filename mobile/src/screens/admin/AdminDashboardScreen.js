@@ -1,9 +1,28 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import notificationService from '../../services/notification.service';
 import { useAuth } from '../../context/AuthContext';
 
 export default function AdminDashboardScreen({ navigation }) {
     const { logout } = useAuth();
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useFocusEffect(
+        useCallback(() => {
+            loadNotifications();
+        }, [])
+    );
+
+    const loadNotifications = async () => {
+        try {
+            const notifications = await notificationService.getNotifications();
+            const unread = notifications.filter(n => !n.isRead).length;
+            setUnreadCount(unread);
+        } catch (error) {
+            console.error('Error loading notifications:', error);
+        }
+    };
 
     const handleLogout = async () => {
         await logout();
@@ -18,6 +37,12 @@ export default function AdminDashboardScreen({ navigation }) {
                     <Text style={styles.headerSubtitle}>Sistem Yönetimi ⚙️</Text>
                 </View>
                 <View style={styles.headerButtons}>
+                    <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Notifications')}>
+                        <View>
+                            <Text style={styles.headerButtonIcon}>🔔</Text>
+                            {unreadCount > 0 && <View style={styles.badge} />}
+                        </View>
+                    </TouchableOpacity>
                     <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Profile')}>
                         <Text style={styles.headerButtonIcon}>⚙️</Text>
                     </TouchableOpacity>
@@ -273,5 +298,16 @@ const styles = StyleSheet.create({
         fontSize: 10,
         color: '#F59E0B',
         fontWeight: '600',
+    },
+    badge: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#EF4444',
+        borderWidth: 1,
+        borderColor: '#fff',
     },
 });

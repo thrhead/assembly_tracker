@@ -429,6 +429,8 @@ export default function JobDetailScreen({ route, navigation }) {
                                             const canComplete = photoCount >= 1;
                                             const canUpload = photoCount < 3;
 
+                                            console.log(`Substep ${substep.id} status:`, substep.approvalStatus);
+
                                             return (
                                                 <View key={substep.id} style={[styles.substepWrapper, isSubstepLocked && styles.lockedCard]}>
                                                     <View style={styles.substepRow}>
@@ -438,14 +440,17 @@ export default function JobDetailScreen({ route, navigation }) {
                                                                     {substep.title || substep.name}
                                                                 </Text>
                                                                 {/* Status Badge */}
-                                                                {(substep.approvalStatus && substep.approvalStatus !== 'PENDING') && (
+                                                                {substep.approvalStatus && (
                                                                     <View style={[
                                                                         styles.statusBadge,
                                                                         styles.smallBadge,
-                                                                        substep.approvalStatus === 'APPROVED' ? styles.badgeApproved : styles.badgeRejected
+                                                                        substep.approvalStatus === 'APPROVED' ? styles.badgeApproved :
+                                                                            substep.approvalStatus === 'REJECTED' ? styles.badgeRejected :
+                                                                                styles.badgePending
                                                                     ]}>
                                                                         <Text style={styles.statusBadgeText}>
-                                                                            {substep.approvalStatus === 'APPROVED' ? 'ONAYLANDI' : 'REDDEDİLDİ'}
+                                                                            {substep.approvalStatus === 'APPROVED' ? 'ONAYLANDI' :
+                                                                                substep.approvalStatus === 'REJECTED' ? 'REDDEDİLDİ' : 'ONAY BEKLİYOR'}
                                                                         </Text>
                                                                     </View>
                                                                 )}
@@ -1295,6 +1300,11 @@ const styles = StyleSheet.create({
         backgroundColor: '#FEE2E2', // red-100
         borderWidth: 1,
         borderColor: '#DC2626', // red-600
+    },
+    badgePending: {
+        backgroundColor: '#FEF3C7', // yellow-100
+        borderWidth: 1,
+        borderColor: '#D97706', // yellow-600
     },
     statusBadgeText: {
         fontSize: 10,

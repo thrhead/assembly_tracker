@@ -26,8 +26,9 @@ export default async function AdminDashboard() {
     totalJobs,
     activeTeams,
     completedJobsThisMonth,
-    pendingApprovals,
-    recentJobs
+    pendingApprovalsCount,
+    recentJobs,
+    pendingJobs
   ] = await Promise.all([
     prisma.job.count(),
     prisma.team.count({ where: { isActive: true } }),
@@ -40,12 +41,72 @@ export default async function AdminDashboard() {
       }
     }),
     prisma.approval.count({ where: { status: 'PENDING' } }),
+    // Standard recent jobs
     prisma.job.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
       include: {
         creator: true,
-        customer: true
+        customer: true,
+        steps: {
+          where: {
+            subSteps: {
+              some: {
+                approvalStatus: 'PENDING'
+              }
+            }
+          },
+          select: { id: true }
+        },
+        costs: {
+          where: { status: 'PENDING' },
+          select: { id: true }
+        }
+      }
+    }),
+    // Jobs with pending approvals
+    prisma.job.findMany({
+      where: {
+        OR: [
+          {
+            steps: {
+              some: {
+                subSteps: {
+                  some: {
+                    approvalStatus: 'PENDING'
+                  }
+                }
+              }
+            }
+          },
+          {
+            costs: {
+              some: {
+                status: 'PENDING'
+              }
+            }
+          }
+        ]
+      },
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        creator: true,
+        customer: true,
+        steps: {
+          where: {
+            subSteps: {
+              some: {
+                approvalStatus: 'PENDING'
+              }
+            }
+          },
+          select: { id: true }
+        },
+        costs: {
+          where: { status: 'PENDING' },
+          select: { id: true }
+        }
       }
     })
   ])
@@ -77,13 +138,18 @@ export default async function AdminDashboard() {
     },
     {
       title: 'Bekleyen Onay',
-      value: pendingApprovals.toString(),
+      value: pendingApprovalsCount.toString(),
       change: 'Acil',
       icon: ClockIcon,
       color: 'text-orange-600',
       bg: 'bg-orange-100'
     }
   ]
+
+  // Merge and deduplicate jobs (prioritize pending)
+  const displayJobs = [...pendingJobs, ...recentJobs]
+    .filter((job, index, self) => index === self.findIndex((t) => t.id === job.id))
+    .slice(0, 5)
 
   return (
     <div className="space-y-8">
@@ -135,10 +201,10 @@ export default async function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              {recentJobs.length === 0 ? (
+              {displayJobs.length === 0 ? (
                 <p className="text-sm text-gray-500">Henüz kayıtlı iş bulunmuyor.</p>
               ) : (
-                recentJobs.map((job) => (
+                displayJobs.map((job) => (
                   <div key={job.id} className="flex items-start gap-4">
                     <div className="mt-1 p-2 rounded-full bg-blue-100 text-blue-600">
                       <BriefcaseIcon className="h-4 w-4" />
@@ -148,6 +214,11 @@ export default async function AdminDashboard() {
                         {job.creator.name} <span className="text-gray-500 font-normal">yeni bir iş oluşturdu</span>
                       </p>
                       <p className="text-sm text-gray-600">{job.title} - {job.customer.company}</p>
+                      {(job.steps.length > 0 || job.costs.length > 0) && (
+                        <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                          ⚠️ Onay Bekliyor
+                        </div>
+                      )}
                       <p className="text-xs text-gray-400">
                         {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true, locale: tr })}
                       </p>

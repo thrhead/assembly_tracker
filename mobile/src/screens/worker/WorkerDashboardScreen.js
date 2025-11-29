@@ -273,6 +273,8 @@ const styles = StyleSheet.create({
     headerButton: {
         padding: 8,
         marginRight: 8,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 20,
     },
     headerButtonIcon: {
         fontSize: 24,

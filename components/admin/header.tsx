@@ -40,8 +40,8 @@ export function AdminHeader() {
     }
   }
   return (
-    <header className="h-16 border-b bg-white flex items-center justify-between px-4 sticky top-0 z-30">
-      <div className="flex items-center gap-3 lg:hidden">
+    <div className="h-16 border-b bg-white flex items-center justify-between px-4 sticky top-0 z-50">
+      <div className="flex items-center gap-3">
         {/* Mobile menu trigger is handled by Sidebar component */}
         <div className="w-8" />
         <h1 className="font-bold text-lg text-indigo-600">Montaj Takip</h1>
@@ -51,10 +51,10 @@ export function AdminHeader() {
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="relative" onClick={() => router.push('/admin/notifications')}>
-          <BellIcon className="h-5 w-5 text-gray-500" />
+        <Button variant="ghost" size="icon" className="relative text-gray-600 hover:bg-gray-100" onClick={() => router.push('/admin/notifications')}>
+          <BellIcon className="h-6 w-6" />
           {unreadCount > 0 && (
-            <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full" />
+            <span className="absolute top-2 right-2 h-2.5 w-2.5 bg-red-600 rounded-full ring-2 ring-white" />
           )}
         </Button>
 
@@ -77,6 +77,6 @@ export function AdminHeader() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </header>
+    </div>
   )
 }
