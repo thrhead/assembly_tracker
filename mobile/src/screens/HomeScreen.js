@@ -33,17 +33,18 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: '#010100',
         padding: 20,
     },
     text: {
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 10,
+        color: '#ffffff',
     },
     subtext: {
         fontSize: 16,
-        color: 'gray',
+        color: '#94a3b8',
         marginBottom: 20,
     },
     buttonContainer: {

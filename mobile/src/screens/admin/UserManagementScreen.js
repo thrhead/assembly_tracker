@@ -363,7 +363,7 @@ export default function UserManagementScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#010100',
     },
     centerContainer: {
         flex: 1,
@@ -372,18 +372,18 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         marginTop: 10,
-        color: '#6B7280',
+        color: '#94a3b8',
     },
     headerContainer: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         paddingBottom: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
+        borderBottomColor: '#333',
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#2d3748',
         marginHorizontal: 16,
         marginTop: 16,
         marginBottom: 12,
@@ -394,15 +394,16 @@ const styles = StyleSheet.create({
     searchIcon: {
         fontSize: 16,
         marginRight: 8,
+        color: '#94a3b8',
     },
     searchInput: {
         flex: 1,
         fontSize: 14,
-        color: '#111827',
+        color: '#ffffff',
     },
     clearIcon: {
         fontSize: 18,
-        color: '#6B7280',
+        color: '#94a3b8',
         padding: 4,
     },
     filtersContainer: {
@@ -414,14 +415,14 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         marginRight: 8,
         borderRadius: 20,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#2d3748',
     },
     filterChipActive: {
         backgroundColor: '#EF4444',
     },
     filterChipText: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#94a3b8',
         fontWeight: '500',
     },
     filterChipTextActive: {
@@ -432,7 +433,7 @@ const styles = StyleSheet.create({
         paddingBottom: 80,
     },
     userCard: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
@@ -441,6 +442,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
+        borderWidth: 1,
+        borderColor: '#333',
     },
     userHeader: {
         flexDirection: 'row',
@@ -465,12 +468,12 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
         marginBottom: 4,
     },
     userEmail: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#94a3b8',
         marginBottom: 6,
     },
     roleBadge: {
@@ -487,7 +490,7 @@ const styles = StyleSheet.create({
     userActions: {
         flexDirection: 'row',
         borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
+        borderTopColor: '#333',
         paddingTop: 12,
     },
     editButton: {
@@ -528,12 +531,12 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
         marginBottom: 8,
     },
     emptyText: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#94a3b8',
         textAlign: 'center',
         paddingHorizontal: 32,
     },
@@ -560,20 +563,22 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         padding: 20,
         maxHeight: '80%',
+        borderWidth: 1,
+        borderColor: '#333',
     },
     modalTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
         marginBottom: 20,
     },
     formGroup: {
@@ -582,17 +587,17 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#374151',
+        color: '#e2e8f0',
         marginBottom: 8,
     },
     input: {
-        backgroundColor: '#F9FAFB',
+        backgroundColor: '#2d3748',
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: '#4b5563',
         borderRadius: 8,
         padding: 12,
         fontSize: 14,
-        color: '#111827',
+        color: '#ffffff',
     },
     roleButtons: {
         flexDirection: 'row',
@@ -601,7 +606,7 @@ const styles = StyleSheet.create({
         flex: 1,
         padding: 12,
         borderRadius: 8,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#2d3748',
         marginRight: 8,
         alignItems: 'center',
     },
@@ -611,7 +616,7 @@ const styles = StyleSheet.create({
     roleButtonText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#6B7280',
+        color: '#94a3b8',
     },
     roleButtonTextActive: {
         color: '#fff',
@@ -622,7 +627,7 @@ const styles = StyleSheet.create({
     },
     cancelButton: {
         flex: 1,
-        backgroundColor: '#E5E7EB',
+        backgroundColor: '#334155',
         padding: 16,
         borderRadius: 8,
         marginRight: 8,
@@ -631,7 +636,7 @@ const styles = StyleSheet.create({
     cancelButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#6B7280',
+        color: '#e2e8f0',
     },
     saveButton: {
         flex: 1,

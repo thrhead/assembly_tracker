@@ -331,7 +331,7 @@ export default function JobAssignmentScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#010100',
     },
     centerContainer: {
         flex: 1,
@@ -340,18 +340,18 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         marginTop: 10,
-        color: '#6B7280',
+        color: '#94a3b8',
     },
     headerContainer: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         paddingBottom: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
+        borderBottomColor: '#333',
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#2d3748',
         marginHorizontal: 16,
         marginTop: 16,
         marginBottom: 12,
@@ -362,15 +362,16 @@ const styles = StyleSheet.create({
     searchIcon: {
         fontSize: 16,
         marginRight: 8,
+        color: '#94a3b8',
     },
     searchInput: {
         flex: 1,
         fontSize: 14,
-        color: '#111827',
+        color: '#ffffff',
     },
     clearIcon: {
         fontSize: 18,
-        color: '#6B7280',
+        color: '#94a3b8',
         padding: 4,
     },
     filtersContainer: {
@@ -382,14 +383,14 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         marginRight: 8,
         borderRadius: 20,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#2d3748',
     },
     filterChipActive: {
         backgroundColor: '#F59E0B',
     },
     filterChipText: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#94a3b8',
         fontWeight: '500',
     },
     filterChipTextActive: {
@@ -399,7 +400,7 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     jobCard: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
@@ -408,6 +409,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
+        borderWidth: 1,
+        borderColor: '#333',
     },
     jobHeader: {
         marginBottom: 12,
@@ -421,7 +424,7 @@ const styles = StyleSheet.create({
     jobTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
         flex: 1,
         marginRight: 8,
     },
@@ -437,24 +440,24 @@ const styles = StyleSheet.create({
     },
     jobCustomer: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#94a3b8',
         marginBottom: 4,
     },
     jobLocation: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#94a3b8',
         marginBottom: 4,
     },
     jobDate: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#94a3b8',
     },
     jobFooter: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
+        borderTopColor: '#333',
         paddingTop: 12,
     },
     assignmentInfo: {
@@ -462,13 +465,13 @@ const styles = StyleSheet.create({
     },
     assignedLabel: {
         fontSize: 12,
-        color: '#6B7280',
+        color: '#94a3b8',
         marginBottom: 2,
     },
     assignedWorker: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#111827',
+        color: '#ffffff',
     },
     unassignedText: {
         fontSize: 14,
@@ -514,36 +517,38 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
         marginBottom: 8,
     },
     emptyText: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#94a3b8',
         textAlign: 'center',
         paddingHorizontal: 32,
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         padding: 20,
         maxHeight: '70%',
+        borderWidth: 1,
+        borderColor: '#333',
     },
     modalTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
         marginBottom: 8,
     },
     modalSubtitle: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#94a3b8',
         marginBottom: 20,
     },
     workerOption: {
@@ -551,21 +556,21 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 16,
-        backgroundColor: '#F9FAFB',
+        backgroundColor: '#2d3748',
         borderRadius: 8,
         marginBottom: 8,
     },
     workerName: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#111827',
+        color: '#ffffff',
     },
     workerStatus: {
         fontSize: 14,
-        color: '#16A34A',
+        color: '#4ade80',
     },
     cancelButton: {
-        backgroundColor: '#E5E7EB',
+        backgroundColor: '#334155',
         padding: 16,
         borderRadius: 8,
         marginTop: 12,
@@ -574,6 +579,6 @@ const styles = StyleSheet.create({
     cancelButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#6B7280',
+        color: '#e2e8f0',
     },
 });

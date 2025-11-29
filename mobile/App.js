@@ -8,6 +8,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import WorkerDashboardScreen from './src/screens/worker/WorkerDashboardScreen';
 import WorkerJobsScreen from './src/screens/worker/WorkerJobsScreen';
 import JobDetailScreen from './src/screens/worker/JobDetailScreen';
+import ExpenseManagementScreen from './src/screens/worker/ExpenseManagementScreen';
 import ManagerDashboardScreen from './src/screens/manager/ManagerDashboardScreen';
 import TeamListScreen from './src/screens/manager/TeamListScreen';
 import JobAssignmentScreen from './src/screens/manager/JobAssignmentScreen';
@@ -58,7 +59,7 @@ function AppNavigator() {
               options={{ title: 'Dashboard' }}
             />
             <Stack.Screen
-              name="WorkerJobs"
+              name="Jobs"
               component={WorkerJobsScreen}
               options={{ title: 'İşlerim' }}
             />
@@ -66,6 +67,11 @@ function AppNavigator() {
               name="JobDetail"
               component={JobDetailScreen}
               options={{ title: 'İş Detayı' }}
+            />
+            <Stack.Screen
+              name="ExpenseManagement"
+              component={ExpenseManagementScreen}
+              options={{ title: 'Masraf Yönetimi', headerShown: false }}
             />
 
             {/* Manager Screens */}

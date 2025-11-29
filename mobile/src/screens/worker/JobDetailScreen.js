@@ -1,9 +1,42 @@
 ﻿import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Linking, Platform, Modal, Image, TextInput } from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    ScrollView,
+    TouchableOpacity,
+    ActivityIndicator,
+    Alert,
+    Linking,
+    Platform,
+    Modal,
+    Image,
+    TextInput,
+    StatusBar,
+    SafeAreaView
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { MaterialIcons } from '@expo/vector-icons';
 import jobService from '../../services/job.service';
 import costService from '../../services/cost.service';
 import authService from '../../services/auth.service';
+
+const COLORS = {
+    primary: "#CCFF04",
+    backgroundLight: "#f8f8f5",
+    backgroundDark: "#010100",
+    cardDark: "#111827", // gray-900
+    cardBorder: "#1f2937", // gray-800
+    textLight: "#f8fafc", // slate-50
+    textGray: "#94a3b8", // slate-400
+    red500: "#ef4444",
+    red900: "#7f1d1d",
+    green500: "#22c55e",
+    orange500: "#f97316",
+    blue500: "#3b82f6",
+    black: "#000000",
+    white: "#ffffff",
+};
 
 export default function JobDetailScreen({ route, navigation }) {
     const { jobId } = route.params;
@@ -37,9 +70,7 @@ export default function JobDetailScreen({ route, navigation }) {
     const checkUserRole = async () => {
         try {
             const user = await authService.getProfile();
-            console.log('JobDetailScreen: Fetched user profile:', user);
             if (user) {
-                console.log('JobDetailScreen: Setting userRole to:', user.role);
                 setUserRole(user.role);
             }
         } catch (error) {
@@ -70,15 +101,8 @@ export default function JobDetailScreen({ route, navigation }) {
 
     const handleSubstepToggle = async (stepId, substepId, currentStatus) => {
         try {
-            // Optimistic update
-            const isCompleted = !currentStatus; // Toggle
-            console.log('📱 [MOBILE] Toggling substep:', { stepId, substepId, from: currentStatus, to: isCompleted });
-
-            // Call API
+            const isCompleted = !currentStatus;
             await jobService.toggleSubstep(jobId, stepId, substepId, isCompleted);
-            console.log('✅ [MOBILE] Substep toggle API returned successfully');
-
-            // Reload job to get updated state (including timestamps)
             loadJobDetails();
         } catch (error) {
             console.error('[MOBILE] Error toggling substep:', error);
@@ -129,8 +153,6 @@ export default function JobDetailScreen({ route, navigation }) {
         try {
             setUploading(true);
             const formData = new FormData();
-
-            // File name extraction
             const filename = uri.split('/').pop();
             const match = /\.(\w+)$/.exec(filename);
             const type = match ? `image/${match[1]}` : `image`;
@@ -221,6 +243,11 @@ export default function JobDetailScreen({ route, navigation }) {
         }
     };
 
+    const openRejectionModal = (stepId) => {
+        setSelectedStepId(stepId);
+        setRejectionModalVisible(true);
+    };
+
     const openSubstepRejectionModal = (substepId) => {
         setSelectedSubstepId(substepId);
         setRejectionModalVisible(true);
@@ -242,7 +269,7 @@ export default function JobDetailScreen({ route, navigation }) {
                             loadJobDetails();
                         } catch (error) {
                             console.error('Error accepting job:', error);
-                            Alert.alert('Hata', 'Montaj kabul edilirken bir hata oluştu. Lütfen tüm adımların tamamlandığından emin olun.');
+                            Alert.alert('Hata', 'Montaj kabul edilirken bir hata oluştu.');
                         } finally {
                             setLoading(false);
                         }
@@ -278,7 +305,6 @@ export default function JobDetailScreen({ route, navigation }) {
     };
 
     const handleCompleteJob = async () => {
-        // Check if all steps are completed
         const allStepsCompleted = job.steps.every(step => step.isCompleted);
 
         if (!allStepsCompleted) {
@@ -296,9 +322,7 @@ export default function JobDetailScreen({ route, navigation }) {
                     onPress: async () => {
                         try {
                             setLoading(true);
-                            console.log('📱 [MOBILE] Calling completeJob API for job:', jobId);
                             await jobService.completeJob(jobId);
-                            console.log(' [MOBILE] completeJob API returned successfully');
                             Alert.alert("Başarılı", "İş tamamlandı ve onaya gönderildi.", [
                                 { text: "Tamam", onPress: () => navigation.goBack() }
                             ]);
@@ -314,15 +338,6 @@ export default function JobDetailScreen({ route, navigation }) {
         );
     };
 
-    const openMap = (location) => {
-        const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`;
-        Linking.openURL(url);
-    };
-
-    const callPhone = (phone) => {
-        Linking.openURL(`tel:${phone}`);
-    };
-
     const openImageModal = (uri) => {
         setSelectedImage(uri);
         setModalVisible(true);
@@ -331,7 +346,7 @@ export default function JobDetailScreen({ route, navigation }) {
     if (loading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#16A34A" />
+                <ActivityIndicator size="large" color={COLORS.primary} />
             </View>
         );
     }
@@ -339,232 +354,207 @@ export default function JobDetailScreen({ route, navigation }) {
     if (!job) {
         return (
             <View style={styles.centerContainer}>
-                <Text>İş bulunamadı.</Text>
+                <Text style={{ color: COLORS.textLight }}>İş bulunamadı.</Text>
             </View>
         );
     }
 
-    console.log('JobDetailScreen Render - userRole:', userRole);
-
     return (
-        <View style={styles.container}>
-            <ScrollView style={styles.container}>
-                {/* Header Info */}
-                <View style={styles.headerCard}>
-                    <Text style={styles.title}>{job.title}</Text>
+        <SafeAreaView style={styles.container}>
+            <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                    <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>İş Detayı</Text>
+                <View style={{ width: 24 }} />
+            </View>
 
-                    <Text style={styles.label}>Müşteri:</Text>
-
-                    <Text style={styles.description}>{job.description}</Text>
+            <ScrollView style={styles.contentContainer}>
+                {/* Job Info Card */}
+                <View style={styles.card}>
+                    <Text style={styles.jobTitle}>{job.title}</Text>
+                    <View style={styles.infoRow}>
+                        <MaterialIcons name="business" size={16} color={COLORS.textGray} />
+                        <Text style={styles.infoText}>Müşteri: {job.customer?.name || 'Müşteri'}</Text>
+                    </View>
+                    <View style={styles.infoRow}>
+                        <MaterialIcons name="description" size={16} color={COLORS.textGray} />
+                        <Text style={styles.description}>{job.description}</Text>
+                    </View>
                 </View>
 
-                {/* Steps & Checklist */}
+                {/* Steps Section */}
                 <Text style={styles.sectionTitle}>İş Adımları</Text>
+                {job.steps && job.steps.map((step, index) => {
+                    const isLocked = index > 0 && !job.steps[index - 1].isCompleted;
+                    const allSubstepsApproved = !step.subSteps || step.subSteps.every(s => s.isCompleted && s.approvalStatus === 'APPROVED');
 
-                {
-                    job.steps && job.steps.map((step, index) => {
-                        const isLocked = index > 0 && !job.steps[index - 1].isCompleted;
-                        const allSubstepsApproved = !step.subSteps || step.subSteps.every(s => s.isCompleted && s.approvalStatus === 'APPROVED');
-                        console.log(`Rendering step ${step.id}:`, {
-                            title: step.title,
-                            approvalStatus: step.approvalStatus,
-                            subStepsCount: step.subSteps ? step.subSteps.length : 0,
-                            allSubstepsApproved,
-                            shouldShowBadge: (step.approvalStatus && step.approvalStatus !== 'PENDING') && allSubstepsApproved
-                        });
-
-                        return (
-                            <View key={step.id} style={[styles.stepCard, isLocked && styles.lockedCard]}>
-                                <View style={styles.stepHeader}>
-                                    <View style={[styles.checkbox, step.isCompleted && styles.checkedBox]}>
-                                        {step.isCompleted && <Text style={styles.checkmark}>✓</Text>}
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={[styles.stepTitle, step.isCompleted && styles.completedText]}>
-                                            {step.title || step.name}
-                                        </Text>
-                                        {/* Status Badge in Header */}
-                                        {/* Status Badge in Header - Only show if ALL substeps are approved */}
-                                        {(step.approvalStatus && step.approvalStatus !== 'PENDING') &&
-                                            (!step.subSteps || step.subSteps.every(s => s.isCompleted && s.approvalStatus === 'APPROVED')) && (
-                                                <View style={[
-                                                    styles.statusBadge,
-                                                    step.approvalStatus === 'APPROVED' ? styles.badgeApproved : styles.badgeRejected
-                                                ]}>
-                                                    <Text style={styles.statusBadgeText}>
-                                                        {step.approvalStatus === 'APPROVED' ? 'ONAYLANDI' : 'REDDEDİLDİ'}
-                                                    </Text>
-                                                </View>
-                                            )}
-                                    </View>
-                                    {isLocked && <Text style={styles.lockedText}>(Kilitli)</Text>}
+                    return (
+                        <View key={step.id} style={[styles.stepCard, isLocked && styles.lockedCard]}>
+                            <View style={styles.stepHeader}>
+                                <View style={[styles.checkbox, step.isCompleted && styles.checkedBox]}>
+                                    {step.isCompleted && <MaterialIcons name="check" size={16} color={COLORS.black} />}
                                 </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={[styles.stepTitle, step.isCompleted && styles.completedText]}>
+                                        {step.title || step.name}
+                                    </Text>
+                                    {(step.approvalStatus && step.approvalStatus !== 'PENDING') &&
+                                        (!step.subSteps || step.subSteps.every(s => s.isCompleted && s.approvalStatus === 'APPROVED')) && (
+                                            <View style={[
+                                                styles.statusBadge,
+                                                step.approvalStatus === 'APPROVED' ? styles.badgeApproved : styles.badgeRejected
+                                            ]}>
+                                                <Text style={styles.statusBadgeText}>
+                                                    {step.approvalStatus === 'APPROVED' ? 'ONAYLANDI' : 'REDDEDİLDİ'}
+                                                </Text>
+                                            </View>
+                                        )}
+                                </View>
+                                {isLocked && <MaterialIcons name="lock" size={20} color={COLORS.textGray} />}
+                            </View>
 
-                                {/* Rejection Reason */}
-                                {step.approvalStatus === 'REJECTED' && step.rejectionReason && (
-                                    <Text style={styles.rejectionReasonText}>Red Sebebi: {step.rejectionReason}</Text>
-                                )}
+                            {step.approvalStatus === 'REJECTED' && step.rejectionReason && (
+                                <Text style={styles.rejectionReasonText}>Red Sebebi: {step.rejectionReason}</Text>
+                            )}
 
-                                {/* Manager Actions - Always visible for completed or processed steps */}
-                                {['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (step.isCompleted || step.approvalStatus !== 'PENDING') && (
-                                    <View style={styles.managerActions}>
-                                        <TouchableOpacity
-                                            style={[styles.actionButton, styles.rejectButton]}
-                                            onPress={() => openRejectionModal(step.id)}
-                                        >
-                                            <Text style={styles.actionButtonText}>Reddet</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            style={[styles.actionButton, styles.approveButton]}
-                                            onPress={() => handleApproveStep(step.id)}
-                                        >
-                                            <Text style={styles.actionButtonText}>Onayla</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
+                            {['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (step.isCompleted || step.approvalStatus !== 'PENDING') && (
+                                <View style={styles.managerActions}>
+                                    <TouchableOpacity
+                                        style={[styles.actionButton, styles.rejectButton]}
+                                        onPress={() => openRejectionModal(step.id)}
+                                    >
+                                        <Text style={styles.actionButtonText}>Reddet</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={[styles.actionButton, styles.approveButton]}
+                                        onPress={() => handleApproveStep(step.id)}
+                                    >
+                                        <Text style={styles.actionButtonText}>Onayla</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )}
 
-                                {/* Substeps */}
-                                {!isLocked && step.subSteps && (
-                                    <View style={styles.substepsContainer}>
-                                        {step.subSteps.map((substep, subIndex) => {
-                                            const substepPhotos = substep.photos || [];
-                                            const photoCount = substepPhotos.length;
-                                            const isSubstepLocked = subIndex > 0 && !step.subSteps[subIndex - 1].isCompleted;
-                                            const canComplete = photoCount >= 1;
-                                            const canUpload = photoCount < 3;
+                            {!isLocked && step.subSteps && (
+                                <View style={styles.substepsContainer}>
+                                    {step.subSteps.map((substep, subIndex) => {
+                                        const substepPhotos = substep.photos || [];
+                                        const photoCount = substepPhotos.length;
+                                        const isSubstepLocked = subIndex > 0 && !step.subSteps[subIndex - 1].isCompleted;
+                                        const canComplete = photoCount >= 1;
+                                        const canUpload = photoCount < 3;
 
-                                            console.log(`Substep ${substep.id} status:`, substep.approvalStatus);
-
-                                            return (
-                                                <View key={substep.id} style={[styles.substepWrapper, isSubstepLocked && styles.lockedCard]}>
-                                                    <View style={styles.substepRow}>
-                                                        <View style={styles.substepInfo}>
-                                                            <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
-                                                                <Text style={[styles.substepText, substep.isCompleted && styles.completedText]}>
-                                                                    {substep.title || substep.name}
+                                        return (
+                                            <View key={substep.id} style={[styles.substepWrapper, isSubstepLocked && styles.lockedCard]}>
+                                                <View style={styles.substepRow}>
+                                                    <View style={styles.substepInfo}>
+                                                        <Text style={[styles.substepText, substep.isCompleted && styles.completedText]}>
+                                                            {substep.title || substep.name}
+                                                        </Text>
+                                                        {substep.approvalStatus && (
+                                                            <View style={[
+                                                                styles.statusBadge,
+                                                                styles.smallBadge,
+                                                                substep.approvalStatus === 'APPROVED' ? styles.badgeApproved :
+                                                                    substep.approvalStatus === 'REJECTED' ? styles.badgeRejected :
+                                                                        styles.badgePending
+                                                            ]}>
+                                                                <Text style={styles.statusBadgeText}>
+                                                                    {substep.approvalStatus === 'APPROVED' ? 'ONAYLANDI' :
+                                                                        substep.approvalStatus === 'REJECTED' ? 'REDDEDİLDİ' : 'ONAY BEKLİYOR'}
                                                                 </Text>
-                                                                {/* Status Badge */}
-                                                                {substep.approvalStatus && (
-                                                                    <View style={[
-                                                                        styles.statusBadge,
-                                                                        styles.smallBadge,
-                                                                        substep.approvalStatus === 'APPROVED' ? styles.badgeApproved :
-                                                                            substep.approvalStatus === 'REJECTED' ? styles.badgeRejected :
-                                                                                styles.badgePending
-                                                                    ]}>
-                                                                        <Text style={styles.statusBadgeText}>
-                                                                            {substep.approvalStatus === 'APPROVED' ? 'ONAYLANDI' :
-                                                                                substep.approvalStatus === 'REJECTED' ? 'REDDEDİLDİ' : 'ONAY BEKLİYOR'}
-                                                                        </Text>
-                                                                    </View>
-                                                                )}
-                                                            </View>
-
-                                                            {isSubstepLocked && <Text style={styles.lockedText}>(Önceki adımı tamamlayın)</Text>}
-                                                            {substep.startedAt && (
-                                                                <Text style={styles.timeText}>
-                                                                    {new Date(substep.startedAt).toLocaleTimeString()} - {substep.completedAt ? new Date(substep.completedAt).toLocaleTimeString() : '...'}
-                                                                </Text>
-                                                            )}
-
-                                                            {substep.approvalStatus === 'REJECTED' && substep.rejectionReason && (
-                                                                <Text style={styles.rejectionReasonText}>{substep.rejectionReason}</Text>
-                                                            )}
-                                                        </View>
-
-                                                        {/* Action Buttons - ONLY FOR WORKERS */}
-                                                        {!['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
-                                                            <View style={styles.actionButtons}>
-                                                                {!substep.isCompleted ? (
-                                                                    <TouchableOpacity
-                                                                        style={[styles.completeButton, (!canComplete || isSubstepLocked) && styles.disabledButton]}
-                                                                        onPress={() => {
-                                                                            if (!canComplete) {
-                                                                                Alert.alert('Uyarı', 'Tamamlamak için en az 1 fotoğraf yüklemelisiniz.');
-                                                                                return;
-                                                                            }
-                                                                            handleSubstepToggle(step.id, substep.id, false);
-                                                                        }}
-                                                                        disabled={!canComplete || isSubstepLocked}
-                                                                    >
-                                                                        <Text style={styles.btnText}>Tamamla</Text>
-                                                                    </TouchableOpacity>
-                                                                ) : (
-                                                                    <TouchableOpacity
-                                                                        style={styles.undoButton}
-                                                                        onPress={() => handleSubstepToggle(step.id, substep.id, true)}
-                                                                    >
-                                                                        <Text style={styles.btnText}>Geri Al</Text>
-                                                                    </TouchableOpacity>
-                                                                )}
                                                             </View>
                                                         )}
+                                                        {isSubstepLocked && <Text style={styles.lockedText}>(Önceki adımı tamamlayın)</Text>}
+                                                    </View>
 
-                                                        {/* Manager Actions for Sub-step - Always visible if completed or processed */}
-                                                        {['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (substep.isCompleted || substep.approvalStatus !== 'PENDING') && (
-                                                            <View style={styles.substepManagerActions}>
+                                                    {!['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
+                                                        <View style={styles.actionButtons}>
+                                                            {!substep.isCompleted ? (
                                                                 <TouchableOpacity
-                                                                    style={[styles.miniActionButton, styles.rejectButton, { width: 'auto', paddingHorizontal: 8, borderRadius: 4 }]}
-                                                                    onPress={() => openSubstepRejectionModal(substep.id)}
+                                                                    style={[styles.completeButton, (!canComplete || isSubstepLocked) && styles.disabledButton]}
+                                                                    onPress={() => {
+                                                                        if (!canComplete) {
+                                                                            Alert.alert('Uyarı', 'Tamamlamak için en az 1 fotoğraf yüklemelisiniz.');
+                                                                            return;
+                                                                        }
+                                                                        handleSubstepToggle(step.id, substep.id, false);
+                                                                    }}
+                                                                    disabled={!canComplete || isSubstepLocked}
                                                                 >
-                                                                    <Text style={[styles.miniActionButtonText, { fontSize: 12 }]}>Reddet</Text>
+                                                                    <Text style={styles.btnText}>Tamamla</Text>
+                                                                </TouchableOpacity>
+                                                            ) : (
+                                                                <TouchableOpacity
+                                                                    style={styles.undoButton}
+                                                                    onPress={() => handleSubstepToggle(step.id, substep.id, true)}
+                                                                >
+                                                                    <Text style={styles.btnText}>Geri Al</Text>
+                                                                </TouchableOpacity>
+                                                            )}
+                                                        </View>
+                                                    )}
+
+                                                    {['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (substep.isCompleted || substep.approvalStatus !== 'PENDING') && (
+                                                        <View style={styles.substepManagerActions}>
+                                                            <TouchableOpacity
+                                                                style={[styles.miniActionButton, styles.rejectButton]}
+                                                                onPress={() => openSubstepRejectionModal(substep.id)}
+                                                            >
+                                                                <MaterialIcons name="close" size={16} color={COLORS.white} />
+                                                            </TouchableOpacity>
+                                                            <TouchableOpacity
+                                                                style={[styles.miniActionButton, styles.approveButton]}
+                                                                onPress={() => handleApproveSubstep(substep.id)}
+                                                            >
+                                                                <MaterialIcons name="check" size={16} color={COLORS.white} />
+                                                            </TouchableOpacity>
+                                                        </View>
+                                                    )}
+                                                </View>
+
+                                                {!isSubstepLocked && !substep.isCompleted && !['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
+                                                    <View style={styles.stepPhotoContainer}>
+                                                        <Text style={styles.photoCountText}>
+                                                            Fotoğraflar ({photoCount}/3)
+                                                        </Text>
+                                                        {canUpload && (
+                                                            <View style={styles.photoButtonsContainer}>
+                                                                <TouchableOpacity
+                                                                    style={styles.photoIconBtn}
+                                                                    onPress={() => pickImage(step.id, substep.id, 'camera')}
+                                                                >
+                                                                    <MaterialIcons name="camera-alt" size={20} color={COLORS.primary} />
                                                                 </TouchableOpacity>
                                                                 <TouchableOpacity
-                                                                    style={[styles.miniActionButton, styles.approveButton, { width: 'auto', paddingHorizontal: 8, borderRadius: 4 }]}
-                                                                    onPress={() => handleApproveSubstep(substep.id)}
+                                                                    style={styles.photoIconBtn}
+                                                                    onPress={() => pickImage(step.id, substep.id, 'gallery')}
                                                                 >
-                                                                    <Text style={[styles.miniActionButtonText, { fontSize: 12 }]}>Onayla</Text>
+                                                                    <MaterialIcons name="photo-library" size={20} color={COLORS.primary} />
                                                                 </TouchableOpacity>
                                                             </View>
                                                         )}
                                                     </View>
+                                                )}
 
-                                                    {/* Substep Photo Upload */}
-                                                    {!isSubstepLocked && !substep.isCompleted && !['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
-                                                        <View style={styles.stepPhotoContainer}>
-                                                            <Text style={styles.photoCountText}>
-                                                                Fotoğraflar ({photoCount}/3)
-                                                            </Text>
-                                                            {canUpload && (
-                                                                <View style={styles.photoButtonsContainer}>
-                                                                    <TouchableOpacity
-                                                                        style={styles.photoIconBtn}
-                                                                        onPress={() => pickImage(step.id, substep.id, 'camera')}
-                                                                    >
-                                                                        <Text style={styles.photoIconText}>📷</Text>
-                                                                    </TouchableOpacity>
-                                                                    <TouchableOpacity
-                                                                        style={styles.photoIconBtn}
-                                                                        onPress={() => pickImage(step.id, substep.id, 'gallery')}
-                                                                    >
-                                                                        <Text style={styles.photoIconText}>🖼️</Text>
-                                                                    </TouchableOpacity>
-                                                                </View>
-                                                            )}
-                                                        </View>
-                                                    )}
-
-                                                    {/* Substep Thumbnails */}
-                                                    {substepPhotos.length > 0 && (
-                                                        <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
-                                                            {substepPhotos.map((photo, pIndex) => (
-                                                                <TouchableOpacity key={pIndex} onPress={() => openImageModal(photo.url || photo)}>
-                                                                    <Image source={{ uri: photo.url || photo }} style={styles.thumbnail} />
-                                                                </TouchableOpacity>
-                                                            ))}
-                                                        </ScrollView>
-                                                    )}
-                                                </View>
-                                            );
-                                        })}
-                                    </View>
-                                )}
-
-
-                            </View>
-                        );
-                    })
-                }
+                                                {substepPhotos.length > 0 && (
+                                                    <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
+                                                        {substepPhotos.map((photo, pIndex) => (
+                                                            <TouchableOpacity key={pIndex} onPress={() => openImageModal(photo.url || photo)}>
+                                                                <Image source={{ uri: photo.url || photo }} style={styles.thumbnail} />
+                                                            </TouchableOpacity>
+                                                        ))}
+                                                    </ScrollView>
+                                                )}
+                                            </View>
+                                        );
+                                    })}
+                                </View>
+                            )}
+                        </View>
+                    );
+                })}
 
                 {/* Costs Section */}
                 <View style={styles.sectionHeaderRow}>
@@ -574,55 +564,57 @@ export default function JobDetailScreen({ route, navigation }) {
                             style={styles.addCostButton}
                             onPress={() => setCostModalVisible(true)}
                         >
-                            <Text style={styles.addCostButtonText}>+ Ekle</Text>
+                            <MaterialIcons name="add" size={20} color={COLORS.black} />
+                            <Text style={styles.addCostButtonText}>Ekle</Text>
                         </TouchableOpacity>
                     )}
                 </View>
 
-                {
-                    job.costs && job.costs.length > 0 ? (
-                        job.costs.map((cost) => (
-                            <View key={cost.id} style={styles.costCard}>
-                                <View style={styles.costHeader}>
-                                    <Text style={styles.costCategory}>{cost.category}</Text>
-                                    <Text style={[
-                                        styles.costStatus,
-                                        cost.status === 'APPROVED' ? styles.statusApproved :
-                                            cost.status === 'REJECTED' ? styles.statusRejected : styles.statusPending
-                                    ]}>
-                                        {cost.status === 'APPROVED' ? 'Onaylandı' :
-                                            cost.status === 'REJECTED' ? 'Reddedildi' : 'Bekliyor'}
-                                    </Text>
-                                </View>
-                                <View style={styles.costRow}>
-                                    <Text style={styles.costAmount}>{cost.amount} {cost.currency}</Text>
-                                    <Text style={styles.costDate}>{new Date(cost.date).toLocaleDateString()}</Text>
-                                </View>
-                                <Text style={styles.costDescription}>{cost.description}</Text>
-                                {cost.rejectionReason && (
-                                    <Text style={styles.rejectionReason}>Red Nedeni: {cost.rejectionReason}</Text>
-                                )}
+                {job.costs && job.costs.length > 0 ? (
+                    job.costs.map((cost) => (
+                        <View key={cost.id} style={styles.costCard}>
+                            <View style={styles.costHeader}>
+                                <Text style={styles.costCategory}>{cost.category}</Text>
+                                <Text style={[
+                                    styles.costStatus,
+                                    cost.status === 'APPROVED' ? styles.statusApproved :
+                                        cost.status === 'REJECTED' ? styles.statusRejected : styles.statusPending
+                                ]}>
+                                    {cost.status === 'APPROVED' ? 'Onaylandı' :
+                                        cost.status === 'REJECTED' ? 'Reddedildi' : 'Bekliyor'}
+                                </Text>
                             </View>
-                        ))
-                    ) : (
-                        <Text style={styles.emptyText}>Henüz masraf eklenmemiş.</Text>
-                    )
-                }
-
-                {!['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) ? (
-                    <View style={styles.footer}>
-                        <TouchableOpacity
-                            style={[styles.mainCompleteButton, job.status === 'COMPLETED' && styles.disabledButton]}
-                            onPress={handleCompleteJob}
-                            disabled={job.status === 'COMPLETED'}
-                        >
-                            <Text style={styles.mainCompleteButtonText}>
-                                {job.status === 'COMPLETED' ? "İş Tamamlandı" : "İşi Tamamla"}
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                            <View style={styles.costRow}>
+                                <Text style={styles.costAmount}>{cost.amount} {cost.currency}</Text>
+                                <Text style={styles.costDate}>{new Date(cost.date).toLocaleDateString()}</Text>
+                            </View>
+                            <Text style={styles.costDescription}>{cost.description}</Text>
+                            {cost.rejectionReason && (
+                                <Text style={styles.rejectionReason}>Red Nedeni: {cost.rejectionReason}</Text>
+                            )}
+                        </View>
+                    ))
                 ) : (
-                    <View style={styles.footer}>
+                    <Text style={styles.emptyText}>Henüz masraf eklenmemiş.</Text>
+                )}
+
+                <View style={{ height: 100 }} />
+            </ScrollView>
+
+            {/* Footer Actions */}
+            <View style={styles.footer}>
+                {!['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) ? (
+                    <TouchableOpacity
+                        style={[styles.mainCompleteButton, job.status === 'COMPLETED' && styles.disabledButton]}
+                        onPress={handleCompleteJob}
+                        disabled={job.status === 'COMPLETED'}
+                    >
+                        <Text style={styles.mainCompleteButtonText}>
+                            {job.status === 'COMPLETED' ? "İş Tamamlandı" : "İşi Tamamla"}
+                        </Text>
+                    </TouchableOpacity>
+                ) : (
+                    <View style={{ width: '100%' }}>
                         <View style={styles.acceptanceStatusContainer}>
                             <Text style={styles.acceptanceStatusLabel}>Montaj Durumu:</Text>
                             <Text style={[
@@ -634,47 +626,32 @@ export default function JobDetailScreen({ route, navigation }) {
                                     job.acceptanceStatus === 'REJECTED' ? 'REDDEDİLDİ' : 'ONAY BEKLİYOR'}
                             </Text>
                         </View>
-
                         <TouchableOpacity
                             style={[styles.mainCompleteButton, styles.acceptJobButton]}
                             onPress={handleAcceptJob}
                         >
-                            <Text style={styles.mainCompleteButtonText}>
-                                Montajı Kabul Et
-                            </Text>
+                            <Text style={styles.mainCompleteButtonText}>Montajı Kabul Et</Text>
                         </TouchableOpacity>
                     </View>
                 )}
-            </ScrollView>
+            </View>
 
-            {/* Image Viewer Modal */}
-            < Modal
-                visible={modalVisible}
-                transparent={true}
-                onRequestClose={() => setModalVisible(false)
-                }
-            >
+            {/* Modals */}
+            <Modal visible={modalVisible} transparent={true} onRequestClose={() => setModalVisible(false)}>
                 <View style={styles.modalContainer}>
                     <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-                        <Text style={styles.closeButtonText}>Kapat</Text>
+                        <MaterialIcons name="close" size={30} color={COLORS.white} />
                     </TouchableOpacity>
                     {selectedImage && (
                         <Image source={{ uri: selectedImage }} style={styles.fullImage} resizeMode="contain" />
                     )}
                 </View>
-            </Modal >
+            </Modal>
 
-            {/* Add Cost Modal */}
-            < Modal
-                visible={costModalVisible}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => setCostModalVisible(false)}
-            >
+            <Modal visible={costModalVisible} transparent={true} animationType="slide" onRequestClose={() => setCostModalVisible(false)}>
                 <View style={styles.modalContainer}>
                     <View style={styles.formCard}>
                         <Text style={styles.modalTitle}>Masraf Ekle</Text>
-
                         <Text style={styles.inputLabel}>Tutar (TL)</Text>
                         <TextInput
                             style={styles.input}
@@ -682,8 +659,8 @@ export default function JobDetailScreen({ route, navigation }) {
                             onChangeText={setCostAmount}
                             keyboardType="numeric"
                             placeholder="0.00"
+                            placeholderTextColor={COLORS.textGray}
                         />
-
                         <Text style={styles.inputLabel}>Kategori</Text>
                         <View style={styles.categoryContainer}>
                             {COST_CATEGORIES.map(cat => (
@@ -692,13 +669,10 @@ export default function JobDetailScreen({ route, navigation }) {
                                     style={[styles.categoryChip, costCategory === cat && styles.categoryChipSelected]}
                                     onPress={() => setCostCategory(cat)}
                                 >
-                                    <Text style={[styles.categoryText, costCategory === cat && styles.categoryTextSelected]}>
-                                        {cat}
-                                    </Text>
+                                    <Text style={[styles.categoryText, costCategory === cat && styles.categoryTextSelected]}>{cat}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
-
                         <Text style={styles.inputLabel}>Açıklama</Text>
                         <TextInput
                             style={[styles.input, styles.textArea]}
@@ -707,43 +681,24 @@ export default function JobDetailScreen({ route, navigation }) {
                             multiline
                             numberOfLines={3}
                             placeholder="Masraf detayları..."
+                            placeholderTextColor={COLORS.textGray}
                         />
-
                         <View style={styles.modalButtons}>
-                            <TouchableOpacity
-                                style={[styles.modalButton, styles.cancelButton]}
-                                onPress={() => setCostModalVisible(false)}
-                            >
+                            <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setCostModalVisible(false)}>
                                 <Text style={styles.cancelButtonText}>İptal</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.modalButton, styles.submitButton]}
-                                onPress={handleCreateCost}
-                                disabled={submittingCost}
-                            >
-                                {submittingCost ? (
-                                    <ActivityIndicator color="#fff" size="small" />
-                                ) : (
-                                    <Text style={styles.submitButtonText}>Kaydet</Text>
-                                )}
+                            <TouchableOpacity style={[styles.modalButton, styles.submitButton]} onPress={handleCreateCost} disabled={submittingCost}>
+                                {submittingCost ? <ActivityIndicator color={COLORS.black} /> : <Text style={styles.submitButtonText}>Kaydet</Text>}
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
-            </Modal >
+            </Modal>
 
-            {/* Rejection Modal */}
-            <Modal
-                visible={rejectionModalVisible}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => setRejectionModalVisible(false)}
-            >
+            <Modal visible={rejectionModalVisible} transparent={true} animationType="slide" onRequestClose={() => setRejectionModalVisible(false)}>
                 <View style={styles.modalContainer}>
                     <View style={styles.formCard}>
-                        <Text style={styles.modalTitle}>
-                            {selectedSubstepId ? 'Alt Görevi Reddet' : 'İş Adımını Reddet'}
-                        </Text>
+                        <Text style={styles.modalTitle}>{selectedSubstepId ? 'Alt Görevi Reddet' : 'İş Adımını Reddet'}</Text>
                         <Text style={styles.inputLabel}>Red Sebebi</Text>
                         <TextInput
                             style={[styles.input, styles.textArea]}
@@ -752,18 +707,13 @@ export default function JobDetailScreen({ route, navigation }) {
                             multiline
                             numberOfLines={3}
                             placeholder="Lütfen red sebebini belirtin..."
+                            placeholderTextColor={COLORS.textGray}
                         />
                         <View style={styles.modalButtons}>
-                            <TouchableOpacity
-                                style={[styles.modalButton, styles.cancelButton]}
-                                onPress={() => setRejectionModalVisible(false)}
-                            >
+                            <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setRejectionModalVisible(false)}>
                                 <Text style={styles.cancelButtonText}>İptal</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.modalButton, styles.rejectButton]}
-                                onPress={selectedSubstepId ? handleRejectSubstep : handleRejectStep}
-                            >
+                            <TouchableOpacity style={[styles.modalButton, styles.rejectButton]} onPress={selectedSubstepId ? handleRejectSubstep : handleRejectStep}>
                                 <Text style={styles.actionButtonText}>Reddet</Text>
                             </TouchableOpacity>
                         </View>
@@ -773,414 +723,306 @@ export default function JobDetailScreen({ route, navigation }) {
 
             {uploading && (
                 <View style={styles.loadingOverlay}>
-                    <ActivityIndicator size="large" color="#fff" />
+                    <ActivityIndicator size="large" color={COLORS.primary} />
                     <Text style={styles.loadingText}>Yükleniyor...</Text>
                 </View>
             )}
-        </View>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: COLORS.backgroundDark,
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: COLORS.backgroundDark,
     },
-    headerCard: {
-        backgroundColor: '#fff',
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
         padding: 16,
-        marginBottom: 16,
+        backgroundColor: COLORS.backgroundDark,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
+        borderBottomColor: COLORS.cardBorder,
     },
-    title: {
+    headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        marginBottom: 12,
-        color: '#111827',
+        color: COLORS.textLight,
     },
-    row: {
+    contentContainer: {
+        padding: 16,
+    },
+    card: {
+        backgroundColor: COLORS.cardDark,
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
+    },
+    jobTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: COLORS.textLight,
+        marginBottom: 12,
+    },
+    infoRow: {
         flexDirection: 'row',
+        alignItems: 'center',
         marginBottom: 8,
     },
-    label: {
-        width: 80,
-        fontWeight: '600',
-        color: '#4B5563',
-    },
-    value: {
-        flex: 1,
-        color: '#111827',
+    infoText: {
+        color: COLORS.textGray,
+        marginLeft: 8,
+        fontSize: 14,
     },
     description: {
+        color: COLORS.textGray,
+        fontSize: 14,
+        lineHeight: 20,
         marginTop: 8,
-        color: '#6B7280',
-        fontStyle: 'italic',
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        marginLeft: 16,
+        color: COLORS.textLight,
         marginBottom: 12,
-        color: '#374151',
+        marginTop: 8,
     },
     stepCard: {
-        backgroundColor: '#fff',
-        marginHorizontal: 16,
-        marginBottom: 16,
+        backgroundColor: COLORS.cardDark,
         borderRadius: 12,
         padding: 16,
-        ...Platform.select({
-            ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.05,
-                shadowRadius: 2,
-            },
-            android: {
-                elevation: 2,
-            },
-            web: {
-                boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
-            }
-        })
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
     },
     lockedCard: {
-        opacity: 0.6,
-        backgroundColor: '#F9FAFB',
+        opacity: 0.5,
     },
     stepHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         marginBottom: 12,
     },
-    stepTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginLeft: 12,
-        flex: 1,
-    },
-    lockedText: {
-        fontSize: 12,
-        color: '#EF4444',
-        fontStyle: 'italic',
-    },
     checkbox: {
         width: 24,
         height: 24,
-        borderRadius: 12,
+        borderRadius: 6,
         borderWidth: 2,
-        borderColor: '#D1D5DB',
+        borderColor: COLORS.primary,
+        marginRight: 12,
         justifyContent: 'center',
         alignItems: 'center',
     },
     checkedBox: {
-        backgroundColor: '#16A34A',
-        borderColor: '#16A34A',
+        backgroundColor: COLORS.primary,
     },
-    checkmark: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: 'bold',
+    stepTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: COLORS.textLight,
+    },
+    completedText: {
+        color: COLORS.primary,
     },
     substepsContainer: {
-        marginLeft: 10,
-        marginBottom: 12,
-        borderLeftWidth: 2,
-        borderLeftColor: '#E5E7EB',
-        paddingLeft: 10,
+        marginTop: 12,
+        paddingLeft: 12,
+        borderLeftWidth: 1,
+        borderLeftColor: COLORS.cardBorder,
     },
     substepWrapper: {
-        borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
-        paddingVertical: 12,
+        marginBottom: 16,
     },
     substepRow: {
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'space-between',
+        alignItems: 'flex-start',
     },
     substepInfo: {
         flex: 1,
-        marginRight: 10,
     },
     substepText: {
-        fontSize: 14,
-        color: '#374151',
-        fontWeight: '500',
-    },
-    timeText: {
-        fontSize: 11,
-        color: '#6B7280',
-        marginTop: 2,
-    },
-    completedText: {
-        color: '#9CA3AF',
-        textDecorationLine: 'line-through',
+        fontSize: 15,
+        color: COLORS.textLight,
+        marginBottom: 4,
     },
     actionButtons: {
-        width: 80,
-        alignItems: 'flex-end',
+        flexDirection: 'row',
+        gap: 8,
     },
     completeButton: {
-        backgroundColor: '#16A34A',
+        backgroundColor: COLORS.primary,
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 6,
     },
     undoButton: {
-        backgroundColor: '#6B7280',
+        backgroundColor: COLORS.cardBorder,
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 6,
     },
     btnText: {
-        color: '#fff',
         fontSize: 12,
-        fontWeight: 'bold',
+        fontWeight: '600',
+        color: COLORS.black,
+    },
+    disabledButton: {
+        opacity: 0.5,
     },
     stepPhotoContainer: {
         marginTop: 8,
-        paddingTop: 8,
-        borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
-    },
-    photoButtonsContainer: {
         flexDirection: 'row',
-        marginTop: 8,
-    },
-    photoIconBtn: {
-        padding: 8,
-        backgroundColor: '#F3F4F6',
-        borderRadius: 6,
-        marginRight: 8,
-        justifyContent: 'center',
+        justifyContent: 'space-between',
         alignItems: 'center',
-    },
-    photoIconText: {
-        fontSize: 16,
     },
     photoCountText: {
         fontSize: 12,
-        color: '#6B7280',
-        fontWeight: '500',
+        color: COLORS.textGray,
+    },
+    photoButtonsContainer: {
+        flexDirection: 'row',
+        gap: 12,
+    },
+    photoIconBtn: {
+        padding: 8,
+        backgroundColor: 'rgba(204, 255, 4, 0.1)',
+        borderRadius: 8,
     },
     thumbnailsContainer: {
-        flexDirection: 'row',
         marginTop: 8,
+        flexDirection: 'row',
     },
     thumbnail: {
-        width: 50,
-        height: 50,
-        borderRadius: 4,
+        width: 60,
+        height: 60,
+        borderRadius: 8,
         marginRight: 8,
-        backgroundColor: '#E5E7EB',
-    },
-    footer: {
-        padding: 16,
-        paddingBottom: 32,
-    },
-    mainCompleteButton: {
-        backgroundColor: '#16A34A',
-        padding: 16,
-        borderRadius: 12,
-        alignItems: 'center',
-    },
-    mainCompleteButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    disabledButton: {
-        backgroundColor: '#9CA3AF',
-    },
-    linkText: {
-        color: '#2563EB',
-        textDecorationLine: 'underline',
-    },
-    modalContainer: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.9)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    fullImage: {
-        width: '90%',
-        height: '80%',
-    },
-    closeButton: {
-        position: 'absolute',
-        top: 40,
-        right: 20,
-        padding: 10,
-        zIndex: 1,
-    },
-    closeButtonText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    loadingOverlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingText: {
-        color: '#fff',
-        marginTop: 10,
-        fontWeight: 'bold',
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
     },
     sectionHeaderRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginRight: 16,
+        marginBottom: 12,
+        marginTop: 8,
     },
     addCostButton: {
-        backgroundColor: '#E5E7EB',
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: COLORS.primary,
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 6,
     },
     addCostButtonText: {
-        color: '#374151',
-        fontWeight: 'bold',
-        fontSize: 12,
+        color: COLORS.black,
+        fontWeight: '600',
+        fontSize: 14,
+        marginLeft: 4,
     },
     costCard: {
-        backgroundColor: '#fff',
-        marginHorizontal: 16,
+        backgroundColor: COLORS.cardDark,
+        borderRadius: 12,
+        padding: 16,
         marginBottom: 12,
-        borderRadius: 8,
-        padding: 12,
-        borderLeftWidth: 4,
-        borderLeftColor: '#9CA3AF',
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
     },
     costHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 4,
-    },
-    costCategory: {
-        fontWeight: 'bold',
-        color: '#374151',
-    },
-    costStatus: {
-        fontSize: 12,
-        fontWeight: 'bold',
-    },
-    statusPending: { color: '#F59E0B' },
-    approvalContainer: {
-        marginTop: 8,
-        paddingTop: 8,
-        borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
-    },
-    approvalStatus: {
-        fontSize: 12,
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
-    rejectionReasonText: {
-        fontSize: 12,
-        color: '#EF4444',
-        fontStyle: 'italic',
         marginBottom: 8,
     },
-    managerActions: {
-        flexDirection: 'row',
-        gap: 8,
-        marginTop: 8,
-    },
-    actionButton: {
-        flex: 1,
-        paddingVertical: 8,
-        borderRadius: 6,
-        alignItems: 'center',
-    },
-    actionButtonText: {
-        color: '#111827',
-        fontWeight: 'bold',
-        fontSize: 12,
-    },
-    // Reusing existing button styles where possible, but defining specific ones if needed
-    rejectButton: {
-        backgroundColor: '#FEE2E2',
-    },
-    approveButton: {
-        backgroundColor: '#DCFCE7',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 16,
-        color: '#111827',
-        textAlign: 'center',
-    },
-    formCard: {
-        backgroundColor: '#fff',
-        width: '90%',
-        borderRadius: 12,
-        padding: 20,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
-    },
-    inputLabel: {
-        fontSize: 14,
+    costCategory: {
+        color: COLORS.primary,
         fontWeight: '600',
-        color: '#374151',
-        marginBottom: 4,
     },
-    input: {
-        borderWidth: 1,
-        borderColor: '#D1D5DB',
-        borderRadius: 6,
-        padding: 10,
-        marginBottom: 16,
-        fontSize: 14,
-        color: '#111827',
-    },
-    textArea: {
-        height: 80,
-        textAlignVertical: 'top',
-    },
-    modalButtons: {
+    costRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        gap: 12,
+        marginBottom: 8,
     },
-    modalButton: {
-        flex: 1,
-        paddingVertical: 10,
-        borderRadius: 6,
+    costAmount: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: COLORS.textLight,
+    },
+    costDate: {
+        color: COLORS.textGray,
+    },
+    costDescription: {
+        color: COLORS.textGray,
+        fontSize: 14,
+    },
+    footer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: COLORS.backgroundDark,
+        padding: 16,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.cardBorder,
+    },
+    mainCompleteButton: {
+        backgroundColor: COLORS.primary,
+        padding: 16,
+        borderRadius: 12,
         alignItems: 'center',
     },
-    cancelButton: {
-        backgroundColor: '#F3F4F6',
-    },
-    submitButton: {
-        backgroundColor: '#16A34A',
-    },
-    cancelButtonText: {
-        color: '#374151',
+    mainCompleteButtonText: {
+        color: COLORS.black,
+        fontSize: 16,
         fontWeight: 'bold',
     },
-    submitButtonText: {
-        color: '#fff',
+    modalContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.9)',
+        justifyContent: 'center',
+        padding: 20,
+    },
+    formCard: {
+        backgroundColor: COLORS.cardDark,
+        borderRadius: 16,
+        padding: 20,
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
+    },
+    modalTitle: {
+        fontSize: 20,
         fontWeight: 'bold',
+        color: COLORS.textLight,
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    inputLabel: {
+        color: COLORS.textGray,
+        marginBottom: 8,
+        fontSize: 14,
+    },
+    input: {
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
+        borderRadius: 8,
+        padding: 12,
+        color: COLORS.textLight,
+        marginBottom: 16,
+    },
+    textArea: {
+        height: 100,
+        textAlignVertical: 'top',
     },
     categoryContainer: {
         flexDirection: 'row',
@@ -1191,128 +1033,170 @@ const styles = StyleSheet.create({
     categoryChip: {
         paddingHorizontal: 12,
         paddingVertical: 6,
-        borderRadius: 16,
-        backgroundColor: '#F3F4F6',
+        borderRadius: 20,
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: COLORS.cardBorder,
     },
     categoryChipSelected: {
-        backgroundColor: '#DCFCE7',
-        borderColor: '#16A34A',
+        backgroundColor: COLORS.primary,
+        borderColor: COLORS.primary,
     },
     categoryText: {
+        color: COLORS.textGray,
         fontSize: 12,
-        color: '#4B5563',
     },
     categoryTextSelected: {
-        color: '#16A34A',
+        color: COLORS.black,
+        fontWeight: '600',
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 8,
+    },
+    modalButton: {
+        flex: 1,
+        padding: 14,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    cancelButton: {
+        backgroundColor: COLORS.cardBorder,
+    },
+    submitButton: {
+        backgroundColor: COLORS.primary,
+    },
+    cancelButtonText: {
+        color: COLORS.textLight,
+        fontWeight: '600',
+    },
+    submitButtonText: {
+        color: COLORS.black,
         fontWeight: 'bold',
     },
-    statusApproved: { color: '#10B981' },
-    statusRejected: { color: '#EF4444' },
-    costRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 4,
+    closeButton: {
+        position: 'absolute',
+        top: 40,
+        right: 20,
+        zIndex: 10,
     },
-    costAmount: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#111827',
+    fullImage: {
+        width: '100%',
+        height: '80%',
     },
-    costDate: {
-        fontSize: 12,
-        color: '#6B7280',
-    },
-    costDescription: {
-        color: '#4B5563',
-        fontSize: 14,
-    },
-    rejectionReason: {
-        color: '#EF4444',
-        fontSize: 12,
-        marginTop: 4,
-        fontStyle: 'italic',
-    },
-    emptyText: {
-        marginLeft: 16,
-        color: '#6B7280',
-        fontStyle: 'italic',
-        marginBottom: 16,
-    },
-    substepApprovalContainer: {
-        marginTop: 4,
-    },
-    substepManagerActions: {
-        flexDirection: 'row',
-        gap: 8,
-        marginLeft: 8,
-    },
-    miniActionButton: {
-        width: 30,
-        height: 30,
-        borderRadius: 15,
+    loadingOverlay: {
+        position: 'absolute',
+        inset: 0,
+        backgroundColor: 'rgba(0,0,0,0.7)',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    miniActionButtonText: {
-        color: '#111827',
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
-    acceptJobButton: {
-        backgroundColor: '#4F46E5', // Indigo color for distinction
-        marginTop: 16,
-    },
-    acceptanceStatusContainer: {
-        backgroundColor: '#fff',
-        padding: 16,
-        borderRadius: 12,
-        marginBottom: 16,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#E5E7EB',
-    },
-    acceptanceStatusLabel: {
-        fontSize: 14,
-        color: '#6B7280',
-        marginBottom: 4,
-    },
-    acceptanceStatusValue: {
-        fontSize: 18,
-        fontWeight: 'bold',
+    loadingText: {
+        color: COLORS.primary,
+        marginTop: 12,
+        fontSize: 16,
     },
     statusBadge: {
         paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
+        paddingVertical: 2,
+        borderRadius: 4,
         marginLeft: 8,
-        alignSelf: 'flex-start',
+        borderWidth: 1,
     },
     smallBadge: {
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 8,
-        marginLeft: 6,
+        transform: [{ scale: 0.9 }],
     },
     badgeApproved: {
-        backgroundColor: '#DCFCE7', // green-100
-        borderWidth: 1,
-        borderColor: '#16A34A', // green-600
+        borderColor: COLORS.green500,
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
     },
     badgeRejected: {
-        backgroundColor: '#FEE2E2', // red-100
-        borderWidth: 1,
-        borderColor: '#DC2626', // red-600
+        borderColor: COLORS.red500,
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
     },
     badgePending: {
-        backgroundColor: '#FEF3C7', // yellow-100
-        borderWidth: 1,
-        borderColor: '#D97706', // yellow-600
+        borderColor: COLORS.blue500,
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
     },
     statusBadgeText: {
         fontSize: 10,
         fontWeight: 'bold',
-        color: '#333',
+        color: COLORS.textLight,
+    },
+    lockedText: {
+        color: COLORS.textGray,
+        fontSize: 12,
+        fontStyle: 'italic',
+        marginTop: 4,
+    },
+    rejectionReasonText: {
+        color: COLORS.red500,
+        fontSize: 12,
+        marginTop: 8,
+        padding: 8,
+        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+        borderRadius: 4,
+    },
+    managerActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        gap: 8,
+        marginTop: 12,
+    },
+    substepManagerActions: {
+        flexDirection: 'row',
+        gap: 4,
+    },
+    actionButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 6,
+    },
+    miniActionButton: {
+        padding: 4,
+        borderRadius: 4,
+        marginLeft: 4,
+    },
+    approveButton: {
+        backgroundColor: COLORS.green500,
+    },
+    rejectButton: {
+        backgroundColor: COLORS.red500,
+    },
+    actionButtonText: {
+        color: COLORS.white,
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    emptyText: {
+        color: COLORS.textGray,
+        textAlign: 'center',
+        marginTop: 20,
+        fontStyle: 'italic',
+    },
+    acceptanceStatusContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+        padding: 12,
+        backgroundColor: COLORS.cardDark,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
+    },
+    acceptanceStatusLabel: {
+        color: COLORS.textLight,
+        fontWeight: '600',
+    },
+    acceptanceStatusValue: {
+        fontWeight: 'bold',
+        fontSize: 14,
+    },
+    statusApproved: { color: COLORS.green500 },
+    statusRejected: { color: COLORS.red500 },
+    statusPending: { color: COLORS.blue500 },
+    acceptJobButton: {
+        backgroundColor: COLORS.green500,
     },
 });

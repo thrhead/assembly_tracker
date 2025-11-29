@@ -176,7 +176,7 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#010100',
     },
     section: {
         padding: 16,
@@ -184,11 +184,11 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
         marginBottom: 12,
     },
     profileHeader: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         borderRadius: 12,
         padding: 20,
         flexDirection: 'row',
@@ -198,6 +198,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
+        borderWidth: 1,
+        borderColor: '#333',
     },
     avatar: {
         width: 80,
@@ -219,12 +221,12 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
         marginBottom: 4,
     },
     userEmail: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#94a3b8',
         marginBottom: 8,
     },
     roleBadge: {
@@ -239,7 +241,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     card: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         borderRadius: 12,
         padding: 16,
         shadowColor: '#000',
@@ -247,6 +249,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
+        borderWidth: 1,
+        borderColor: '#333',
     },
     inputGroup: {
         marginBottom: 16,
@@ -254,17 +258,17 @@ const styles = StyleSheet.create({
     inputLabel: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#374151',
+        color: '#e2e8f0',
         marginBottom: 8,
     },
     input: {
-        backgroundColor: '#F9FAFB',
+        backgroundColor: '#2d3748',
         borderWidth: 1,
-        borderColor: '#E5E7EB',
+        borderColor: '#4b5563',
         borderRadius: 8,
         padding: 12,
         fontSize: 14,
-        color: '#111827',
+        color: '#ffffff',
     },
     changePasswordButton: {
         backgroundColor: '#3B82F6',
@@ -289,12 +293,12 @@ const styles = StyleSheet.create({
     settingTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#111827',
+        color: '#ffffff',
         marginBottom: 4,
     },
     settingDescription: {
         fontSize: 12,
-        color: '#6B7280',
+        color: '#94a3b8',
     },
     aboutRow: {
         flexDirection: 'row',
@@ -302,16 +306,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 8,
         borderBottomWidth: 1,
-        borderBottomColor: '#F3F4F6',
+        borderBottomColor: '#333',
     },
     aboutLabel: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#94a3b8',
     },
     aboutValue: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#111827',
+        color: '#ffffff',
     },
     logoutButton: {
         backgroundColor: '#EF4444',

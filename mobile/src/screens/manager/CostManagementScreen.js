@@ -144,7 +144,7 @@ export default function CostManagementScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#010100',
     },
     centerContainer: {
         flex: 1,
@@ -154,9 +154,11 @@ const styles = StyleSheet.create({
     },
     filterContainer: {
         flexDirection: 'row',
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         padding: 8,
         marginBottom: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: '#333',
     },
     filterTab: {
         flex: 1,
@@ -165,22 +167,22 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     activeFilterTab: {
-        backgroundColor: '#DCFCE7',
+        backgroundColor: '#14532d', // Dark green for active tab
     },
     filterText: {
         fontSize: 12,
         fontWeight: '600',
-        color: '#6B7280',
+        color: '#94a3b8',
     },
     activeFilterText: {
-        color: '#16A34A',
+        color: '#4ade80', // Light green
         fontWeight: 'bold',
     },
     listContainer: {
         padding: 16,
     },
     card: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
@@ -189,6 +191,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.05,
         shadowRadius: 2,
         elevation: 2,
+        borderWidth: 1,
+        borderColor: '#333',
     },
     cardHeader: {
         flexDirection: 'row',
@@ -198,18 +202,18 @@ const styles = StyleSheet.create({
     category: {
         fontSize: 12,
         fontWeight: 'bold',
-        color: '#16A34A',
+        color: '#4ade80',
         marginBottom: 2,
         textTransform: 'uppercase',
     },
     jobTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
     },
     company: {
         fontSize: 12,
-        color: '#6B7280',
+        color: '#94a3b8',
     },
     amountContainer: {
         alignItems: 'flex-end',
@@ -217,7 +221,7 @@ const styles = StyleSheet.create({
     amount: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
     },
     statusBadge: {
         fontSize: 10,
@@ -225,11 +229,11 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     statusPending: { color: '#F59E0B' },
-    statusApproved: { color: '#10B981' },
+    statusApproved: { color: '#4ade80' },
     statusRejected: { color: '#EF4444' },
     description: {
         fontSize: 14,
-        color: '#374151',
+        color: '#e2e8f0',
         marginBottom: 12,
         marginTop: 4,
     },
@@ -237,17 +241,17 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         borderTopWidth: 1,
-        borderTopColor: '#F3F4F6',
+        borderTopColor: '#333',
         paddingTop: 8,
         marginBottom: 8,
     },
     user: {
         fontSize: 12,
-        color: '#6B7280',
+        color: '#94a3b8',
     },
     date: {
         fontSize: 12,
-        color: '#6B7280',
+        color: '#94a3b8',
     },
     actionButtons: {
         flexDirection: 'row',
@@ -261,18 +265,18 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     rejectButton: {
-        backgroundColor: '#FEE2E2',
+        backgroundColor: '#7f1d1d', // Dark red
     },
     approveButton: {
-        backgroundColor: '#DCFCE7',
+        backgroundColor: '#14532d', // Dark green
     },
     actionButtonText: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
     },
     emptyText: {
-        color: '#6B7280',
+        color: '#94a3b8',
         fontStyle: 'italic',
     },
 });

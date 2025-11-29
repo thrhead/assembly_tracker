@@ -109,14 +109,14 @@ export default function ManagerDashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#010100',
     },
     header: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         padding: 20,
         paddingTop: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#E5E7EB',
+        borderBottomColor: '#333',
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -124,12 +124,12 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
         marginBottom: 4,
     },
     headerSubtitle: {
         fontSize: 16,
-        color: '#6B7280',
+        color: '#94a3b8',
     },
     headerButtons: {
         flexDirection: 'row',
@@ -140,6 +140,7 @@ const styles = StyleSheet.create({
     },
     headerButtonIcon: {
         fontSize: 24,
+        color: '#ffffff',
     },
     logoutButton: {
         padding: 8,
@@ -155,25 +156,27 @@ const styles = StyleSheet.create({
     statCard: {
         flex: 1,
         minWidth: '45%',
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',
         margin: 6,
+        borderWidth: 1,
+        borderColor: '#333',
     },
     statNumber: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
         marginBottom: 4,
     },
     statLabel: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#94a3b8',
     },
     comingSoonContainer: {
         margin: 16,
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         borderRadius: 12,
         padding: 32,
         alignItems: 'center',
@@ -182,6 +185,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 4,
         elevation: 3,
+        borderWidth: 1,
+        borderColor: '#333',
     },
     comingSoonIcon: {
         fontSize: 64,
@@ -190,12 +195,12 @@ const styles = StyleSheet.create({
     comingSoonTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
         marginBottom: 12,
     },
     comingSoonText: {
         fontSize: 16,
-        color: '#6B7280',
+        color: '#94a3b8',
         marginBottom: 16,
         textAlign: 'center',
     },
@@ -205,7 +210,7 @@ const styles = StyleSheet.create({
     },
     featureItem: {
         fontSize: 14,
-        color: '#6B7280',
+        color: '#94a3b8',
         marginBottom: 8,
     },
     featureItemActive: {
@@ -220,7 +225,7 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#111827',
+        color: '#ffffff',
         marginBottom: 12,
     },
     quickActions: {
@@ -228,7 +233,7 @@ const styles = StyleSheet.create({
     },
     actionButton: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         borderRadius: 12,
         padding: 20,
         alignItems: 'center',
@@ -239,10 +244,12 @@ const styles = StyleSheet.create({
         elevation: 3,
         opacity: 0.6,
         marginRight: 8,
+        borderWidth: 1,
+        borderColor: '#333',
     },
     actionButtonActive: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#1A1A1A',
         borderRadius: 12,
         padding: 20,
         alignItems: 'center',
@@ -252,6 +259,8 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 3,
         marginRight: 8,
+        borderWidth: 1,
+        borderColor: '#333',
     },
     actionIcon: {
         fontSize: 32,
@@ -260,7 +269,7 @@ const styles = StyleSheet.create({
     actionText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#111827',
+        color: '#ffffff',
         marginBottom: 4,
     },
     comingSoonBadge: {
