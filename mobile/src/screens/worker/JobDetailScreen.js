@@ -72,14 +72,16 @@ export default function JobDetailScreen({ route, navigation }) {
         try {
             // Optimistic update
             const isCompleted = !currentStatus; // Toggle
+            console.log('📱 [MOBILE] Toggling substep:', { stepId, substepId, from: currentStatus, to: isCompleted });
 
             // Call API
             await jobService.toggleSubstep(jobId, stepId, substepId, isCompleted);
+            console.log('✅ [MOBILE] Substep toggle API returned successfully');
 
             // Reload job to get updated state (including timestamps)
             loadJobDetails();
         } catch (error) {
-            console.error('Error toggling substep:', error);
+            console.error('[MOBILE] Error toggling substep:', error);
             Alert.alert('Hata', 'İşlem gerçekleştirilemedi');
         }
     };
@@ -294,12 +296,14 @@ export default function JobDetailScreen({ route, navigation }) {
                     onPress: async () => {
                         try {
                             setLoading(true);
+                            console.log('📱 [MOBILE] Calling completeJob API for job:', jobId);
                             await jobService.completeJob(jobId);
+                            console.log(' [MOBILE] completeJob API returned successfully');
                             Alert.alert("Başarılı", "İş tamamlandı ve onaya gönderildi.", [
                                 { text: "Tamam", onPress: () => navigation.goBack() }
                             ]);
                         } catch (error) {
-                            console.error('Error completing job:', error);
+                            console.error('[MOBILE] Error completing job:', error);
                             Alert.alert('Hata', 'İş tamamlanırken bir hata oluştu');
                         } finally {
                             setLoading(false);

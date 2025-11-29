@@ -2,11 +2,13 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-// TODO: Update with your local IP address
-// For development: Find your IP with ipconfig (Windows) or ifconfig (Mac/Linux)
-// Current local IP: 192.168.1.173
+// TODO: Update with ngrok URL when using tunnel
+// Get ngrok URL by running: ngrok http 3000
+// Example: https://abc123-def456.ngrok-free.app
+const NGROK_URL = 'https://nonblamably-appreciatory-corban.ngrok-free.dev';  // ngrok URL'inizi buraya yapıştırın
+
 const API_BASE_URL = __DEV__
-    ? (Platform.OS === 'web' ? 'http://localhost:3000' : 'http://192.168.1.173:3000')
+    ? (NGROK_URL !== 'NGROK_URL_BURAYA' ? NGROK_URL : 'http://localhost:3000')
     : 'https://your-production-url.com';
 
 // Create axios instance

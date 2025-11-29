@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { useFocusEffect } from '@react-navigation/native';
 import notificationService from '../../services/notification.service';
 import { useAuth } from '../../context/AuthContext';
+import NotificationBadge from '../../components/NotificationBadge';
 
 export default function AdminDashboardScreen({ navigation }) {
     const { logout } = useAuth();
@@ -16,9 +17,9 @@ export default function AdminDashboardScreen({ navigation }) {
 
     const loadNotifications = async () => {
         try {
-            const notifications = await notificationService.getNotifications();
-            const unread = notifications.filter(n => !n.isRead).length;
-            setUnreadCount(unread);
+            // const notifications = await notificationService.getNotifications();
+            // const unread = notifications.filter(n => !n.isRead).length;
+            // setUnreadCount(unread);
         } catch (error) {
             console.error('Error loading notifications:', error);
         }
@@ -37,12 +38,10 @@ export default function AdminDashboardScreen({ navigation }) {
                     <Text style={styles.headerSubtitle}>Sistem Yönetimi ⚙️</Text>
                 </View>
                 <View style={styles.headerButtons}>
-                    <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Notifications')}>
-                        <View>
-                            <Text style={styles.headerButtonIcon}>🔔</Text>
-                            {unreadCount > 0 && <View style={styles.badge} />}
-                        </View>
-                    </TouchableOpacity>
+                    <NotificationBadge
+                        onPress={() => navigation.navigate('Notifications')}
+                        color="#000"
+                    />
                     <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Profile')}>
                         <Text style={styles.headerButtonIcon}>⚙️</Text>
                     </TouchableOpacity>

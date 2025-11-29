@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
+import { emitToUser } from '@/lib/socket'
 
 export async function GET(
   req: Request,
@@ -103,6 +104,34 @@ export async function PATCH(
       where: { id: params.id },
       data: { status }
     })
+
+    // Notify the user about status change (Self-Notification)
+    let message = ''
+    let type = 'info'
+
+    console.log('🔄 Status Update Debug:', { status, jobId: params.id, userId: session.user.id })
+
+    if (status === 'IN_PROGRESS') {
+      message = `${job.title} işi tekrar başlatıldı.`
+      type = 'info'
+    } else if (status === 'PENDING') {
+      message = `${job.title} işi beklemeye alındı.`
+      type = 'warning'
+    }
+
+    console.log('🔔 Notification Message:', message)
+
+    if (message) {
+      console.log('📤 Emitting notification to user:', session.user.id)
+      emitToUser(session.user.id, 'notification:new', {
+        id: crypto.randomUUID(),
+        title: 'İş Durumu Güncellendi',
+        message,
+        type,
+        userId: session.user.id
+      })
+    }
+
 
     return NextResponse.json(job)
   } catch (error) {

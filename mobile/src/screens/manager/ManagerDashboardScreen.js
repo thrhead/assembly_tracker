@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
+import NotificationBadge from '../../components/NotificationBadge';
 
 export default function ManagerDashboardScreen({ navigation }) {
     const { logout } = useAuth();
@@ -18,6 +19,10 @@ export default function ManagerDashboardScreen({ navigation }) {
                     <Text style={styles.headerSubtitle}>Ekip Yönetimi 👨‍💼</Text>
                 </View>
                 <View style={styles.headerButtons}>
+                    <NotificationBadge
+                        onPress={() => navigation.navigate('Notifications')}
+                        color="#000"
+                    />
                     <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Profile')}>
                         <Text style={styles.headerButtonIcon}>⚙️</Text>
                     </TouchableOpacity>

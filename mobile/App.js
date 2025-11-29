@@ -136,11 +136,17 @@ function AppNavigator() {
   );
 }
 
+import { SocketProvider } from './src/context/SocketContext';
+import ToastNotification from './src/components/ToastNotification';
+
 export default function App() {
-  console.log('App component mounted');
+  console.log('App component mounted. Wrapping with Providers...');
   return (
     <AuthProvider>
-      <AppNavigator />
+      <SocketProvider>
+        <AppNavigator />
+        <ToastNotification />
+      </SocketProvider>
     </AuthProvider>
   );
 }

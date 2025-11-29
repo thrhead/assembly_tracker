@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 import notificationService from '../../services/notification.service';
+import api from '../../services/api';
+import NotificationBadge from '../../components/NotificationBadge';
 
 export default function WorkerDashboardScreen({ navigation }) {
     const [stats, setStats] = useState(null);
@@ -63,9 +65,9 @@ export default function WorkerDashboardScreen({ navigation }) {
             }, 500);
 
             // Fetch notifications for badge
-            const notifications = await notificationService.getNotifications();
-            const unread = notifications.filter(n => !n.isRead).length;
-            setUnreadCount(unread);
+            // const notifications = await notificationService.getNotifications();
+            // const unread = notifications.filter(n => !n.isRead).length;
+            // setUnreadCount(unread);
         } catch (error) {
             console.error('Error loading dashboard:', error);
             setLoading(false);
@@ -136,12 +138,10 @@ export default function WorkerDashboardScreen({ navigation }) {
                     <Text style={styles.headerSubtitle}>Hoş geldiniz! 👋</Text>
                 </View>
                 <View style={styles.headerButtons}>
-                    <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Notifications')}>
-                        <View>
-                            <Text style={styles.headerButtonIcon}>🔔</Text>
-                            {unreadCount > 0 && <View style={styles.badge} />}
-                        </View>
-                    </TouchableOpacity>
+                    <NotificationBadge
+                        onPress={() => navigation.navigate('Notifications')}
+                        color="#000"
+                    />
                     <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Profile')}>
                         <Text style={styles.headerButtonIcon}>⚙️</Text>
                     </TouchableOpacity>

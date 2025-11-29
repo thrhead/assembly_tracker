@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSocket } from '@/components/providers/socket-provider';
 
 interface Notification {
   id: string;
@@ -26,17 +27,38 @@ export function NotificationsBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const { socket } = useSocket();
 
   useEffect(() => {
     fetchNotifications();
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
+    // Poll for new notifications every 60 seconds (reduced frequency since we have sockets)
+    const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewNotification = (notification: Notification) => {
+      console.log('🔔 New notification received:', notification);
+
+      // Add to state
+      setNotifications((prev) => [notification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+    };
+
+    socket.on('notification:new', handleNewNotification);
+
+    return () => {
+      socket.off('notification:new', handleNewNotification);
+    };
+  }, [socket]);
+
   const fetchNotifications = async () => {
     try {
-      setIsLoading(true);
+      // Don't set loading true on background refreshes to avoid UI flicker
+      if (notifications.length === 0) setIsLoading(true);
+
       const response = await fetch('/api/notifications?limit=10');
       if (response.ok) {
         const data = await response.json();
@@ -52,14 +74,22 @@ export function NotificationsBell() {
 
   const markAsRead = async (notificationId: string) => {
     try {
+      // Optimistic update
+      setNotifications(prev =>
+        prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
+      );
+      setUnreadCount(prev => Math.max(0, prev - 1));
+
       await fetch('/api/notifications/mark-read', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notificationId }),
       });
-      fetchNotifications();
+      // No need to re-fetch immediately if optimistic update worked
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
+      // Revert on error
+      fetchNotifications();
     }
   };
 
