@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 
 const createTeamSchema = z.object({
@@ -13,7 +13,7 @@ const createTeamSchema = z.object({
 
 export async function POST(req: Request) {
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session || session.user.role !== 'ADMIN') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
@@ -60,7 +60,8 @@ export async function POST(req: Request) {
         return NextResponse.json(team, { status: 201 })
     } catch (error: any) {
         if (error instanceof z.ZodError) {
-            return NextResponse.json({ error: 'Invalid data', details: error.errors }, { status: 400 })
+            const errorMessage = error.errors.map((issue: any) => issue.message).join(', ')
+            return NextResponse.json({ error: errorMessage, details: error.errors }, { status: 400 })
         }
         if (error.code === 'P2002') {
             return NextResponse.json({ error: 'Bir kullanıcı birden fazla ekipte olamaz' }, { status: 400 })

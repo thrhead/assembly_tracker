@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, RefreshControl, Modal, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, Alert, ScrollView, TextInput } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import userService from '../../services/user.service';
+import CustomButton from '../../components/CustomButton';
+import CustomInput from '../../components/CustomInput';
+import { COLORS } from '../../constants/theme';
 
-export default function UserManagementScreen({ navigation }) {
+export default function UserManagementScreen({ navigation, route }) {
     const [users, setUsers] = useState([]);
     const [filteredUsers, setFilteredUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -19,6 +23,13 @@ export default function UserManagementScreen({ navigation }) {
         { key: 'MANAGER', label: 'Manager' },
         { key: 'WORKER', label: 'Worker' },
     ];
+
+    useEffect(() => {
+        if (route.params?.openCreate) {
+            handleAddUser();
+            navigation.setParams({ openCreate: undefined });
+        }
+    }, [route.params]);
 
     useEffect(() => {
         loadUsers();
@@ -140,13 +151,15 @@ export default function UserManagementScreen({ navigation }) {
     const getRoleBadge = (role) => {
         switch (role) {
             case 'ADMIN':
-                return { color: '#EF4444', text: 'Admin' };
+                return { color: COLORS.red500, text: 'Admin' };
             case 'MANAGER':
-                return { color: '#F59E0B', text: 'Manager' };
+                return { color: COLORS.amber500, text: 'Manager' };
+            case 'TEAM_LEAD':
+                return { color: COLORS.green500, text: 'Ekip Lideri' };
             case 'WORKER':
-                return { color: '#3B82F6', text: 'Worker' };
+                return { color: COLORS.blue500, text: 'Worker' };
             default:
-                return { color: '#6B7280', text: role };
+                return { color: COLORS.slate600, text: role };
         }
     };
 
@@ -168,18 +181,22 @@ export default function UserManagementScreen({ navigation }) {
                     </View>
                 </View>
                 <View style={styles.userActions}>
-                    <TouchableOpacity
-                        style={styles.editButton}
+                    <CustomButton
+                        title="Düzenle"
                         onPress={() => handleEditUser(item)}
-                    >
-                        <Text style={styles.editButtonText}>✏️ Düzenle</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.deleteButton}
+                        variant="ghost"
+                        icon={<MaterialIcons name="edit" size={18} color={COLORS.primary} />}
+                        style={{ flex: 1, marginRight: 8, height: 40 }}
+                        textStyle={{ fontSize: 14, color: COLORS.primary }}
+                    />
+                    <CustomButton
+                        title="Sil"
                         onPress={() => handleDeleteUser(item)}
-                    >
-                        <Text style={styles.deleteButtonText}>🗑️ Sil</Text>
-                    </TouchableOpacity>
+                        variant="ghost"
+                        icon={<MaterialIcons name="delete" size={18} color={COLORS.red500} />}
+                        style={{ flex: 1, height: 40 }}
+                        textStyle={{ fontSize: 14, color: COLORS.red500 }}
+                    />
                 </View>
             </View>
         );
@@ -187,7 +204,7 @@ export default function UserManagementScreen({ navigation }) {
 
     const renderEmptyState = () => (
         <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>👤</Text>
+            <MaterialIcons name="person-off" size={48} color={COLORS.slate600} style={{ marginBottom: 16 }} />
             <Text style={styles.emptyTitle}>Kullanıcı bulunamadı</Text>
             <Text style={styles.emptyText}>
                 {searchQuery ? 'Arama kriterlerinize uygun kullanıcı bulunamadı.' : 'Henüz kullanıcı eklenmemiş.'}
@@ -198,7 +215,7 @@ export default function UserManagementScreen({ navigation }) {
     if (loading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#EF4444" />
+                <ActivityIndicator size="large" color={COLORS.primary} />
                 <Text style={styles.loadingText}>Kullanıcılar yükleniyor...</Text>
             </View>
         );
@@ -209,39 +226,42 @@ export default function UserManagementScreen({ navigation }) {
             <View style={styles.headerContainer}>
                 {/* Search Bar */}
                 <View style={styles.searchContainer}>
-                    <Text style={styles.searchIcon}>🔍</Text>
+                    <MaterialIcons name="search" size={20} color={COLORS.primary} style={{ marginRight: 8 }} />
                     <TextInput
                         style={styles.searchInput}
                         placeholder="Kullanıcı ara..."
+                        placeholderTextColor={COLORS.slate400}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                     />
                     {searchQuery.length > 0 && (
                         <TouchableOpacity onPress={() => setSearchQuery('')}>
-                            <Text style={styles.clearIcon}>✕</Text>
+                            <MaterialIcons name="close" size={20} color={COLORS.slate400} />
                         </TouchableOpacity>
                     )}
                 </View>
 
                 {/* Role Filter Tabs */}
                 <View style={styles.filtersContainer}>
-                    {roleFilters.map((filter) => (
-                        <TouchableOpacity
-                            key={filter.key}
-                            style={[
-                                styles.filterChip,
-                                selectedFilter === filter.key && styles.filterChipActive
-                            ]}
-                            onPress={() => setSelectedFilter(filter.key)}
-                        >
-                            <Text style={[
-                                styles.filterChipText,
-                                selectedFilter === filter.key && styles.filterChipTextActive
-                            ]}>
-                                {filter.label}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        {roleFilters.map((filter) => (
+                            <TouchableOpacity
+                                key={filter.key}
+                                style={[
+                                    styles.filterChip,
+                                    selectedFilter === filter.key && styles.filterChipActive
+                                ]}
+                                onPress={() => setSelectedFilter(filter.key)}
+                            >
+                                <Text style={[
+                                    styles.filterChipText,
+                                    selectedFilter === filter.key && styles.filterChipTextActive
+                                ]}>
+                                    {filter.label}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
                 </View>
             </View>
 
@@ -255,15 +275,15 @@ export default function UserManagementScreen({ navigation }) {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        colors={['#EF4444']}
-                        tintColor="#EF4444"
+                        colors={[COLORS.primary]}
+                        tintColor={COLORS.primary}
                     />
                 }
             />
 
             {/* Floating Add Button */}
-            <TouchableOpacity style={styles.fab} onPress={handleAddUser}>
-                <Text style={styles.fabText}>＋</Text>
+            <TouchableOpacity style={styles.fab} onPress={handleAddUser} activeOpacity={0.8}>
+                <MaterialIcons name="add" size={32} color={COLORS.black} />
             </TouchableOpacity>
 
             {/* Add/Edit User Modal */}
@@ -280,77 +300,74 @@ export default function UserManagementScreen({ navigation }) {
                                 {editingUser ? 'Kullanıcıyı Düzenle' : 'Yeni Kullanıcı Ekle'}
                             </Text>
 
-                            <View style={styles.formGroup}>
-                                <Text style={styles.label}>İsim Soyisim *</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Ali Yılmaz"
-                                    value={formData.name}
-                                    onChangeText={(text) => setFormData({ ...formData, name: text })}
-                                />
-                            </View>
+                            <CustomInput
+                                label="İsim Soyisim *"
+                                value={formData.name}
+                                onChangeText={(text) => setFormData({ ...formData, name: text })}
+                                placeholder="Ali Yılmaz"
+                            />
 
-                            <View style={styles.formGroup}>
-                                <Text style={styles.label}>Email *</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="ali@montaj.com"
-                                    value={formData.email}
-                                    onChangeText={(text) => setFormData({ ...formData, email: text })}
-                                    keyboardType="email-address"
-                                    autoCapitalize="none"
-                                />
-                            </View>
+                            <CustomInput
+                                label="Email *"
+                                value={formData.email}
+                                onChangeText={(text) => setFormData({ ...formData, email: text })}
+                                placeholder="ali@montaj.com"
+                                keyboardType="email-address"
+                                autoCapitalize="none"
+                            />
 
-                            <View style={styles.formGroup}>
-                                <Text style={styles.label}>Şifre {editingUser ? '(Boş bırakılırsa değişmez)' : '*'}</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder={editingUser ? "Yeni şifre" : "Şifre"}
-                                    value={formData.password}
-                                    onChangeText={(text) => setFormData({ ...formData, password: text })}
-                                    secureTextEntry
-                                />
-                            </View>
+                            <CustomInput
+                                label={`Şifre ${editingUser ? '(Boş bırakılırsa değişmez)' : '*'}`}
+                                value={formData.password}
+                                onChangeText={(text) => setFormData({ ...formData, password: text })}
+                                placeholder={editingUser ? "Yeni şifre" : "Şifre"}
+                                secureTextEntry
+                            />
 
                             <View style={styles.formGroup}>
                                 <Text style={styles.label}>Rol *</Text>
                                 <View style={styles.roleButtons}>
-                                    {['WORKER', 'MANAGER', 'ADMIN'].map((role) => (
-                                        <TouchableOpacity
-                                            key={role}
-                                            style={[
-                                                styles.roleButton,
-                                                formData.role === role && styles.roleButtonActive
-                                            ]}
-                                            onPress={() => setFormData({ ...formData, role })}
-                                        >
-                                            <Text style={[
-                                                styles.roleButtonText,
-                                                formData.role === role && styles.roleButtonTextActive
-                                            ]}>
-                                                {role === 'WORKER' ? 'Worker' : role === 'MANAGER' ? 'Manager' : 'Admin'}
-                                            </Text>
-                                        </TouchableOpacity>
-                                    ))}
+                                    {['WORKER', 'TEAM_LEAD', 'MANAGER', 'ADMIN'].map((role) => {
+                                        const roleLabels = {
+                                            'WORKER': 'İşçi',
+                                            'TEAM_LEAD': 'Ekip Lideri',
+                                            'MANAGER': 'Yönetici',
+                                            'ADMIN': 'Admin'
+                                        };
+                                        return (
+                                            <TouchableOpacity
+                                                key={role}
+                                                style={[
+                                                    styles.roleButton,
+                                                    formData.role === role && styles.roleButtonActive
+                                                ]}
+                                                onPress={() => setFormData({ ...formData, role })}
+                                            >
+                                                <Text style={[
+                                                    styles.roleButtonText,
+                                                    formData.role === role && styles.roleButtonTextActive
+                                                ]}>
+                                                    {roleLabels[role]}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
                                 </View>
                             </View>
 
                             <View style={styles.modalButtons}>
-                                <TouchableOpacity
-                                    style={styles.cancelButton}
+                                <CustomButton
+                                    title="İptal"
                                     onPress={() => setModalVisible(false)}
-                                >
-                                    <Text style={styles.cancelButtonText}>İptal</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={styles.saveButton}
+                                    variant="outline"
+                                    style={{ flex: 1 }}
+                                />
+                                <CustomButton
+                                    title={editingUser ? 'Güncelle' : 'Ekle'}
                                     onPress={handleSaveUser}
-                                >
-                                    <Text style={styles.saveButtonText}>
-                                        {editingUser ? 'Güncelle' : 'Ekle'}
-                                    </Text>
-                                </TouchableOpacity>
+                                    variant="primary"
+                                    style={{ flex: 1 }}
+                                />
                             </View>
                         </ScrollView>
                     </View>
@@ -363,7 +380,7 @@ export default function UserManagementScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#010100',
+        backgroundColor: COLORS.backgroundDark,
     },
     centerContainer: {
         flex: 1,
@@ -372,18 +389,18 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         marginTop: 10,
-        color: '#94a3b8',
+        color: COLORS.slate400,
     },
     headerContainer: {
-        backgroundColor: '#1A1A1A',
+        backgroundColor: COLORS.cardDark,
         paddingBottom: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#333',
+        borderBottomColor: COLORS.slate800,
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#2d3748',
+        backgroundColor: COLORS.slate800,
         marginHorizontal: 16,
         marginTop: 16,
         marginBottom: 12,
@@ -391,20 +408,10 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 8,
     },
-    searchIcon: {
-        fontSize: 16,
-        marginRight: 8,
-        color: '#94a3b8',
-    },
     searchInput: {
         flex: 1,
         fontSize: 14,
-        color: '#ffffff',
-    },
-    clearIcon: {
-        fontSize: 18,
-        color: '#94a3b8',
-        padding: 4,
+        color: COLORS.textLight,
     },
     filtersContainer: {
         flexDirection: 'row',
@@ -415,35 +422,30 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         marginRight: 8,
         borderRadius: 20,
-        backgroundColor: '#2d3748',
+        backgroundColor: COLORS.slate800,
     },
     filterChipActive: {
-        backgroundColor: '#EF4444',
+        backgroundColor: COLORS.primary,
     },
     filterChipText: {
         fontSize: 14,
-        color: '#94a3b8',
+        color: COLORS.slate400,
         fontWeight: '500',
     },
     filterChipTextActive: {
-        color: '#fff',
+        color: COLORS.black,
     },
     listContainer: {
         padding: 16,
         paddingBottom: 80,
     },
     userCard: {
-        backgroundColor: '#1A1A1A',
+        backgroundColor: COLORS.cardDark,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
         borderWidth: 1,
-        borderColor: '#333',
+        borderColor: COLORS.slate800,
     },
     userHeader: {
         flexDirection: 'row',
@@ -468,12 +470,12 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#ffffff',
+        color: COLORS.textLight,
         marginBottom: 4,
     },
     userEmail: {
         fontSize: 14,
-        color: '#94a3b8',
+        color: COLORS.slate400,
         marginBottom: 6,
     },
     roleBadge: {
@@ -490,33 +492,8 @@ const styles = StyleSheet.create({
     userActions: {
         flexDirection: 'row',
         borderTopWidth: 1,
-        borderTopColor: '#333',
+        borderTopColor: COLORS.slate800,
         paddingTop: 12,
-    },
-    editButton: {
-        flex: 1,
-        backgroundColor: '#3B82F6',
-        padding: 10,
-        borderRadius: 8,
-        marginRight: 8,
-        alignItems: 'center',
-    },
-    editButtonText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    deleteButton: {
-        flex: 1,
-        backgroundColor: '#EF4444',
-        padding: 10,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    deleteButtonText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: '600',
     },
     emptyContainer: {
         flex: 1,
@@ -524,19 +501,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 60,
     },
-    emptyIcon: {
-        fontSize: 48,
-        marginBottom: 16,
-    },
     emptyTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#ffffff',
+        color: COLORS.textLight,
         marginBottom: 8,
     },
     emptyText: {
         fontSize: 14,
-        color: '#94a3b8',
+        color: COLORS.slate400,
         textAlign: 'center',
         paddingHorizontal: 32,
     },
@@ -547,38 +520,29 @@ const styles = StyleSheet.create({
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: '#EF4444',
+        backgroundColor: COLORS.primary,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
         elevation: 8,
-    },
-    fabText: {
-        fontSize: 32,
-        color: '#fff',
-        fontWeight: '300',
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: '#1A1A1A',
+        backgroundColor: COLORS.cardDark,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         padding: 20,
         maxHeight: '80%',
         borderWidth: 1,
-        borderColor: '#333',
+        borderColor: COLORS.slate800,
     },
     modalTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#ffffff',
+        color: COLORS.textLight,
         marginBottom: 20,
     },
     formGroup: {
@@ -587,67 +551,37 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#e2e8f0',
+        color: COLORS.textLight,
         marginBottom: 8,
-    },
-    input: {
-        backgroundColor: '#2d3748',
-        borderWidth: 1,
-        borderColor: '#4b5563',
-        borderRadius: 8,
-        padding: 12,
-        fontSize: 14,
-        color: '#ffffff',
     },
     roleButtons: {
         flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
     },
     roleButton: {
         flex: 1,
+        minWidth: '45%',
         padding: 12,
         borderRadius: 8,
-        backgroundColor: '#2d3748',
-        marginRight: 8,
+        backgroundColor: COLORS.slate800,
         alignItems: 'center',
+        marginBottom: 8,
     },
     roleButtonActive: {
-        backgroundColor: '#EF4444',
+        backgroundColor: COLORS.primary,
     },
     roleButtonText: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#94a3b8',
+        color: COLORS.slate400,
     },
     roleButtonTextActive: {
-        color: '#fff',
+        color: COLORS.black,
     },
     modalButtons: {
         flexDirection: 'row',
+        gap: 12,
         marginTop: 20,
-    },
-    cancelButton: {
-        flex: 1,
-        backgroundColor: '#334155',
-        padding: 16,
-        borderRadius: 8,
-        marginRight: 8,
-        alignItems: 'center',
-    },
-    cancelButtonText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#e2e8f0',
-    },
-    saveButton: {
-        flex: 1,
-        backgroundColor: '#EF4444',
-        padding: 16,
-        borderRadius: 8,
-        alignItems: 'center',
-    },
-    saveButtonText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#fff',
     },
 });

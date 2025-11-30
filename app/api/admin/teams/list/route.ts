@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session || session.user.role !== 'ADMIN') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
@@ -12,11 +12,11 @@ export async function GET() {
         const teams = await prisma.team.findMany({
             orderBy: { createdAt: 'desc' },
             include: {
-                lead: {
-                    select: {
-                        name: true
-                    }
-                },
+                // lead: {
+                //     select: {
+                //         name: true
+                //     }
+                // },
                 _count: {
                     select: {
                         members: true

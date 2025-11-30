@@ -2,6 +2,20 @@ import api from './api';
 
 const jobService = {
     /**
+     * Get all jobs (Admin/Manager)
+     * @returns {Promise<Array>}
+     */
+    getAll: async () => {
+        try {
+            const response = await api.get('/api/admin/jobs');
+            return response.data;
+        } catch (error) {
+            console.error('Get all jobs error:', error);
+            throw error;
+        }
+    },
+
+    /**
      * Get all jobs assigned to the current worker
      * @returns {Promise<{jobs}>}
      */
@@ -187,6 +201,46 @@ const jobService = {
             throw error;
         }
     },
+
+
+    /**
+     * Create a new job
+     * @param {Object} jobData
+     * @returns {Promise<{job}>}
+     */
+    create: async (jobData) => {
+        try {
+            const response = await api.post('/api/admin/jobs', jobData);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
+     * Update a job
+     * @param {string} jobId
+     * @param {Object} jobData
+     * @returns {Promise<{job}>}
+     */
+    update: async (jobId, jobData) => {
+        try {
+            const response = await api.put(`/api/admin/jobs/${jobId}`, jobData);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    getPendingApprovals: async () => {
+        try {
+            // This endpoint needs to exist on backend, or we filter getAllJobs
+            const response = await api.get('/api/admin/jobs?status=PENDING_APPROVAL');
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
 };
 
 export default jobService;

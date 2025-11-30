@@ -15,6 +15,7 @@ import JobAssignmentScreen from './src/screens/manager/JobAssignmentScreen';
 import AdminDashboardScreen from './src/screens/admin/AdminDashboardScreen';
 import UserManagementScreen from './src/screens/admin/UserManagementScreen';
 import CustomerManagementScreen from './src/screens/admin/CustomerManagementScreen';
+import ApprovalsScreen from './src/screens/admin/ApprovalsScreen';
 import CostManagementScreen from './src/screens/manager/CostManagementScreen';
 import NotificationsScreen from './src/screens/worker/NotificationsScreen';
 
@@ -110,6 +111,11 @@ function AppNavigator() {
               name="CustomerManagement"
               component={CustomerManagementScreen}
               options={{ title: 'Müşteri Yönetimi' }}
+            />
+            <Stack.Screen
+              name="Approvals"
+              component={ApprovalsScreen}
+              options={{ title: 'Onaylar' }}
             />
             {/* Profile Screen */}
             <Stack.Screen

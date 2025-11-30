@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 
 const assignSchema = z.object({
@@ -13,7 +13,7 @@ export async function POST(
 ) {
     const params = await props.params
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }

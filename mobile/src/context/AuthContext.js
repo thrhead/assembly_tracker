@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import authService from '../services/auth.service';
-import { setAuthToken, clearAuthToken } from '../services/api';
+import { setAuthToken, clearAuthToken, registerLogoutCallback, getAuthToken } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -12,12 +12,19 @@ export const AuthProvider = ({ children }) => {
     // Check for saved user on app start
     useEffect(() => {
         checkUser();
+
+        // Register logout callback for 401 errors
+        registerLogoutCallback(() => {
+            console.log('401 Unauthorized - Logging out');
+            setUser(null);
+        });
     }, []);
 
     const checkUser = async () => {
         try {
             const savedUser = await AsyncStorage.getItem('user');
-            const token = await AsyncStorage.getItem('authToken');
+            // getAuthToken will also set the api header if token exists
+            const token = await getAuthToken();
 
             if (savedUser && token) {
                 setUser(JSON.parse(savedUser));

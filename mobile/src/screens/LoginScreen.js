@@ -2,33 +2,22 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   StyleSheet,
   Alert,
-  ActivityIndicator,
   ImageBackground,
   ScrollView,
   Dimensions,
   StatusBar,
-  SafeAreaView
+  SafeAreaView,
+  TouchableOpacity
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import { COLORS } from '../constants/theme';
+import CustomButton from '../components/CustomButton';
+import CustomInput from '../components/CustomInput';
 
 const { width } = Dimensions.get('window');
-
-const COLORS = {
-  primary: "#CCFF04",
-  backgroundLight: "#f8f8f5",
-  backgroundDark: "#010100",
-  textLight: "#e2e8f0", // slate-200
-  textDark: "#1e293b", // slate-800
-  slate500: "#64748b",
-  slate700: "#334155",
-  white: "#ffffff",
-  black: "#000000",
-};
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -105,13 +94,16 @@ export default function LoginScreen({ navigation }) {
 
       {/* Buttons */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.createAccountButton} onPress={() => Alert.alert("Bilgi", "Kayıt olma özelliği henüz aktif değil.")}>
-          <Text style={styles.createAccountText}>Hesap Oluştur</Text>
-        </TouchableOpacity>
+        <CustomButton
+          title="Hesap Oluştur"
+          onPress={() => Alert.alert("Bilgi", "Kayıt olma özelliği henüz aktif değil.")}
+        />
 
-        <TouchableOpacity style={styles.loginButton} onPress={() => setShowLoginForm(true)}>
-          <Text style={styles.loginButtonText}>Giriş Yap</Text>
-        </TouchableOpacity>
+        <CustomButton
+          title="Giriş Yap"
+          variant="outline"
+          onPress={() => setShowLoginForm(true)}
+        />
 
         <Text style={styles.termsText}>
           Devam ederek, <Text style={styles.linkText}>Hizmet Şartları</Text> ve <Text style={styles.linkText}>Gizlilik Politikası</Text>'nı kabul etmiş olursunuz.
@@ -131,35 +123,34 @@ export default function LoginScreen({ navigation }) {
 
         <Text style={styles.loginTitle}>Giriş Yap</Text>
 
-        <TextInput
-          style={styles.input}
+        <CustomInput
           placeholder="E-posta"
-          placeholderTextColor={COLORS.slate500}
           value={email}
           onChangeText={setEmail}
-          autoCapitalize="none"
           keyboardType="email-address"
+          autoCapitalize="none"
           editable={!loading}
         />
-        <TextInput
-          style={styles.input}
+
+        <CustomInput
           placeholder="Şifre"
-          placeholderTextColor={COLORS.slate500}
           value={password}
           onChangeText={setPassword}
           secureTextEntry
           editable={!loading}
         />
 
-        {loading ? (
-          <ActivityIndicator size="large" color={COLORS.primary} />
-        ) : (
-          <TouchableOpacity style={styles.submitButton} onPress={handleLogin}>
-            <Text style={styles.submitButtonText}>Giriş Yap</Text>
-          </TouchableOpacity>
-        )}
+        <CustomButton
+          title="Giriş Yap"
+          onPress={handleLogin}
+          loading={loading}
+          style={{ marginTop: 10 }}
+        />
 
-        <Text style={styles.hint}>Test: worker1@montaj.com / worker123</Text>
+        <Text style={styles.hint}>
+          Admin: admin@montaj.com / admin123{'\n'}
+          Worker: worker@montaj.com / worker123
+        </Text>
       </View>
     </View>
   );
@@ -246,32 +237,6 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
     gap: 16,
   },
-  createAccountButton: {
-    backgroundColor: COLORS.primary,
-    height: 48,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  createAccountText: {
-    color: COLORS.black,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  loginButton: {
-    backgroundColor: 'transparent',
-    height: 48,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-  loginButtonText: {
-    color: COLORS.primary,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
   termsText: {
     textAlign: 'center',
     fontSize: 12,
@@ -302,28 +267,6 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     marginBottom: 30,
     textAlign: 'center',
-  },
-  input: {
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1,
-    borderColor: COLORS.slate700,
-    borderRadius: 8,
-    padding: 12,
-    color: COLORS.white,
-    marginBottom: 16,
-  },
-  submitButton: {
-    backgroundColor: COLORS.primary,
-    height: 48,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  submitButtonText: {
-    color: COLORS.black,
-    fontSize: 16,
-    fontWeight: 'bold',
   },
   hint: {
     marginTop: 20,

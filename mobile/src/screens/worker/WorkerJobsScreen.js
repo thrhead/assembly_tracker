@@ -9,7 +9,8 @@ import {
     RefreshControl,
     StatusBar,
     SafeAreaView,
-    Dimensions
+    Modal,
+    Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
@@ -32,55 +33,16 @@ const COLORS = {
     black: "#000000",
 };
 
-export default function WorkerJobsScreen({ navigation }) {
+export default function WorkerJobsScreen({ navigation, route }) {
     const { user } = useAuth();
-    const [jobs, setJobs] = useState([]);
-    const [filteredJobs, setFilteredJobs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedFilter, setSelectedFilter] = useState('Tümü');
 
-    // Mock Data for UI demonstration if API is empty or for specific UI testing
-    const mockJobs = [
-        {
-            id: 'm1',
-            title: 'Müşteri Sahasında Ünite 4B Kurulumu',
-            priority: 'HIGH',
-            status: 'OVERDUE',
-            dueDate: 'Bugün',
-            assignee: 'Ahmet Yılmaz',
-            isOverdue: true
-        },
-        {
-            id: 'm2',
-            title: 'Merkez Ofis Klima Bakımı',
-            priority: 'MEDIUM',
-            status: 'IN_PROGRESS',
-            dueDate: 'Yarın',
-            assignee: 'Mehmet Demir',
-            isOverdue: false
-        },
-        {
-            id: 'm3',
-            title: '123 Ana Cadde Saha Keşfi',
-            priority: 'LOW',
-            status: 'PENDING',
-            dueDate: '28 Ekim',
-            assignee: 'Ayşe Kaya',
-            isOverdue: false
-        },
-        {
-            id: 'm4',
-            title: 'Üç Aylık Bakım Kontrolü',
-            priority: 'LOW',
-            status: 'COMPLETED',
-            dueDate: 'Tamamlandı: 22 Ekim',
-            assignee: 'Ali Vural',
-            isOverdue: false,
-            completed: true
+    useEffect(() => {
+        if (route.params?.openCreate && isAdmin) {
+            setModalVisible(true);
+            // Reset params to avoid reopening on focus
+            navigation.setParams({ openCreate: undefined });
         }
-    ];
+    }, [route.params]);
 
     useEffect(() => {
         loadJobs();
@@ -92,14 +54,18 @@ export default function WorkerJobsScreen({ navigation }) {
 
     const loadJobs = async () => {
         try {
-            // In a real scenario, we would fetch from API
-            // const data = await jobService.getMyJobs();
-            // setJobs(data);
-
-            // Using mock data to match the design requirements exactly
-            setJobs(mockJobs);
+            setLoading(true);
+            let data;
+            if (isAdmin) {
+                data = await jobService.getAllJobs();
+            } else {
+                data = await jobService.getMyJobs();
+            }
+            setJobs(data);
         } catch (error) {
             console.error('Error loading jobs:', error);
+            // Fallback to mock data if API fails (for demo continuity)
+            // setJobs(mockJobs); 
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -131,6 +97,22 @@ export default function WorkerJobsScreen({ navigation }) {
         setFilteredJobs(filtered);
     };
 
+    const handleCreateJob = async () => {
+        if (!formData.title) {
+            Alert.alert('Hata', 'İş başlığı zorunludur.');
+            return;
+        }
+        try {
+            await jobService.create(formData);
+            Alert.alert('Başarılı', 'Yeni iş oluşturuldu.');
+            setModalVisible(false);
+            loadJobs();
+        } catch (error) {
+            console.error('Create job error:', error);
+            Alert.alert('Hata', 'İş oluşturulamadı.');
+        }
+    };
+
     const renderPriorityDot = (priority) => {
         let color = COLORS.blue500;
         if (priority === 'HIGH') color = COLORS.red500;
@@ -138,15 +120,7 @@ export default function WorkerJobsScreen({ navigation }) {
         return <View style={[styles.priorityDot, { backgroundColor: color }]} />;
     };
 
-    const renderStatusBadge = (status, isOverdue) => {
-        if (isOverdue) {
-            return (
-                <View style={[styles.badge, { backgroundColor: 'rgba(127, 29, 29, 0.5)' }]}>
-                    <Text style={[styles.badgeText, { color: '#f87171' }]}>Gecikmiş</Text>
-                </View>
-            );
-        }
-
+    const renderStatusBadge = (status) => {
         if (status === 'IN_PROGRESS') {
             return (
                 <View style={[styles.badge, { backgroundColor: 'rgba(57, 255, 20, 0.1)' }]}>
@@ -154,7 +128,6 @@ export default function WorkerJobsScreen({ navigation }) {
                 </View>
             );
         }
-
         if (status === 'PENDING') {
             return (
                 <View style={[styles.badge, { backgroundColor: 'rgba(30, 58, 138, 0.5)' }]}>
@@ -162,7 +135,6 @@ export default function WorkerJobsScreen({ navigation }) {
                 </View>
             );
         }
-
         if (status === 'COMPLETED') {
             return (
                 <View style={[styles.badge, { backgroundColor: 'rgba(57, 255, 20, 0.1)' }]}>
@@ -170,7 +142,6 @@ export default function WorkerJobsScreen({ navigation }) {
                 </View>
             );
         }
-
         return null;
     };
 
@@ -178,14 +149,14 @@ export default function WorkerJobsScreen({ navigation }) {
         <View style={[
             styles.card,
             item.status === 'IN_PROGRESS' && styles.cardActive,
-            item.completed && styles.cardCompleted
+            item.status === 'COMPLETED' && styles.cardCompleted
         ]}>
             <View style={styles.cardContent}>
                 <View style={styles.cardHeader}>
-                    <Text style={[styles.cardTitle, item.completed && styles.textStrike]}>{item.title}</Text>
+                    <Text style={[styles.cardTitle, item.status === 'COMPLETED' && styles.textStrike]}>{item.title}</Text>
                     <View style={styles.headerRight}>
-                        {!item.completed && renderPriorityDot(item.priority)}
-                        {renderStatusBadge(item.status, item.isOverdue)}
+                        {item.status !== 'COMPLETED' && renderPriorityDot(item.priority)}
+                        {renderStatusBadge(item.status)}
                     </View>
                 </View>
 
@@ -193,11 +164,11 @@ export default function WorkerJobsScreen({ navigation }) {
                     <View style={styles.footerInfo}>
                         <View style={styles.infoRow}>
                             <MaterialIcons name="event" size={16} color={COLORS.neonGreen} />
-                            <Text style={styles.infoText}>{item.dueDate}</Text>
+                            <Text style={styles.infoText}>{item.dueDate ? new Date(item.dueDate).toLocaleDateString() : 'Tarih Yok'}</Text>
                         </View>
                         <View style={styles.infoRow}>
                             <MaterialIcons name="person" size={16} color={COLORS.neonGreen} />
-                            <Text style={styles.infoText}>Atanan: {item.assignee}</Text>
+                            <Text style={styles.infoText}>Atanan: {item.assignee?.name || 'Atanmamış'}</Text>
                         </View>
                     </View>
 
@@ -259,14 +230,63 @@ export default function WorkerJobsScreen({ navigation }) {
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.neonGreen} />
                 }
+                ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>Görev bulunamadı.</Text>
+                    </View>
+                }
             />
 
-            {/* FAB */}
-            <View style={styles.fabContainer}>
-                <TouchableOpacity style={styles.fab}>
-                    <MaterialIcons name="add" size={30} color={COLORS.black} />
-                </TouchableOpacity>
-            </View>
+            {/* FAB for Admin */}
+            {isAdmin && (
+                <View style={styles.fabContainer}>
+                    <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
+                        <MaterialIcons name="add" size={30} color={COLORS.black} />
+                    </TouchableOpacity>
+                </View>
+            )}
+
+            {/* Create Job Modal */}
+            <Modal
+                visible={modalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Yeni İş Oluştur</Text>
+
+                        <Text style={styles.label}>İş Başlığı</Text>
+                        <TextInput
+                            style={styles.input}
+                            value={formData.title}
+                            onChangeText={(text) => setFormData({ ...formData, title: text })}
+                            placeholder="Klima Montajı"
+                            placeholderTextColor="#666"
+                        />
+
+                        <Text style={styles.label}>Açıklama</Text>
+                        <TextInput
+                            style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
+                            value={formData.description}
+                            onChangeText={(text) => setFormData({ ...formData, description: text })}
+                            placeholder="İş detayları..."
+                            placeholderTextColor="#666"
+                            multiline
+                        />
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                                <Text style={styles.cancelButtonText}>İptal</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.saveButton} onPress={handleCreateJob}>
+                                <Text style={styles.saveButtonText}>Oluştur</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -439,5 +459,73 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.5,
         shadowRadius: 20,
         elevation: 10,
+    },
+    emptyContainer: {
+        padding: 20,
+        alignItems: 'center',
+    },
+    emptyText: {
+        color: COLORS.textGray,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        justifyContent: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: '#1A1A1A',
+        borderRadius: 16,
+        padding: 20,
+        borderWidth: 1,
+        borderColor: '#333',
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#ffffff',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    label: {
+        color: '#e2e8f0',
+        marginBottom: 8,
+        fontWeight: '600',
+    },
+    input: {
+        backgroundColor: '#2d3748',
+        borderRadius: 8,
+        padding: 12,
+        color: '#ffffff',
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#4b5563',
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 10,
+    },
+    cancelButton: {
+        flex: 1,
+        padding: 14,
+        borderRadius: 8,
+        backgroundColor: '#334155',
+        alignItems: 'center',
+    },
+    saveButton: {
+        flex: 1,
+        padding: 14,
+        borderRadius: 8,
+        backgroundColor: '#CCFF04',
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        color: '#e2e8f0',
+        fontWeight: '600',
+    },
+    saveButtonText: {
+        color: '#000000',
+        fontWeight: 'bold',
     },
 });

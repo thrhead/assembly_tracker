@@ -9,6 +9,7 @@ export async function verifyAuth(req: Request) {
     // 2. Check Authorization header (Mobile)
     const authHeader = req.headers.get("Authorization")
     console.log("verifyAuth: Auth header:", authHeader)
+    if (!authHeader) console.log("verifyAuth: No auth header found")
 
     if (authHeader?.startsWith("Bearer ")) {
         const token = authHeader.split(" ")[1]

@@ -13,25 +13,11 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import jobService from '../../services/job.service';
+import { COLORS } from '../../constants/theme';
+import StatCard from '../../components/StatCard';
+import JobCard from '../../components/JobCard';
 
 const { width } = Dimensions.get('window');
-
-const COLORS = {
-    primary: "#CCFF04",
-    backgroundLight: "#f8f8f5",
-    backgroundDark: "#010100",
-    cardDark: "#1A1A1A",
-    textLight: "#e2e8f0",
-    textDark: "#1e293b",
-    slate400: "#94a3b8",
-    slate500: "#64748b",
-    slate600: "#475569",
-    slate700: "#334155",
-    slate800: "#1e293b",
-    slate900: "#0f172a",
-    white: "#ffffff",
-    amber500: "#f59e0b",
-};
 
 export default function WorkerDashboardScreen({ navigation }) {
     const { user, logout } = useAuth();
@@ -145,48 +131,11 @@ export default function WorkerDashboardScreen({ navigation }) {
             {/* Task Cards */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tasksScroll}>
                 {activeJobs.map((job) => (
-                    <TouchableOpacity
+                    <JobCard
                         key={job.id}
-                        style={styles.taskCard}
+                        job={job}
                         onPress={() => navigation.navigate('JobDetail', { jobId: job.id })}
-                    >
-                        <View style={styles.taskHeader}>
-                            <View style={[styles.statusBadge, job.status === 'In Progress' ? styles.statusInProgress : styles.statusPending]}>
-                                <Text style={[styles.statusText, job.status === 'In Progress' ? styles.textInProgress : styles.textPending]}>
-                                    {job.status === 'In Progress' ? 'Devam Ediyor' : 'Bekliyor'}
-                                </Text>
-                            </View>
-                            <MaterialIcons name="more-horiz" size={20} color={COLORS.slate500} />
-                        </View>
-
-                        <Text style={styles.taskTitle}>{job.title}</Text>
-
-                        <View style={styles.taskInfo}>
-                            <View style={styles.infoRow}>
-                                <MaterialIcons name="location-on" size={16} color={COLORS.slate500} />
-                                <Text style={styles.infoText}>{job.location}</Text>
-                            </View>
-                            <View style={styles.infoRow}>
-                                <MaterialIcons name="access-time" size={16} color={COLORS.slate500} />
-                                <Text style={styles.infoText}>{job.time}</Text>
-                            </View>
-                        </View>
-
-                        <View style={styles.progressContainer}>
-                            <View style={styles.progressBarBg}>
-                                <View style={[styles.progressBarFill, { width: `${job.progress}%` }]} />
-                            </View>
-                            <Text style={styles.progressText}>{job.progress}%</Text>
-                        </View>
-
-                        <View style={styles.avatarsContainer}>
-                            <Image source={{ uri: 'https://i.pravatar.cc/100?img=12' }} style={styles.avatar} />
-                            <Image source={{ uri: 'https://i.pravatar.cc/100?img=33' }} style={[styles.avatar, styles.avatarOverlap]} />
-                            <View style={[styles.avatar, styles.avatarOverlap, styles.addAvatar]}>
-                                <MaterialIcons name="add" size={16} color={COLORS.white} />
-                            </View>
-                        </View>
-                    </TouchableOpacity>
+                    />
                 ))}
             </ScrollView>
         </View>
@@ -194,20 +143,17 @@ export default function WorkerDashboardScreen({ navigation }) {
 
     const renderStatsGrid = () => (
         <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
-                <View style={[styles.iconBox, { backgroundColor: 'rgba(204, 255, 4, 0.1)' }]}>
-                    <MaterialIcons name="assignment" size={24} color={COLORS.primary} />
-                </View>
-                <Text style={styles.statNumber}>{stats.activeJobs}</Text>
-                <Text style={styles.statLabel}>Aktif İşler</Text>
-            </View>
-            <View style={styles.statCard}>
-                <View style={[styles.iconBox, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
-                    <MaterialIcons name="check-circle" size={24} color={COLORS.amber500} />
-                </View>
-                <Text style={styles.statNumber}>{stats.completedJobs}</Text>
-                <Text style={styles.statLabel}>Tamamlanan</Text>
-            </View>
+            <StatCard
+                label="Aktif İşler"
+                value={stats.activeJobs}
+                icon="assignment"
+            />
+            <StatCard
+                label="Tamamlanan"
+                value={stats.completedJobs}
+                icon="check-circle"
+                iconColor={COLORS.amber500}
+            />
         </View>
     );
 
@@ -397,132 +343,9 @@ const styles = StyleSheet.create({
         marginHorizontal: -16,
         paddingHorizontal: 16,
     },
-    taskCard: {
-        width: width * 0.7,
-        backgroundColor: COLORS.cardDark,
-        borderRadius: 16,
-        padding: 16,
-        marginRight: 16,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-    },
-    taskHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    statusBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-    },
-    statusInProgress: {
-        backgroundColor: 'rgba(204, 255, 4, 0.1)',
-    },
-    statusPending: {
-        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    },
-    statusText: {
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    textInProgress: {
-        color: COLORS.primary,
-    },
-    textPending: {
-        color: COLORS.amber500,
-    },
-    taskTitle: {
-        color: COLORS.white,
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 12,
-    },
-    taskInfo: {
-        gap: 8,
-        marginBottom: 16,
-    },
-    infoRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    infoText: {
-        color: COLORS.slate400,
-        fontSize: 14,
-    },
-    progressContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-        marginBottom: 16,
-    },
-    progressBarBg: {
-        flex: 1,
-        height: 6,
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        borderRadius: 3,
-    },
-    progressBarFill: {
-        height: '100%',
-        backgroundColor: COLORS.primary,
-        borderRadius: 3,
-    },
-    progressText: {
-        color: COLORS.white,
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    avatarsContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    avatar: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        borderWidth: 2,
-        borderColor: COLORS.cardDark,
-    },
-    avatarOverlap: {
-        marginLeft: -10,
-    },
-    addAvatar: {
-        backgroundColor: COLORS.slate700,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
     statsGrid: {
         flexDirection: 'row',
         gap: 16,
-    },
-    statCard: {
-        flex: 1,
-        backgroundColor: COLORS.cardDark,
-        padding: 16,
-        borderRadius: 16,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-    },
-    iconBox: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    statNumber: {
-        color: COLORS.white,
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
-    statLabel: {
-        color: COLORS.slate400,
-        fontSize: 14,
     },
     costCard: {
         backgroundColor: COLORS.primary,

@@ -1,62 +1,54 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, TextInput, RefreshControl, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Modal, ScrollView } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import teamService from '../../services/team.service';
+import userService from '../../services/user.service';
 import { useAuth } from '../../context/AuthContext';
+import CustomButton from '../../components/CustomButton';
+import CustomInput from '../../components/CustomInput';
+import { COLORS } from '../../constants/theme';
 
 export default function TeamListScreen({ navigation }) {
     const { user } = useAuth();
+    const [teams, setTeams] = useState([]);
     const [members, setMembers] = useState([]);
-    const [filteredMembers, setFilteredMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedFilter, setSelectedFilter] = useState('ALL');
-    const [myTeam, setMyTeam] = useState(null);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [editingTeam, setEditingTeam] = useState(null);
+    const [formData, setFormData] = useState({ name: '', description: '', leadId: '', memberIds: [] });
+    const [availableUsers, setAvailableUsers] = useState([]);
 
-    const statusFilters = [
-        { key: 'ALL', label: 'Tümü' },
-        { key: 'active', label: 'Aktif' },
-        { key: 'inactive', label: 'Pasif' },
-    ];
+    const isAdmin = user?.role === 'ADMIN';
 
     useEffect(() => {
-        loadTeam();
+        loadData();
     }, []);
 
-    useEffect(() => {
-        filterMembers();
-    }, [searchQuery, selectedFilter, members]);
-
-    const loadTeam = async () => {
+    const loadData = async () => {
         try {
-            const teams = await teamService.getAll();
+            setLoading(true);
+            const [teamsData, usersData] = await Promise.all([
+                teamService.getAll(),
+                isAdmin ? userService.getAll() : Promise.resolve([])
+            ]);
 
-            // Find the team where the current user is a manager (lead) or a member
-            // Ideally, the backend should filter this, but for now we filter here.
-            // If user is ADMIN, they see all? But this screen is for Manager.
-            // We'll assume Manager sees the team they lead.
-
-            let targetTeam = teams.find(t => t.leadId === user.id);
-
-            // If not leading any, maybe just a member?
-            if (!targetTeam) {
-                targetTeam = teams.find(t => t.members.some(m => m.userId === user.id));
+            setTeams(teamsData);
+            if (isAdmin) {
+                setAvailableUsers(usersData);
             }
 
-            // If still not found and there are teams, maybe just show the first one (fallback)
-            if (!targetTeam && teams.length > 0) {
-                // targetTeam = teams[0]; // Uncomment if fallback needed
+            if (!isAdmin) {
+                let targetTeam = teamsData.find(t => t.leadId === user.id);
+                if (!targetTeam) {
+                    targetTeam = teamsData.find(t => t.members.some(m => m.userId === user.id));
+                }
+                setMembers(targetTeam ? targetTeam.members : []);
             }
 
-            if (targetTeam) {
-                setMyTeam(targetTeam);
-                setMembers(targetTeam.members || []);
-            } else {
-                setMembers([]);
-            }
         } catch (error) {
-            console.error('Error loading team:', error);
-            Alert.alert('Hata', 'Ekip bilgileri yüklenemedi.');
+            console.error('Error loading data:', error);
+            Alert.alert('Hata', 'Veriler yüklenemedi.');
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -65,36 +57,99 @@ export default function TeamListScreen({ navigation }) {
 
     const onRefresh = () => {
         setRefreshing(true);
-        loadTeam();
+        loadData();
     };
 
-    const filterMembers = () => {
-        let filtered = members;
-
-        // Status filter
-        if (selectedFilter !== 'ALL') {
-            const isActive = selectedFilter === 'active';
-            filtered = filtered.filter(m => m.user.isActive === isActive);
-        }
-
-        // Search filter
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            filtered = filtered.filter(m =>
-                m.user.name.toLowerCase().includes(query) ||
-                m.user.email.toLowerCase().includes(query)
-            );
-        }
-
-        setFilteredMembers(filtered);
+    const handleAddTeam = () => {
+        setEditingTeam(null);
+        setFormData({ name: '', description: '', leadId: '', memberIds: [] });
+        setModalVisible(true);
     };
+
+    const handleEditTeam = (team) => {
+        setEditingTeam(team);
+        setFormData({
+            name: team.name,
+            description: team.description || '',
+            leadId: team.leadId || '',
+            memberIds: team.members?.map(m => m.userId) || []
+        });
+        setModalVisible(true);
+    };
+
+    const handleSaveTeam = async () => {
+        if (!formData.name) {
+            Alert.alert('Hata', 'Ekip adı zorunludur.');
+            return;
+        }
+
+        try {
+            if (editingTeam) {
+                await teamService.update(editingTeam.id, formData);
+                Alert.alert('Başarılı', 'Ekip güncellendi.');
+            } else {
+                await teamService.create(formData);
+                Alert.alert('Başarılı', 'Yeni ekip oluşturuldu.');
+            }
+            setModalVisible(false);
+            loadData();
+        } catch (error) {
+            console.error('Save team error:', error);
+            Alert.alert('Hata', 'İşlem başarısız.');
+        }
+    };
+
+    const renderTeamCard = ({ item }) => (
+        <View style={styles.card}>
+            <View style={styles.cardHeader}>
+                <View style={styles.teamIcon}>
+                    <MaterialIcons name="groups" size={24} color={COLORS.black} />
+                </View>
+                <View style={styles.teamInfo}>
+                    <Text style={styles.teamName}>{item.name}</Text>
+                    {item.description && (
+                        <Text style={styles.teamDescription}>{item.description}</Text>
+                    )}
+                </View>
+                {isAdmin && (
+                    <TouchableOpacity onPress={() => handleEditTeam(item)} style={styles.editIcon}>
+                        <MaterialIcons name="edit" size={20} color={COLORS.primary} />
+                    </TouchableOpacity>
+                )}
+            </View>
+
+            {/* Team Lead */}
+            <View style={styles.teamSection}>
+                <Text style={styles.sectionTitle}>Ekip Lideri:</Text>
+                <Text style={styles.sectionText}>
+                    {item.lead?.name || 'Atanmamış'}
+                </Text>
+            </View>
+
+            {/* Team Members */}
+            <View style={styles.teamSection}>
+                <Text style={styles.sectionTitle}>Ekip Üyeleri ({item.members?.length || 0}):</Text>
+                {item.members && item.members.length > 0 ? (
+                    <View style={styles.membersList}>
+                        {item.members.map((member) => (
+                            <Text key={member.id} style={styles.memberItem}>
+                                • {member.user.name} ({member.user.role === 'WORKER' ? 'İşçi' : 'Ekip Lideri'})
+                            </Text>
+                        ))}
+                    </View>
+                ) : (
+                    <Text style={styles.emptyMembersText}>Henüz üye eklenmemiş</Text>
+                )}
+            </View>
+        </View>
+    );
 
     const renderMember = ({ item }) => (
-        <TouchableOpacity style={styles.memberCard}>
+        <View style={styles.memberCard}>
             <View style={styles.memberHeader}>
                 <View style={[
                     styles.avatar,
-                    { backgroundColor: item.user.isActive ? '#3B82F6' : '#9CA3AF' }
+                    { backgroundColor: item.user.isActive ? COLORS.primary : COLORS.slate400 }
                 ]}>
                     <Text style={styles.avatarText}>
                         {item.user.name ? item.user.name.charAt(0).toUpperCase() : 'U'}
@@ -105,11 +160,11 @@ export default function TeamListScreen({ navigation }) {
                         <Text style={styles.memberName}>{item.user.name}</Text>
                         <View style={[
                             styles.statusBadge,
-                            { backgroundColor: item.user.isActive ? '#D1FAE5' : '#F3F4F6' }
+                            { backgroundColor: item.user.isActive ? 'rgba(204, 255, 4, 0.2)' : COLORS.slate700 }
                         ]}>
                             <Text style={[
                                 styles.statusText,
-                                { color: item.user.isActive ? '#059669' : '#6B7280' }
+                                { color: item.user.isActive ? COLORS.primary : COLORS.slate400 }
                             ]}>
                                 {item.user.isActive ? 'Aktif' : 'Pasif'}
                             </Text>
@@ -119,98 +174,138 @@ export default function TeamListScreen({ navigation }) {
                     <Text style={styles.memberRole}>{item.user.role}</Text>
                 </View>
             </View>
-
-            {/* Stats are not available in this endpoint yet */}
-            {/* 
-            <View style={styles.statsContainer}>
-                <View style={styles.stat}>
-                    <Text style={styles.statValue}>-</Text>
-                    <Text style={styles.statLabel}>Aktif İş</Text>
-                </View>
-                <View style={styles.stat}>
-                    <Text style={styles.statValue}>-</Text>
-                    <Text style={styles.statLabel}>Tamamlanan</Text>
-                </View>
-            </View>
-            */}
-        </TouchableOpacity>
-    );
-
-    const renderEmptyState = () => (
-        <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>👥</Text>
-            <Text style={styles.emptyTitle}>Ekip üyesi bulunamadı</Text>
-            <Text style={styles.emptyText}>
-                {searchQuery ? 'Arama kriterlerinize uygun ekip üyesi bulunamadı.' : 'Henüz ekip üyesi eklenmemiş.'}
-            </Text>
         </View>
     );
 
     if (loading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#F59E0B" />
-                <Text style={styles.loadingText}>Ekip yükleniyor...</Text>
+                <ActivityIndicator size="large" color={COLORS.primary} />
             </View>
         );
     }
 
     return (
         <View style={styles.container}>
-            <View style={styles.headerContainer}>
-                {/* Search Bar */}
-                <View style={styles.searchContainer}>
-                    <Text style={styles.searchIcon}>🔍</Text>
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Ekip üyesi ara..."
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
+            {isAdmin ? (
+                <>
+                    <FlatList
+                        data={teams}
+                        renderItem={renderTeamCard}
+                        keyExtractor={item => item.id}
+                        contentContainerStyle={styles.listContainer}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
                     />
-                    {searchQuery.length > 0 && (
-                        <TouchableOpacity onPress={() => setSearchQuery('')}>
-                            <Text style={styles.clearIcon}>✕</Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
+                    <TouchableOpacity style={styles.fab} onPress={handleAddTeam} activeOpacity={0.8}>
+                        <MaterialIcons name="add" size={32} color={COLORS.black} />
+                    </TouchableOpacity>
+                </>
+            ) : (
+                <FlatList
+                    data={members}
+                    renderItem={renderMember}
+                    keyExtractor={item => item.id}
+                    contentContainerStyle={styles.listContainer}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+                    ListEmptyComponent={
+                        <View style={styles.centerContainer}>
+                            <Text style={styles.emptyText}>Ekip bulunamadı.</Text>
+                        </View>
+                    }
+                />
+            )}
 
-                {/* Status Filter Tabs */}
-                <View style={styles.filtersContainer}>
-                    {statusFilters.map((filter) => (
-                        <TouchableOpacity
-                            key={filter.key}
-                            style={[
-                                styles.filterChip,
-                                selectedFilter === filter.key && styles.filterChipActive
-                            ]}
-                            onPress={() => setSelectedFilter(filter.key)}
-                        >
-                            <Text style={[
-                                styles.filterChipText,
-                                selectedFilter === filter.key && styles.filterChipTextActive
-                            ]}>
-                                {filter.label}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-            </View>
+            {/* Add/Edit Team Modal */}
+            <Modal
+                visible={modalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>{editingTeam ? 'Ekibi Düzenle' : 'Yeni Ekip Ekle'}</Text>
 
-            <FlatList
-                data={filteredMembers}
-                renderItem={renderMember}
-                keyExtractor={item => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
-                ListEmptyComponent={renderEmptyState}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        colors={['#F59E0B']}
-                        tintColor="#F59E0B"
-                    />
-                }
-            />
+                        <CustomInput
+                            label="Ekip Adı *"
+                            value={formData.name}
+                            onChangeText={(text) => setFormData({ ...formData, name: text })}
+                            placeholder="Montaj Ekibi A"
+                        />
+
+                        <CustomInput
+                            label="Açıklama"
+                            value={formData.description}
+                            onChangeText={(text) => setFormData({ ...formData, description: text })}
+                            placeholder="Ekip açıklaması (opsiyonel)"
+                            multiline
+                            numberOfLines={3}
+                            style={{ height: 80, textAlignVertical: 'top' }}
+                        />
+
+                        <Text style={styles.label}>Ekip Lideri</Text>
+                        <View style={styles.selectionBox}>
+                            {availableUsers.filter(u => u.role === 'TEAM_LEAD' || u.role === 'MANAGER').map(u => (
+                                <TouchableOpacity
+                                    key={u.id}
+                                    style={styles.checkboxItem}
+                                    onPress={() => setFormData({ ...formData, leadId: formData.leadId === u.id ? '' : u.id })}
+                                >
+                                    <View style={[styles.checkbox, formData.leadId === u.id && styles.checkboxChecked]}>
+                                        {formData.leadId === u.id && <Text style={styles.checkmark}>✓</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>{u.name} ({u.role === 'TEAM_LEAD' ? 'Ekip Lideri' : 'Yönetici'})</Text>
+                                </TouchableOpacity>
+                            ))}
+                            {availableUsers.filter(u => u.role === 'TEAM_LEAD' || u.role === 'MANAGER').length === 0 && (
+                                <Text style={styles.emptyText}>Henüz ekip lideri veya yönetici yok</Text>
+                            )}
+                        </View>
+
+                        <Text style={styles.label}>Ekip Üyeleri</Text>
+                        <View style={styles.selectionBox}>
+                            {availableUsers.filter(u => u.role === 'WORKER' || u.role === 'TEAM_LEAD').map(u => (
+                                <TouchableOpacity
+                                    key={u.id}
+                                    style={styles.checkboxItem}
+                                    onPress={() => {
+                                        const isSelected = formData.memberIds?.includes(u.id);
+                                        setFormData({
+                                            ...formData,
+                                            memberIds: isSelected
+                                                ? formData.memberIds.filter(id => id !== u.id)
+                                                : [...(formData.memberIds || []), u.id]
+                                        });
+                                    }}
+                                >
+                                    <View style={[styles.checkbox, formData.memberIds?.includes(u.id) && styles.checkboxChecked]}>
+                                        {formData.memberIds?.includes(u.id) && <Text style={styles.checkmark}>✓</Text>}
+                                    </View>
+                                    <Text style={styles.checkboxLabel}>{u.name} ({u.role === 'WORKER' ? 'İşçi' : 'Ekip Lideri'})</Text>
+                                </TouchableOpacity>
+                            ))}
+                            {availableUsers.filter(u => u.role === 'WORKER' || u.role === 'TEAM_LEAD').length === 0 && (
+                                <Text style={styles.emptyText}>Henüz işçi yok</Text>
+                            )}
+                        </View>
+
+                        <View style={styles.modalButtons}>
+                            <CustomButton
+                                title="İptal"
+                                onPress={() => setModalVisible(false)}
+                                variant="outline"
+                                style={{ flex: 1 }}
+                            />
+                            <CustomButton
+                                title="Kaydet"
+                                onPress={handleSaveTeam}
+                                variant="primary"
+                                style={{ flex: 1 }}
+                            />
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -218,90 +313,184 @@ export default function TeamListScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#010100',
+        backgroundColor: COLORS.backgroundDark,
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    loadingText: {
-        marginTop: 10,
-        color: '#94a3b8',
-    },
-    headerContainer: {
-        backgroundColor: '#1A1A1A',
-        paddingBottom: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#333',
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#2d3748',
-        marginHorizontal: 16,
-        marginTop: 16,
-        marginBottom: 12,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 8,
-    },
-    searchIcon: {
-        fontSize: 16,
-        marginRight: 8,
-        color: '#94a3b8',
-    },
-    searchInput: {
-        flex: 1,
-        fontSize: 14,
-        color: '#ffffff',
-    },
-    clearIcon: {
-        fontSize: 18,
-        color: '#94a3b8',
-        padding: 4,
-    },
-    filtersContainer: {
-        flexDirection: 'row',
-        paddingHorizontal: 16,
-    },
-    filterChip: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        marginRight: 8,
-        borderRadius: 20,
-        backgroundColor: '#2d3748',
-    },
-    filterChipActive: {
-        backgroundColor: '#F59E0B',
-    },
-    filterChipText: {
-        fontSize: 14,
-        color: '#94a3b8',
-        fontWeight: '500',
-    },
-    filterChipTextActive: {
-        color: '#fff',
-    },
     listContainer: {
         padding: 16,
     },
-    memberCard: {
-        backgroundColor: '#1A1A1A',
+    card: {
+        backgroundColor: COLORS.cardDark,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
         borderWidth: 1,
-        borderColor: '#333',
+        borderColor: COLORS.slate800,
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    teamIcon: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: COLORS.primary,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 16,
+    },
+    teamInfo: {
+        flex: 1,
+    },
+    teamName: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: COLORS.textLight,
+        marginBottom: 4,
+    },
+    teamDescription: {
+        fontSize: 13,
+        color: COLORS.slate400,
+        fontStyle: 'italic',
+    },
+    teamSection: {
+        marginTop: 12,
+        paddingTop: 12,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.slate800,
+    },
+    sectionTitle: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: COLORS.primary,
+        marginBottom: 6,
+    },
+    sectionText: {
+        fontSize: 14,
+        color: COLORS.textLight,
+    },
+    membersList: {
+        marginTop: 4,
+    },
+    memberItem: {
+        fontSize: 14,
+        color: COLORS.textLight,
+        marginBottom: 4,
+        paddingLeft: 8,
+    },
+    emptyMembersText: {
+        fontSize: 14,
+        color: COLORS.slate400,
+        fontStyle: 'italic',
+    },
+    editIcon: {
+        padding: 8,
+    },
+    fab: {
+        position: 'absolute',
+        right: 20,
+        bottom: 20,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: COLORS.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 8,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        justifyContent: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: COLORS.cardDark,
+        borderRadius: 16,
+        padding: 20,
+        borderWidth: 1,
+        borderColor: COLORS.slate800,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: COLORS.textLight,
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    label: {
+        color: COLORS.textLight,
+        marginBottom: 8,
+        fontWeight: '600',
+    },
+    selectionBox: {
+        backgroundColor: COLORS.slate800,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: COLORS.slate600,
+        padding: 12,
+        marginBottom: 16,
+        maxHeight: 200,
+    },
+    checkboxItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 4,
+    },
+    checkbox: {
+        width: 24,
+        height: 24,
+        borderRadius: 4,
+        borderWidth: 2,
+        borderColor: COLORS.slate500,
+        marginRight: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'transparent',
+    },
+    checkboxChecked: {
+        borderColor: COLORS.primary,
+        backgroundColor: COLORS.primary,
+    },
+    checkmark: {
+        color: COLORS.black,
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    checkboxLabel: {
+        color: COLORS.textLight,
+        fontSize: 14,
+        flex: 1,
+    },
+    emptyText: {
+        color: COLORS.slate400,
+        fontSize: 14,
+        fontStyle: 'italic',
+        textAlign: 'center',
+        paddingVertical: 12,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 10,
+    },
+    memberCard: {
+        backgroundColor: COLORS.cardDark,
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: COLORS.slate800,
     },
     memberHeader: {
         flexDirection: 'row',
-        marginBottom: 16,
+        marginBottom: 0,
     },
     avatar: {
         width: 50,
@@ -314,7 +503,7 @@ const styles = StyleSheet.create({
     avatarText: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#fff',
+        color: COLORS.black,
     },
     memberInfo: {
         flex: 1,
@@ -328,7 +517,7 @@ const styles = StyleSheet.create({
     memberName: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#ffffff',
+        color: COLORS.textLight,
     },
     statusBadge: {
         paddingHorizontal: 8,
@@ -341,53 +530,11 @@ const styles = StyleSheet.create({
     },
     memberEmail: {
         fontSize: 14,
-        color: '#94a3b8',
+        color: COLORS.slate400,
     },
     memberRole: {
         fontSize: 12,
-        color: '#94a3b8',
+        color: COLORS.slate400,
         marginTop: 2,
-    },
-    statsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        borderTopWidth: 1,
-        borderTopColor: '#333',
-        paddingTop: 12,
-    },
-    stat: {
-        alignItems: 'center',
-    },
-    statValue: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#ffffff',
-        marginBottom: 4,
-    },
-    statLabel: {
-        fontSize: 12,
-        color: '#94a3b8',
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 60,
-    },
-    emptyIcon: {
-        fontSize: 48,
-        marginBottom: 16,
-    },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#ffffff',
-        marginBottom: 8,
-    },
-    emptyText: {
-        fontSize: 14,
-        color: '#94a3b8',
-        textAlign: 'center',
-        paddingHorizontal: 32,
     },
 });

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 
 const updateCustomerSchema = z.object({
@@ -11,13 +11,40 @@ const updateCustomerSchema = z.object({
     address: z.string().optional(),
 })
 
+export async function GET(
+    req: Request,
+    { params }: { params: { id: string } }
+) {
+    try {
+        const session = await verifyAuth(req)
+        if (!session || session.user.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const customer = await prisma.user.findUnique({
+            where: { id: params.id },
+            include: {
+                customerProfile: true
+            }
+        })
+
+        if (!customer) {
+            return NextResponse.json({ error: 'Customer not found' }, { status: 404 })
+        }
+
+        return NextResponse.json(customer)
+    } catch (error) {
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    }
+}
+
 export async function PUT(
     req: Request,
     props: { params: Promise<{ id: string }> }
 ) {
     const params = await props.params
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session || session.user.role !== 'ADMIN') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
@@ -79,7 +106,7 @@ export async function DELETE(
 ) {
     const params = await props.params
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session || session.user.role !== 'ADMIN') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 
 const updateTeamSchema = z.object({
@@ -17,7 +17,7 @@ export async function GET(
 ) {
     const params = await props.params
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
@@ -56,7 +56,7 @@ export async function PATCH(
 ) {
     const params = await props.params
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session || session.user.role !== 'ADMIN') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
@@ -138,7 +138,7 @@ export async function DELETE(
 ) {
     const params = await props.params
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session || session.user.role !== 'ADMIN') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }

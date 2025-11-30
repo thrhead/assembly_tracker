@@ -1,13 +1,13 @@
-```typescript
+
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { jobCreationSchema } from '@/lib/validations'
 
 export async function GET(req: Request) {
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
@@ -32,7 +32,7 @@ export async function GET(req: Request) {
         if (status && status !== 'all') where.status = status
         if (priority && priority !== 'all') where.priority = priority
         if (customerId && customerId !== 'all') where.customerId = customerId
-        
+
         if (teamId && teamId !== 'all') {
             where.assignments = { some: { teamId } }
         }
@@ -73,7 +73,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
@@ -143,9 +143,10 @@ export async function POST(req: Request) {
     } catch (error) {
         console.error('Job creation error:', error)
         if (error instanceof z.ZodError) {
-            return NextResponse.json({ error: 'Invalid data', details: error.issues }, { status: 400 })
+            const errorMessage = error.issues.map(issue => issue.message).join(', ')
+            return NextResponse.json({ error: errorMessage, details: error.issues }, { status: 400 })
         }
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
-```
+

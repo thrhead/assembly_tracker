@@ -5,11 +5,10 @@ import { prisma } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   BriefcaseIcon,
+  ReceiptIcon,
   UsersIcon,
-  CheckCircle2Icon,
-  ClockIcon,
   TrendingUpIcon,
-  AlertCircleIcon
+  BellIcon
 } from 'lucide-react'
 import { formatDistanceToNow } from "date-fns"
 import { tr } from "date-fns/locale"
@@ -21,242 +20,139 @@ export default async function AdminDashboard() {
     redirect("/login")
   }
 
-  // Fetch real data
+  // Fetch real data for synchronization
   const [
-    totalJobs,
-    activeTeams,
-    completedJobsThisMonth,
-    pendingApprovalsCount,
-    recentJobs,
-    pendingJobs
+    activeWorkers,
+    todaysCosts
   ] = await Promise.all([
-    prisma.job.count(),
-    prisma.team.count({ where: { isActive: true } }),
-    prisma.job.count({
+    // Fetch active workers for "Ekip Durumu"
+    prisma.user.findMany({
       where: {
-        status: 'COMPLETED',
-        completedDate: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-        }
-      }
-    }),
-    prisma.approval.count({ where: { status: 'PENDING' } }),
-    // Standard recent jobs
-    prisma.job.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        creator: true,
-        customer: true,
-        steps: {
-          where: {
-            subSteps: {
-              some: {
-                approvalStatus: 'PENDING'
-              }
-            }
-          },
-          select: { id: true }
-        },
-        costs: {
-          where: { status: 'PENDING' },
-          select: { id: true }
-        }
-      }
-    }),
-    // Jobs with pending approvals
-    prisma.job.findMany({
-      where: {
-        OR: [
-          {
-            steps: {
-              some: {
-                subSteps: {
-                  some: {
-                    approvalStatus: 'PENDING'
-                  }
-                }
-              }
-            }
-          },
-          {
-            costs: {
-              some: {
-                status: 'PENDING'
-              }
-            }
-          }
-        ]
+        role: 'WORKER',
+        isActive: true
       },
       take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        creator: true,
-        customer: true,
-        steps: {
-          where: {
-            subSteps: {
-              some: {
-                approvalStatus: 'PENDING'
-              }
-            }
-          },
-          select: { id: true }
-        },
-        costs: {
-          where: { status: 'PENDING' },
-          select: { id: true }
+      select: {
+        id: true,
+        name: true,
+        avatarUrl: true,
+        // In a real app, we might have a separate 'status' or 'lastLocation' field
+        // For now, we'll mock the status based on active jobs or similar if needed,
+        // but to match mobile mock data style, we'll just list them.
+      }
+    }),
+    // Fetch today's costs for "Son Masraflar"
+    prisma.costTracking.findMany({
+      where: {
+        date: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0))
         }
+      },
+      select: {
+        amount: true
       }
     })
   ])
 
-  const stats = [
-    {
-      title: 'Toplam İş',
-      value: totalJobs.toString(),
-      change: 'Tüm zamanlar',
-      icon: BriefcaseIcon,
-      color: 'text-blue-600',
-      bg: 'bg-blue-100'
-    },
-    {
-      title: 'Aktif Ekipler',
-      value: activeTeams.toString(),
-      change: 'Aktif',
-      icon: UsersIcon,
-      color: 'text-green-600',
-      bg: 'bg-green-100'
-    },
-    {
-      title: 'Tamamlanan',
-      value: completedJobsThisMonth.toString(),
-      change: 'Bu ay',
-      icon: CheckCircle2Icon,
-      color: 'text-purple-600',
-      bg: 'bg-purple-100'
-    },
-    {
-      title: 'Bekleyen Onay',
-      value: pendingApprovalsCount.toString(),
-      change: 'Acil',
-      icon: ClockIcon,
-      color: 'text-orange-600',
-      bg: 'bg-orange-100'
-    }
-  ]
+  // Calculate total cost for today
+  const totalCostToday = todaysCosts.reduce((sum, cost) => sum + cost.amount, 0)
 
-  // Merge and deduplicate jobs (prioritize pending)
-  const displayJobs = [...pendingJobs, ...recentJobs]
-    .filter((job, index, self) => index === self.findIndex((t) => t.id === job.id))
-    .slice(0, 5)
+  // Mock budget for progress bar (e.g., 2000 TL daily budget)
+  const dailyBudget = 2000
+  const budgetPercentage = Math.min(Math.round((totalCostToday / dailyBudget) * 100), 100)
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between bg-[#1A1A1A] p-4 rounded-xl border border-zinc-800">
+        <div className="flex items-center gap-4">
+          <img
+            src={session.user.image || "https://lh3.googleusercontent.com/aida-public/AB6AXuDmgIPsi3bPD34q9YUmIJBghzDzdjJ1rgdx1tBy10ynTsLKppEU00n7doTCFEiJdlPmoV_1BkGez8XvuImrIDFnxuqU91lP4ldNTWXjv8i-HqXYQEbOCatNc0kgwrtg5_Qm9w28VRd3Mszc19FPohh87hQImoPk0OPOj9_4PnMcxA8og88y5Uf3GyDt6qLEsXq8LHL_V3hdFx5i2I3UZqsoRVnXw8sDaQIBRNOjOJCQEVxvFwKvsLg_SvV-dnsZe7gFaAK-JaS1DM5y"}
+            alt="Avatar"
+            className="w-12 h-12 rounded-full"
+          />
+          <div>
+            <p className="text-gray-400 text-sm">Tekrar Hoşgeldiniz,</p>
+            <h1 className="text-xl font-bold text-white">{session.user.name || 'Admin Kullanıcı'}</h1>
+          </div>
+        </div>
+        <Link href="/admin/notifications" className="p-2 bg-zinc-800 rounded-full relative hover:bg-zinc-700 transition-colors">
+          <BellIcon className="w-6 h-6 text-gray-300" />
+          <span className="absolute top-2 right-2 w-2 h-2 bg-[#CCFF04] rounded-full border-2 border-[#1A1A1A]"></span>
+        </Link>
+      </div>
+
+      {/* Quick Actions (Hızlı İşlemler) */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 mt-2">Hoş geldiniz, sistem genel durumunu buradan takip edebilirsiniz.</p>
+        <h2 className="text-xl font-bold text-white mb-4">Hızlı İşlemler</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <Link href="/admin/jobs/new" className="bg-[#101010] border border-zinc-800 p-6 rounded-xl flex flex-col items-center justify-center gap-3 hover:border-[#CCFF04] transition-colors group">
+            <BriefcaseIcon className="w-8 h-8 text-[#CCFF04]" />
+            <span className="text-white font-medium group-hover:text-[#CCFF04] transition-colors">Yeni Görev</span>
+          </Link>
+          <Link href="/admin/costs" className="bg-[#101010] border border-zinc-800 p-6 rounded-xl flex flex-col items-center justify-center gap-3 hover:border-[#CCFF04] transition-colors group">
+            <ReceiptIcon className="w-8 h-8 text-[#CCFF04]" />
+            <span className="text-white font-medium group-hover:text-[#CCFF04] transition-colors">Masraf Ekle</span>
+          </Link>
+        </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => {
-          const cardContent = (
-            <Card className={`border-none shadow-sm hover:shadow-md transition-shadow ${stat.title === 'Bekleyen Onay' ? 'cursor-pointer' : ''}`}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">
-                  {stat.title}
-                </CardTitle>
-                <div className={`p-2 rounded-full ${stat.bg}`}>
-                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                <p className="text-xs text-gray-500 mt-1">{stat.change}</p>
-              </CardContent>
-            </Card>
-          )
-
-          return stat.title === 'Bekleyen Onay' ? (
-            <Link key={index} href="/admin/approvals">
-              {cardContent}
-            </Link>
-          ) : (
-            <div key={index}>
-              {cardContent}
-            </div>
-          )
-        })}
-      </div>
-
-      <div className="grid gap-8 md:grid-cols-2">
-        {/* Recent Activity */}
-        <Card className="border-none shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUpIcon className="h-5 w-5 text-gray-500" />
-              Son İşler
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {displayJobs.length === 0 ? (
-                <p className="text-sm text-gray-500">Henüz kayıtlı iş bulunmuyor.</p>
-              ) : (
-                displayJobs.map((job) => (
-                  <div key={job.id} className="flex items-start gap-4">
-                    <div className="mt-1 p-2 rounded-full bg-blue-100 text-blue-600">
-                      <BriefcaseIcon className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium text-gray-900">
-                        {job.creator.name} <span className="text-gray-500 font-normal">yeni bir iş oluşturdu</span>
-                      </p>
-                      <p className="text-sm text-gray-600">{job.title} - {job.customer.company}</p>
-                      {(job.steps.length > 0 || job.costs.length > 0) && (
-                        <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                          ⚠️ Onay Bekliyor
-                        </div>
-                      )}
-                      <p className="text-xs text-gray-400">
-                        {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true, locale: tr })}
-                      </p>
-                    </div>
+      {/* Team Status (Ekip Durumu) */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-white">Ekip Durumu</h2>
+          <Link href="/admin/teams" className="text-[#CCFF04] text-sm font-medium hover:underline">Haritada Gör</Link>
+        </div>
+        <div className="space-y-3">
+          {activeWorkers.length > 0 ? (
+            activeWorkers.map((worker) => (
+              <div key={worker.id} className="bg-[#101010] border border-zinc-800 p-4 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={worker.avatarUrl || `https://ui-avatars.com/api/?name=${worker.name}&background=random`}
+                    alt={worker.name || 'Worker'}
+                    className="w-10 h-10 rounded-full"
+                  />
+                  <div>
+                    <p className="text-white font-medium">{worker.name}</p>
+                    <p className="text-gray-500 text-xs">Sahada / Müsait</p>
                   </div>
-                ))
-              )}
+                </div>
+                <span className="text-[#CCFF04] text-sm font-medium">Aktif</span>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500 text-sm">Aktif çalışan bulunamadı.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Recent Costs (Son Masraflar) */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-white">Son Masraflar</h2>
+          <Link href="/admin/costs" className="text-[#CCFF04] text-sm font-medium hover:underline">Tümünü Gör</Link>
+        </div>
+        <div className="bg-[#101010] border border-zinc-800 p-6 rounded-xl">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-gray-500 text-xs mb-1">Bugün Harcanan</p>
+              <p className="text-2xl font-bold text-white">₺{totalCostToday.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex items-center gap-1 text-[#CCFF04]">
+              <TrendingUpIcon className="w-4 h-4" />
+              <span className="text-sm font-medium">%15</span>
+            </div>
+          </div>
 
-        {/* Quick Actions */}
-        <Card className="border-none shadow-sm bg-indigo-50">
-          <CardHeader>
-            <CardTitle className="text-indigo-900">Hızlı İşlemler</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Link href="/admin/jobs" className="block w-full bg-white p-4 rounded-lg shadow-sm text-left hover:bg-indigo-100 transition-colors flex items-center gap-3">
-              <div className="p-2 bg-indigo-100 rounded-full text-indigo-600">
-                <BriefcaseIcon className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-medium text-indigo-900">Yeni İş Oluştur</h3>
-                <p className="text-sm text-indigo-600/80">Müşteri için yeni bir servis kaydı aç</p>
-              </div>
-            </Link>
-
-            <Link href="/admin/users/new" className="block w-full bg-white p-4 rounded-lg shadow-sm text-left hover:bg-indigo-100 transition-colors flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-full text-purple-600">
-                <UsersIcon className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-medium text-indigo-900">Yeni Kullanıcı Ekle</h3>
-                <p className="text-sm text-indigo-600/80">Sisteme yeni personel veya müşteri ekle</p>
-              </div>
-            </Link>
-          </CardContent>
-        </Card>
+          <div className="w-full bg-zinc-800 h-2 rounded-full mb-2">
+            <div
+              className="bg-[#CCFF04] h-2 rounded-full"
+              style={{ width: `${budgetPercentage}%` }}
+            ></div>
+          </div>
+          <p className="text-gray-500 text-xs">Günlük bütçenin %{budgetPercentage}'i kullanıldı</p>
+        </div>
       </div>
     </div>
   )

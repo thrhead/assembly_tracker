@@ -27,7 +27,7 @@ model User {
 
   // Relations
   customerProfile Customer?
-  teamMember      TeamMember?
+  teamMember      TeamMember[]
   managedTeams    Team[]        @relation("TeamLead")
   assignedJobs    JobAssignment[]
   createdJobs     Job[]         @relation("JobCreator")
@@ -80,7 +80,7 @@ model Team {
 model TeamMember {
   id        String   @id @default(cuid())
   teamId    String
-  userId    String   @unique
+  userId    String
   joinedAt  DateTime @default(now())
 
   team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)

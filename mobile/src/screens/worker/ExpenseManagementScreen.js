@@ -8,9 +8,12 @@ import {
     TextInput,
     StatusBar,
     SafeAreaView,
-    Dimensions
+    Dimensions,
+    Modal,
+    Alert
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import costService from '../../services/cost.service';
 
 const { width } = Dimensions.get('window');
 
@@ -36,12 +39,56 @@ const COLORS = {
     purple900: "#581c87",
 };
 
-export default function ExpenseManagementScreen({ navigation }) {
-    const [selectedProject, setSelectedProject] = useState('Proje Alpha');
+export default function ExpenseManagementScreen({ navigation, route }) {
+    const [selectedProject, setSelectedProject] = useState('Müşteri Sahasında Ünite 4B Kurulumu');
     const [selectedCategory, setSelectedCategory] = useState('Tümü');
     const [searchQuery, setSearchQuery] = useState('');
 
-    const projects = ['Proje Alpha', 'Proje Beta', 'Proje Gamma'];
+    // Create Modal State
+    const [modalVisible, setModalVisible] = useState(false);
+    const [formData, setFormData] = useState({
+        title: '',
+        amount: '',
+        category: 'Yemek',
+        description: '',
+        jobId: '' // In a real app, this would be selected from a list
+    });
+
+    useEffect(() => {
+        if (route.params?.openCreate) {
+            setModalVisible(true);
+            navigation.setParams({ openCreate: undefined });
+        }
+    }, [route.params]);
+
+    const handleCreateExpense = async () => {
+        if (!formData.title || !formData.amount) {
+            Alert.alert('Hata', 'Lütfen başlık ve tutar giriniz.');
+            return;
+        }
+
+        try {
+            await costService.create({
+                ...formData,
+                amount: parseFloat(formData.amount),
+                date: new Date().toISOString()
+            });
+            Alert.alert('Başarılı', 'Masraf başarıyla eklendi.');
+            setModalVisible(false);
+            setFormData({ title: '', amount: '', category: 'Yemek', description: '', jobId: '' });
+            // Refresh list if we were fetching real data
+        } catch (error) {
+            console.error('Create expense error:', error);
+            Alert.alert('Hata', 'Masraf eklenirken bir hata oluştu.');
+        }
+    };
+
+    const projects = [
+        'Müşteri Sahasında Ünite 4B Kurulumu',
+        'Merkez Ofis Klima Bakımı',
+        '123 Ana Cadde Saha Keşfi',
+        'Üç Aylık Bakım Kontrolü'
+    ];
     const categories = [
         { id: 'Tümü', icon: 'tune', label: 'Tümü' },
         { id: 'Seyahat', icon: 'directions-car', label: 'Seyahat' },
@@ -276,9 +323,102 @@ export default function ExpenseManagementScreen({ navigation }) {
             </ScrollView>
 
             {/* FAB */}
-            <TouchableOpacity style={styles.fab}>
+            <TouchableOpacity
+                style={styles.fab}
+                onPress={() => setModalVisible(true)}
+            >
                 <MaterialIcons name="add" size={32} color={COLORS.backgroundDark} />
             </TouchableOpacity>
+
+            {/* Create Expense Modal */}
+            <Modal
+                visible={modalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Yeni Masraf Ekle</Text>
+                            <TouchableOpacity onPress={() => setModalVisible(false)}>
+                                <MaterialIcons name="close" size={24} color={COLORS.textGray} />
+                            </TouchableOpacity>
+                        </View>
+
+                        <ScrollView>
+                            <View style={styles.formGroup}>
+                                <Text style={styles.label}>Başlık</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Örn: Öğle Yemeği"
+                                    placeholderTextColor={COLORS.textGray}
+                                    value={formData.title}
+                                    onChangeText={(text) => setFormData({ ...formData, title: text })}
+                                />
+                            </View>
+
+                            <View style={styles.formGroup}>
+                                <Text style={styles.label}>Tutar (₺)</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="0.00"
+                                    placeholderTextColor={COLORS.textGray}
+                                    keyboardType="numeric"
+                                    value={formData.amount}
+                                    onChangeText={(text) => setFormData({ ...formData, amount: text })}
+                                />
+                            </View>
+
+                            <View style={styles.formGroup}>
+                                <Text style={styles.label}>Kategori</Text>
+                                <View style={styles.categorySelector}>
+                                    {categories.filter(c => c.id !== 'Tümü').map((cat) => (
+                                        <TouchableOpacity
+                                            key={cat.id}
+                                            style={[
+                                                styles.categoryOption,
+                                                formData.category === cat.id && styles.categoryOptionSelected
+                                            ]}
+                                            onPress={() => setFormData({ ...formData, category: cat.id })}
+                                        >
+                                            <MaterialIcons
+                                                name={cat.icon}
+                                                size={20}
+                                                color={formData.category === cat.id ? COLORS.backgroundDark : COLORS.textGray}
+                                            />
+                                            <Text style={[
+                                                styles.categoryOptionText,
+                                                formData.category === cat.id && styles.categoryOptionTextSelected
+                                            ]}>{cat.label}</Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            </View>
+
+                            <View style={styles.formGroup}>
+                                <Text style={styles.label}>Açıklama</Text>
+                                <TextInput
+                                    style={[styles.input, styles.textArea]}
+                                    placeholder="Masraf detayı..."
+                                    placeholderTextColor={COLORS.textGray}
+                                    multiline
+                                    numberOfLines={3}
+                                    value={formData.description}
+                                    onChangeText={(text) => setFormData({ ...formData, description: text })}
+                                />
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.submitButton}
+                                onPress={handleCreateExpense}
+                            >
+                                <Text style={styles.submitButtonText}>Kaydet</Text>
+                            </TouchableOpacity>
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
@@ -520,5 +660,93 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 8,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: COLORS.cardDark,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        padding: 24,
+        maxHeight: '80%',
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: COLORS.textLight,
+    },
+    formGroup: {
+        marginBottom: 20,
+    },
+    label: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: COLORS.textGray,
+        marginBottom: 8,
+    },
+    input: {
+        backgroundColor: COLORS.cardBorder,
+        borderRadius: 12,
+        padding: 16,
+        color: COLORS.textLight,
+        fontSize: 16,
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
+    },
+    textArea: {
+        height: 100,
+        textAlignVertical: 'top',
+    },
+    categorySelector: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+    },
+    categoryOption: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 20,
+        backgroundColor: COLORS.cardBorder,
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
+        gap: 8,
+    },
+    categoryOptionSelected: {
+        backgroundColor: COLORS.primary,
+        borderColor: COLORS.primary,
+    },
+    categoryOptionText: {
+        color: COLORS.textGray,
+        fontWeight: '500',
+    },
+    categoryOptionTextSelected: {
+        color: COLORS.backgroundDark,
+        fontWeight: 'bold',
+    },
+    submitButton: {
+        backgroundColor: COLORS.primary,
+        padding: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+        marginTop: 8,
+        marginBottom: 24,
+    },
+    submitButtonText: {
+        color: COLORS.backgroundDark,
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });

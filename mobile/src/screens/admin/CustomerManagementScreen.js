@@ -209,7 +209,7 @@ export default function CustomerManagementScreen({ navigation }) {
     if (loading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#EF4444" />
+                <ActivityIndicator size="large" color="#CCFF04" />
                 <Text style={styles.loadingText}>Müşteriler yükleniyor...</Text>
             </View>
         );
@@ -245,8 +245,8 @@ export default function CustomerManagementScreen({ navigation }) {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        colors={['#EF4444']}
-                        tintColor="#EF4444"
+                        colors={['#CCFF04']}
+                        tintColor="#CCFF04"
                     />
                 }
             />
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
     searchIcon: {
         fontSize: 16,
         marginRight: 8,
-        color: '#94a3b8',
+        color: '#CCFF04',
     },
     searchInput: {
         flex: 1,
@@ -420,14 +420,16 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: '#3B82F6',
+        backgroundColor: 'rgba(204, 255, 4, 0.2)', // #CCFF04 with opacity
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
+        borderWidth: 1,
+        borderColor: '#CCFF04',
     },
     companyIconText: {
         fontSize: 24,
-        color: '#ffffff',
+        color: '#CCFF04',
     },
     customerInfo: {
         flex: 1,
@@ -473,7 +475,7 @@ const styles = StyleSheet.create({
     statValue: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#3B82F6',
+        color: '#CCFF04',
         marginBottom: 4,
     },
     statLabel: {
@@ -485,26 +487,28 @@ const styles = StyleSheet.create({
     },
     editButton: {
         flex: 1,
-        backgroundColor: '#3B82F6',
+        backgroundColor: '#CCFF04',
         padding: 10,
         borderRadius: 8,
         marginRight: 8,
         alignItems: 'center',
     },
     editButtonText: {
-        color: '#fff',
+        color: '#000000',
         fontSize: 14,
         fontWeight: '600',
     },
     deleteButton: {
         flex: 1,
-        backgroundColor: '#EF4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.2)', // Red with opacity
         padding: 10,
         borderRadius: 8,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#EF4444',
     },
     deleteButtonText: {
-        color: '#fff',
+        color: '#EF4444',
         fontSize: 14,
         fontWeight: '600',
     },
@@ -537,10 +541,10 @@ const styles = StyleSheet.create({
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: '#EF4444',
+        backgroundColor: '#CCFF04',
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: '#000',
+        shadowColor: '#CCFF04',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -548,12 +552,12 @@ const styles = StyleSheet.create({
     },
     fabText: {
         fontSize: 32,
-        color: '#fff',
+        color: '#000000',
         fontWeight: '300',
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
         justifyContent: 'flex-end',
     },
     modalContent: {
@@ -612,7 +616,7 @@ const styles = StyleSheet.create({
     },
     saveButton: {
         flex: 1,
-        backgroundColor: '#EF4444',
+        backgroundColor: '#CCFF04',
         padding: 16,
         borderRadius: 8,
         alignItems: 'center',
@@ -620,6 +624,6 @@ const styles = StyleSheet.create({
     saveButtonText: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#fff',
+        color: '#000000',
     },
 });

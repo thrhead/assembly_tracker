@@ -45,6 +45,35 @@ const teamService = {
             throw error;
         }
     },
+
+    /**
+     * Create a new team
+     * @param {Object} teamData
+     * @returns {Promise<{team}>}
+     */
+    create: async (teamData) => {
+        try {
+            const response = await api.post('/api/teams', teamData);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
+     * Update a team
+     * @param {string} teamId
+     * @param {Object} teamData
+     * @returns {Promise<{team}>}
+     */
+    update: async (teamId, teamData) => {
+        try {
+            const response = await api.put(`/api/teams/${teamId}`, teamData);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
 };
 
 export default teamService;

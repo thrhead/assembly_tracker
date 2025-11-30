@@ -4,6 +4,17 @@ import { compare } from "bcryptjs"
 import { loginSchema } from "@/lib/validations"
 import { SignJWT } from "jose"
 
+// CORS headers helper
+const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+}
+
+export async function OPTIONS() {
+    return NextResponse.json({}, { headers: corsHeaders })
+}
+
 export async function POST(req: Request) {
     console.log("Mobile login request received")
     try {
@@ -15,13 +26,13 @@ export async function POST(req: Request) {
         })
 
         if (!user || !user.isActive) {
-            return NextResponse.json({ error: "Kullanıcı bulunamadı veya aktif değil" }, { status: 401 })
+            return NextResponse.json({ error: "Kullanıcı bulunamadı veya aktif değil" }, { status: 401, headers: corsHeaders })
         }
 
         const isPasswordValid = await compare(password, user.passwordHash)
 
         if (!isPasswordValid) {
-            return NextResponse.json({ error: "Hatalı şifre" }, { status: 401 })
+            return NextResponse.json({ error: "Hatalı şifre" }, { status: 401, headers: corsHeaders })
         }
 
         // Create a simple JWT token for the mobile app using jose
@@ -49,12 +60,12 @@ export async function POST(req: Request) {
                 phone: user.phone,
             },
             token
-        })
+        }, { headers: corsHeaders })
     } catch (error) {
         console.error("Mobile login error:", error)
         return NextResponse.json({
             error: "Giriş yapılamadı",
             details: error instanceof Error ? error.message : String(error)
-        }, { status: 500 })
+        }, { status: 500, headers: corsHeaders })
     }
 }

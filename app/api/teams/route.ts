@@ -1,20 +1,31 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
+
+// CORS headers
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+}
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders })
+}
 
 const teamSchema = z.object({
   name: z.string().min(2, 'Ekip adı en az 2 karakter olmalıdır'),
   description: z.string().optional(),
-  leadId: z.string().optional(), // Opsiyonel, sonra da atanabilir
+  leadId: z.string().optional(),
   memberIds: z.array(z.string()).optional(),
 })
 
 export async function GET(req: Request) {
   try {
-    const session = await auth()
+    const session = await verifyAuth(req)
     if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'MANAGER')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders })
     }
 
     const { searchParams } = new URL(req.url)
@@ -37,37 +48,60 @@ export async function GET(req: Request) {
             email: true
           }
         },
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true
+              }
+            }
+          }
+        },
         _count: {
           select: {
             members: true,
-            assignments: true // Aktif iş sayısı için kullanılabilir
+            assignments: true
           }
         }
       }
     })
 
-    return NextResponse.json(teams)
+    return NextResponse.json(teams, { headers: corsHeaders })
   } catch (error) {
     console.error('Teams fetch error:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers: corsHeaders })
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const session = await auth()
+    const session = await verifyAuth(req)
     if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders })
     }
 
     const body = await req.json()
     const { name, description, leadId, memberIds } = teamSchema.parse(body)
 
+    // Validate leadId if provided
+    let validatedLeadId = null
+    if (leadId && leadId.trim()) {
+      const leadExists = await prisma.user.findUnique({
+        where: { id: leadId }
+      })
+      if (leadExists) {
+        validatedLeadId = leadId
+      }
+    }
+
     const team = await prisma.team.create({
       data: {
         name,
         description,
-        leadId: leadId || null,
+        leadId: validatedLeadId,
         isActive: true,
         members: memberIds && memberIds.length > 0 ? {
           create: memberIds.map(userId => ({
@@ -91,7 +125,7 @@ export async function POST(req: Request) {
                 email: true,
                 role: true,
                 phone: true,
-                avatar: true
+                avatarUrl: true
               }
             }
           }
@@ -99,16 +133,12 @@ export async function POST(req: Request) {
       }
     })
 
-    // Eğer lead atandıysa, onu otomatik olarak team member yapabiliriz (Opsiyonel, şimdilik sadece lead olarak kalsın)
-    // Genelde lead aynı zamanda member olur ama schema yapısına göre TeamMember tablosuna da eklemek gerekebilir.
-    // Şimdilik basit tutalım.
-
-    return NextResponse.json(team, { status: 201 })
+    return NextResponse.json(team, { status: 201, headers: corsHeaders })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: (error as any).errors }, { status: 400 })
+      return NextResponse.json({ error: (error as any).errors }, { status: 400, headers: corsHeaders })
     }
     console.error('Team create error:', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers: corsHeaders })
   }
 }

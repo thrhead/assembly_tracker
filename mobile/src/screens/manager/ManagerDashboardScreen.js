@@ -2,6 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBadge from '../../components/NotificationBadge';
+import { COLORS } from '../../constants/theme';
+import StatCard from '../../components/StatCard';
+import DashboardAction from '../../components/DashboardAction';
 
 export default function ManagerDashboardScreen({ navigation }) {
     const { logout } = useAuth();
@@ -21,7 +24,7 @@ export default function ManagerDashboardScreen({ navigation }) {
                 <View style={styles.headerButtons}>
                     <NotificationBadge
                         onPress={() => navigation.navigate('Notifications')}
-                        color="#000"
+                        color={COLORS.white}
                     />
                     <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Profile')}>
                         <Text style={styles.headerButtonIcon}>⚙️</Text>
@@ -34,22 +37,40 @@ export default function ManagerDashboardScreen({ navigation }) {
 
             {/* Quick Stats */}
             <View style={styles.statsContainer}>
-                <View style={[styles.statCard, { backgroundColor: '#EBF5FF' }]}>
-                    <Text style={styles.statNumber}>8</Text>
-                    <Text style={styles.statLabel}>Ekip Üyeleri</Text>
-                </View>
-                <View style={[styles.statCard, { backgroundColor: '#DBEAFE' }]}>
-                    <Text style={[styles.statNumber, { color: '#2563EB' }]}>12</Text>
-                    <Text style={styles.statLabel}>Aktif İşler</Text>
-                </View>
-                <View style={[styles.statCard, { backgroundColor: '#FEF3C7' }]}>
-                    <Text style={[styles.statNumber, { color: '#D97706' }]}>5</Text>
-                    <Text style={styles.statLabel}>Onay Bekleyen</Text>
-                </View>
-                <View style={[styles.statCard, { backgroundColor: '#D1FAE5' }]}>
-                    <Text style={[styles.statNumber, { color: '#059669' }]}>87%</Text>
-                    <Text style={styles.statLabel}>Tamamlanma</Text>
-                </View>
+                <StatCard
+                    label="Ekip Üyeleri"
+                    value="8"
+                    icon="group"
+                    iconColor={COLORS.black}
+                    backgroundColor="#EBF5FF"
+                    style={{ margin: 6 }}
+                />
+                <StatCard
+                    label="Aktif İşler"
+                    value="12"
+                    icon="assignment"
+                    iconColor="#2563EB"
+                    backgroundColor="#DBEAFE"
+                    style={{ margin: 6 }}
+                />
+            </View>
+            <View style={styles.statsContainer}>
+                <StatCard
+                    label="Onay Bekleyen"
+                    value="5"
+                    icon="pending-actions"
+                    iconColor="#D97706"
+                    backgroundColor="#FEF3C7"
+                    style={{ margin: 6 }}
+                />
+                <StatCard
+                    label="Tamamlanma"
+                    value="87%"
+                    icon="check-circle"
+                    iconColor="#059669"
+                    backgroundColor="#D1FAE5"
+                    style={{ margin: 6 }}
+                />
             </View>
 
             {/* Coming Soon Section */}
@@ -72,34 +93,33 @@ export default function ManagerDashboardScreen({ navigation }) {
             <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Hızlı Erişim</Text>
                 <View style={styles.quickActions}>
-                    <TouchableOpacity
-                        style={styles.actionButtonActive}
+                    <DashboardAction
+                        label="Ekibim"
+                        icon="👥"
                         onPress={() => navigation.navigate('TeamList')}
-                    >
-                        <Text style={styles.actionIcon}>👥</Text>
-                        <Text style={styles.actionText}>Ekibim</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={styles.actionButtonActive}
+                        isActive={true}
+                    />
+                    <DashboardAction
+                        label="İş Atama"
+                        icon="📋"
                         onPress={() => navigation.navigate('JobAssignment')}
-                    >
-                        <Text style={styles.actionIcon}>📋</Text>
-                        <Text style={styles.actionText}>İş Atama</Text>
-                    </TouchableOpacity>
+                        isActive={true}
+                    />
                 </View>
                 <View style={[styles.quickActions, { marginTop: 12 }]}>
-                    <TouchableOpacity
-                        style={styles.actionButtonActive}
+                    <DashboardAction
+                        label="Masraflar"
+                        icon="💰"
                         onPress={() => navigation.navigate('CostManagement')}
-                    >
-                        <Text style={styles.actionIcon}>💰</Text>
-                        <Text style={styles.actionText}>Masraflar</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton} disabled>
-                        <Text style={styles.actionIcon}>📊</Text>
-                        <Text style={styles.actionText}>Raporlar</Text>
-                        <Text style={styles.comingSoonBadge}>Yakında</Text>
-                    </TouchableOpacity>
+                        isActive={true}
+                    />
+                    <DashboardAction
+                        label="Raporlar"
+                        icon="📊"
+                        isActive={false}
+                        disabled={true}
+                        comingSoon={true}
+                    />
                 </View>
             </View>
         </ScrollView>
@@ -109,10 +129,10 @@ export default function ManagerDashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#010100',
+        backgroundColor: COLORS.backgroundDark,
     },
     header: {
-        backgroundColor: '#1A1A1A',
+        backgroundColor: COLORS.cardDark,
         padding: 20,
         paddingTop: 16,
         borderBottomWidth: 1,
@@ -124,12 +144,12 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#ffffff',
+        color: COLORS.white,
         marginBottom: 4,
     },
     headerSubtitle: {
         fontSize: 16,
-        color: '#94a3b8',
+        color: COLORS.slate400,
     },
     headerButtons: {
         flexDirection: 'row',
@@ -140,7 +160,7 @@ const styles = StyleSheet.create({
     },
     headerButtonIcon: {
         fontSize: 24,
-        color: '#ffffff',
+        color: COLORS.white,
     },
     logoutButton: {
         padding: 8,
@@ -150,33 +170,12 @@ const styles = StyleSheet.create({
     },
     statsContainer: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        padding: 16,
-    },
-    statCard: {
-        flex: 1,
-        minWidth: '45%',
-        backgroundColor: '#1A1A1A',
-        borderRadius: 12,
-        padding: 16,
-        alignItems: 'center',
-        margin: 6,
-        borderWidth: 1,
-        borderColor: '#333',
-    },
-    statNumber: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#ffffff',
-        marginBottom: 4,
-    },
-    statLabel: {
-        fontSize: 14,
-        color: '#94a3b8',
+        paddingHorizontal: 16,
+        marginBottom: 12,
     },
     comingSoonContainer: {
         margin: 16,
-        backgroundColor: '#1A1A1A',
+        backgroundColor: COLORS.cardDark,
         borderRadius: 12,
         padding: 32,
         alignItems: 'center',
@@ -195,12 +194,12 @@ const styles = StyleSheet.create({
     comingSoonTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#ffffff',
+        color: COLORS.white,
         marginBottom: 12,
     },
     comingSoonText: {
         fontSize: 16,
-        color: '#94a3b8',
+        color: COLORS.slate400,
         marginBottom: 16,
         textAlign: 'center',
     },
@@ -210,71 +209,26 @@ const styles = StyleSheet.create({
     },
     featureItem: {
         fontSize: 14,
-        color: '#94a3b8',
+        color: COLORS.slate400,
         marginBottom: 8,
     },
     featureItemActive: {
         fontSize: 14,
-        color: '#16A34A',
+        color: COLORS.primary,
         marginBottom: 8,
         fontWeight: '600',
     },
     section: {
         padding: 16,
+        paddingBottom: 40,
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#ffffff',
+        color: COLORS.white,
         marginBottom: 12,
     },
     quickActions: {
         flexDirection: 'row',
-    },
-    actionButton: {
-        flex: 1,
-        backgroundColor: '#1A1A1A',
-        borderRadius: 12,
-        padding: 20,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-        opacity: 0.6,
-        marginRight: 8,
-        borderWidth: 1,
-        borderColor: '#333',
-    },
-    actionButtonActive: {
-        flex: 1,
-        backgroundColor: '#1A1A1A',
-        borderRadius: 12,
-        padding: 20,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-        marginRight: 8,
-        borderWidth: 1,
-        borderColor: '#333',
-    },
-    actionIcon: {
-        fontSize: 32,
-        marginBottom: 8,
-    },
-    actionText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#ffffff',
-        marginBottom: 4,
-    },
-    comingSoonBadge: {
-        fontSize: 10,
-        color: '#F59E0B',
-        fontWeight: '600',
     },
 });

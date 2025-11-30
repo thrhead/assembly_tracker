@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { hash } from 'bcryptjs'
 
@@ -8,13 +8,17 @@ const createUserSchema = z.object({
     name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
     email: z.string().email('Geçerli bir e-posta adresi giriniz'),
     role: z.enum(['ADMIN', 'MANAGER', 'TEAM_LEAD', 'WORKER', 'CUSTOMER']),
-    password: z.string().min(6).optional(), // Optional, default will be set if missing
+    password: z.string().optional().transform(val => val || undefined), // Convert empty string to undefined
 })
 
 export async function GET(req: Request) {
+    console.log("Users API: Request received")
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
+        console.log("Users API: Session:", session ? "Found" : "Null", "Role:", session?.user?.role)
+
         if (!session || session.user.role !== 'ADMIN') {
+            console.log("Users API: Unauthorized access attempt")
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
@@ -58,7 +62,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         if (!session || session.user.role !== 'ADMIN') {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
@@ -101,7 +105,8 @@ export async function POST(req: Request) {
     } catch (error) {
         console.error('User create error:', error)
         if (error instanceof z.ZodError) {
-            return NextResponse.json({ error: 'Invalid data', details: error.issues }, { status: 400 })
+            const errorMessage = error.issues.map(issue => issue.message).join(', ')
+            return NextResponse.json({ error: errorMessage, details: error.issues }, { status: 400 })
         }
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
