@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBadge from '../../components/NotificationBadge';
 import { COLORS } from '../../constants/theme';
@@ -19,18 +20,18 @@ export default function ManagerDashboardScreen({ navigation }) {
             <View style={styles.header}>
                 <View>
                     <Text style={styles.headerTitle}>Manager Dashboard</Text>
-                    <Text style={styles.headerSubtitle}>Ekip Yönetimi 👨‍💼</Text>
+                    <Text style={styles.headerSubtitle}>Ekip Yönetimi</Text>
                 </View>
                 <View style={styles.headerButtons}>
-                    <NotificationBadge
-                        onPress={() => navigation.navigate('Notifications')}
-                        color={COLORS.white}
-                    />
+                    <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Notifications')}>
+                        <MaterialIcons name="notifications-none" size={24} color={COLORS.primary} />
+                        <View style={styles.notificationBadge} />
+                    </TouchableOpacity>
                     <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Profile')}>
-                        <Text style={styles.headerButtonIcon}>⚙️</Text>
+                        <MaterialIcons name="settings" size={24} color={COLORS.primary} />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                        <Text style={styles.logoutIcon}>🚪</Text>
+                        <MaterialIcons name="logout" size={24} color={COLORS.red500} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -41,17 +42,15 @@ export default function ManagerDashboardScreen({ navigation }) {
                     label="Ekip Üyeleri"
                     value="8"
                     icon="group"
-                    iconColor={COLORS.black}
-                    backgroundColor="#EBF5FF"
-                    style={{ margin: 6 }}
+                    iconColor={COLORS.primary}
+                    style={{ flex: 1, margin: 6 }}
                 />
                 <StatCard
                     label="Aktif İşler"
                     value="12"
                     icon="assignment"
-                    iconColor="#2563EB"
-                    backgroundColor="#DBEAFE"
-                    style={{ margin: 6 }}
+                    iconColor={COLORS.blue500}
+                    style={{ flex: 1, margin: 6 }}
                 />
             </View>
             <View style={styles.statsContainer}>
@@ -59,33 +58,46 @@ export default function ManagerDashboardScreen({ navigation }) {
                     label="Onay Bekleyen"
                     value="5"
                     icon="pending-actions"
-                    iconColor="#D97706"
-                    backgroundColor="#FEF3C7"
-                    style={{ margin: 6 }}
+                    iconColor={COLORS.amber500}
+                    style={{ flex: 1, margin: 6 }}
                 />
                 <StatCard
                     label="Tamamlanma"
                     value="87%"
                     icon="check-circle"
-                    iconColor="#059669"
-                    backgroundColor="#D1FAE5"
-                    style={{ margin: 6 }}
+                    iconColor={COLORS.green500}
+                    style={{ flex: 1, margin: 6 }}
                 />
             </View>
 
             {/* Coming Soon Section */}
             <View style={styles.comingSoonContainer}>
-                <Text style={styles.comingSoonIcon}>🚀</Text>
+                <MaterialIcons name="rocket-launch" size={64} color={COLORS.primary} style={{ marginBottom: 16 }} />
                 <Text style={styles.comingSoonTitle}>Daha Fazla Özellik Yakında!</Text>
                 <Text style={styles.comingSoonText}>
                     Şu anda kullanılabilir özellikler:
                 </Text>
                 <View style={styles.featureList}>
-                    <Text style={styles.featureItemActive}>✓ Ekip performans görüntüleme</Text>
-                    <Text style={styles.featureItemActive}>✓ İş atama ve yönetimi</Text>
-                    <Text style={styles.featureItem}>• Onay bekleyen işlemler</Text>
-                    <Text style={styles.featureItem}>• Müşteri yönetimi</Text>
-                    <Text style={styles.featureItem}>• Detaylı istatistikler</Text>
+                    <View style={styles.featureItemRow}>
+                        <MaterialIcons name="check" size={16} color={COLORS.primary} />
+                        <Text style={styles.featureItemActive}>Ekip performans görüntüleme</Text>
+                    </View>
+                    <View style={styles.featureItemRow}>
+                        <MaterialIcons name="check" size={16} color={COLORS.primary} />
+                        <Text style={styles.featureItemActive}>İş atama ve yönetimi</Text>
+                    </View>
+                    <View style={styles.featureItemRow}>
+                        <MaterialIcons name="fiber-manual-record" size={8} color={COLORS.slate400} style={{ marginTop: 6 }} />
+                        <Text style={styles.featureItem}>Onay bekleyen işlemler</Text>
+                    </View>
+                    <View style={styles.featureItemRow}>
+                        <MaterialIcons name="fiber-manual-record" size={8} color={COLORS.slate400} style={{ marginTop: 6 }} />
+                        <Text style={styles.featureItem}>Müşteri yönetimi</Text>
+                    </View>
+                    <View style={styles.featureItemRow}>
+                        <MaterialIcons name="fiber-manual-record" size={8} color={COLORS.slate400} style={{ marginTop: 6 }} />
+                        <Text style={styles.featureItem}>Detaylı istatistikler</Text>
+                    </View>
                 </View>
             </View>
 
@@ -95,30 +107,34 @@ export default function ManagerDashboardScreen({ navigation }) {
                 <View style={styles.quickActions}>
                     <DashboardAction
                         label="Ekibim"
-                        icon="👥"
+                        icon={<MaterialIcons name="groups" size={32} color={COLORS.indigo500} />}
                         onPress={() => navigation.navigate('TeamList')}
                         isActive={true}
+                        style={{ flex: 1 }}
                     />
                     <DashboardAction
                         label="İş Atama"
-                        icon="📋"
+                        icon={<MaterialIcons name="assignment" size={32} color={COLORS.orange500} />}
                         onPress={() => navigation.navigate('JobAssignment')}
                         isActive={true}
+                        style={{ flex: 1 }}
                     />
                 </View>
                 <View style={[styles.quickActions, { marginTop: 12 }]}>
                     <DashboardAction
                         label="Masraflar"
-                        icon="💰"
+                        icon={<MaterialIcons name="attach-money" size={32} color={COLORS.green500} />}
                         onPress={() => navigation.navigate('CostManagement')}
                         isActive={true}
+                        style={{ flex: 1 }}
                     />
                     <DashboardAction
                         label="Raporlar"
-                        icon="📊"
+                        icon={<MaterialIcons name="bar-chart" size={32} color={COLORS.slate400} />}
                         isActive={false}
                         disabled={true}
                         comingSoon={true}
+                        style={{ flex: 1 }}
                     />
                 </View>
             </View>
@@ -136,7 +152,7 @@ const styles = StyleSheet.create({
         padding: 20,
         paddingTop: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#333',
+        borderBottomColor: COLORS.slate800,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -153,25 +169,29 @@ const styles = StyleSheet.create({
     },
     headerButtons: {
         flexDirection: 'row',
+        alignItems: 'center',
     },
     headerButton: {
         padding: 8,
         marginRight: 8,
+        position: 'relative',
     },
-    headerButtonIcon: {
-        fontSize: 24,
-        color: COLORS.white,
+    notificationBadge: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: COLORS.primary,
     },
     logoutButton: {
         padding: 8,
     },
-    logoutIcon: {
-        fontSize: 24,
-    },
     statsContainer: {
         flexDirection: 'row',
-        paddingHorizontal: 16,
-        marginBottom: 12,
+        paddingHorizontal: 10,
+        marginBottom: 0,
     },
     comingSoonContainer: {
         margin: 16,
@@ -179,23 +199,15 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 32,
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
         borderWidth: 1,
-        borderColor: '#333',
-    },
-    comingSoonIcon: {
-        fontSize: 64,
-        marginBottom: 16,
+        borderColor: COLORS.slate800,
     },
     comingSoonTitle: {
         fontSize: 24,
         fontWeight: 'bold',
         color: COLORS.white,
         marginBottom: 12,
+        textAlign: 'center',
     },
     comingSoonText: {
         fontSize: 16,
@@ -207,15 +219,19 @@ const styles = StyleSheet.create({
         alignSelf: 'stretch',
         paddingHorizontal: 20,
     },
+    featureItemRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginBottom: 8,
+        gap: 8,
+    },
     featureItem: {
         fontSize: 14,
         color: COLORS.slate400,
-        marginBottom: 8,
     },
     featureItemActive: {
         fontSize: 14,
         color: COLORS.primary,
-        marginBottom: 8,
         fontWeight: '600',
     },
     section: {
@@ -230,5 +246,6 @@ const styles = StyleSheet.create({
     },
     quickActions: {
         flexDirection: 'row',
+        gap: 12,
     },
 });

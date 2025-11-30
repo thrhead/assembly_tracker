@@ -1,24 +1,27 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Modal, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Modal, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
+import StatCard from '../../components/StatCard';
+import DashboardAction from '../../components/DashboardAction';
+import { COLORS } from '../../constants/theme';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 export default function AdminDashboardScreen({ navigation }) {
     const { user, logout } = useAuth();
-    const [unreadCount, setUnreadCount] = useState(0);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     // Navigation Items Data
     const navItems = [
-        { id: 'users', title: 'Kullanıcılar', icon: 'people', route: 'UserManagement', color: '#CCFF04' },
-        { id: 'customers', title: 'Müşteriler', icon: 'business', route: 'CustomerManagement', color: '#CCFF04' },
-        { id: 'teams', title: 'Ekipler', icon: 'groups', route: 'TeamList', color: '#CCFF04' },
-        { id: 'jobs', title: 'İşler', icon: 'work', route: 'JobAssignment', color: '#CCFF04' },
-        { id: 'approvals', title: 'Onaylar', icon: 'fact-check', route: 'Approvals', color: '#CCFF04' },
-        { id: 'costs', title: 'Maliyetler', icon: 'attach-money', route: 'CostManagement', color: '#CCFF04' },
+        { id: 'users', title: 'Kullanıcılar', icon: 'people', route: 'UserManagement', color: COLORS.blue500 },
+        { id: 'customers', title: 'Müşteriler', icon: 'business', route: 'CustomerManagement', color: COLORS.purple500 },
+        { id: 'teams', title: 'Ekipler', icon: 'groups', route: 'TeamList', color: COLORS.indigo500 },
+        { id: 'jobs', title: 'İşler', icon: 'work', route: 'JobAssignment', color: COLORS.orange500 },
+        { id: 'approvals', title: 'Onaylar', icon: 'fact-check', route: 'Approvals', color: COLORS.teal500 },
+        { id: 'costs', title: 'Maliyetler', icon: 'attach-money', route: 'CostManagement', color: COLORS.green500 },
     ];
 
     // Mock data matching Web Dashboard Stats
@@ -26,42 +29,34 @@ export default function AdminDashboardScreen({ navigation }) {
         {
             title: 'Toplam İş',
             value: '124',
-            change: 'Tüm zamanlar',
             icon: 'work',
-            color: '#CCFF04',
-            bg: '#1A1A1A'
+            color: COLORS.primary,
         },
         {
             title: 'Aktif Ekipler',
             value: '8',
-            change: 'Aktif',
             icon: 'groups',
-            color: '#CCFF04',
-            bg: '#1A1A1A'
+            color: COLORS.blue500,
         },
         {
             title: 'Tamamlanan',
             value: '12',
-            change: 'Bu ay',
             icon: 'check-circle',
-            color: '#CCFF04',
-            bg: '#1A1A1A'
+            color: COLORS.green500,
         },
         {
-            title: 'Bekleyen Onay',
+            title: 'Bekleyen',
             value: '3',
-            change: 'Acil',
             icon: 'access-time',
-            color: '#FFA500', // Orange for urgency
-            bg: '#1A1A1A'
+            color: COLORS.amber500,
         }
     ];
 
-    useFocusEffect(
-        useCallback(() => {
-            // Load notifications logic here
-        }, [])
-    );
+    const onRefresh = () => {
+        setRefreshing(true);
+        // Simulate reload
+        setTimeout(() => setRefreshing(false), 1000);
+    };
 
     const handleNavPress = (route) => {
         setIsDrawerOpen(false);
@@ -82,10 +77,11 @@ export default function AdminDashboardScreen({ navigation }) {
             >
                 <View style={styles.drawerContainer}>
                     <View style={styles.drawerHeader}>
-                        <Image
-                            source={{ uri: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDmgIPsi3bPD34q9YUmIJBghzDzdjJ1rgdx1tBy10ynTsLKppEU00n7doTCFEiJdlPmoV_1BkGez8XvuImrIDFnxuqU91lP4ldNTWXjv8i-HqXYQEbOCatNc0kgwrtg5_Qm9w28VRd3Mszc19FPohh87hQImoPk0OPOj9_4PnMcxA8og88y5Uf3GyDt6qLEsXq8LHL_V3hdFx5i2I3UZqsoRVnXw8sDaQIBRNOjOJCQEVxvFwKvsLg_SvV-dnsZe7gFaAK-JaS1DM5y' }}
-                            style={styles.drawerAvatar}
-                        />
+                        <View style={styles.drawerAvatarContainer}>
+                            <Text style={styles.drawerAvatarText}>
+                                {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
+                            </Text>
+                        </View>
                         <Text style={styles.drawerName}>{user?.name || 'Admin'}</Text>
                         <Text style={styles.drawerRole}>Yönetici</Text>
                     </View>
@@ -96,13 +92,13 @@ export default function AdminDashboardScreen({ navigation }) {
                                 style={styles.drawerItem}
                                 onPress={() => handleNavPress(item.route)}
                             >
-                                <MaterialIcons name={item.icon} size={24} color="#CCFF04" />
+                                <MaterialIcons name={item.icon} size={24} color={item.color} />
                                 <Text style={styles.drawerItemText}>{item.title}</Text>
                             </TouchableOpacity>
                         ))}
                     </View>
                     <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-                        <MaterialIcons name="logout" size={24} color="#ff4444" />
+                        <MaterialIcons name="logout" size={24} color={COLORS.red500} />
                         <Text style={styles.logoutText}>Çıkış Yap</Text>
                     </TouchableOpacity>
                 </View>
@@ -113,7 +109,11 @@ export default function AdminDashboardScreen({ navigation }) {
     return (
         <View style={styles.container}>
             {renderDrawer()}
-            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+            >
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.headerLeft}>
@@ -121,7 +121,7 @@ export default function AdminDashboardScreen({ navigation }) {
                             style={styles.menuButton}
                             onPress={() => setIsDrawerOpen(true)}
                         >
-                            <MaterialIcons name="menu" size={28} color="#ffffff" />
+                            <MaterialIcons name="menu" size={28} color={COLORS.primary} />
                         </TouchableOpacity>
                         <View>
                             <Text style={styles.welcomeText}>Tekrar Hoşgeldiniz,</Text>
@@ -130,29 +130,10 @@ export default function AdminDashboardScreen({ navigation }) {
                     </View>
                     <View style={{ flexDirection: 'row', gap: 8 }}>
                         <TouchableOpacity style={styles.notificationButton} onPress={() => navigation.navigate('Notifications')}>
-                            <MaterialIcons name="notifications" size={24} color="#e2e8f0" />
+                            <MaterialIcons name="notifications" size={24} color={COLORS.primary} />
                             <View style={styles.notificationBadge} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={[styles.notificationButton, { backgroundColor: 'rgba(255, 68, 68, 0.1)' }]} onPress={logout}>
-                            <MaterialIcons name="logout" size={24} color="#ff4444" />
-                        </TouchableOpacity>
                     </View>
-                </View>
-
-                {/* Navigation Grid */}
-                <View style={styles.navGrid}>
-                    {navItems.map((item) => (
-                        <TouchableOpacity
-                            key={item.id}
-                            style={styles.navCard}
-                            onPress={() => handleNavPress(item.route)}
-                        >
-                            <View style={styles.navIconContainer}>
-                                <MaterialIcons name={item.icon} size={32} color="#000000" />
-                            </View>
-                            <Text style={styles.navTitle}>{item.title}</Text>
-                        </TouchableOpacity>
-                    ))}
                 </View>
 
                 {/* Stats Grid */}
@@ -160,13 +141,31 @@ export default function AdminDashboardScreen({ navigation }) {
                     <Text style={styles.sectionTitle}>Genel Durum</Text>
                     <View style={styles.statsGrid}>
                         {stats.map((stat, index) => (
-                            <View key={index} style={styles.statCard}>
-                                <View style={styles.statHeader}>
-                                    <Text style={styles.statTitle}>{stat.title}</Text>
-                                    <MaterialIcons name={stat.icon} size={20} color={stat.color} />
-                                </View>
-                                <Text style={styles.statValue}>{stat.value}</Text>
-                                <Text style={styles.statChange}>{stat.change}</Text>
+                            <StatCard
+                                key={index}
+                                label={stat.title}
+                                value={stat.value}
+                                icon={stat.icon}
+                                iconColor={stat.color}
+                                style={styles.statCard}
+                            />
+                        ))}
+                    </View>
+                </View>
+
+                {/* Navigation Grid */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Menü</Text>
+                    <View style={styles.navGrid}>
+                        {navItems.map((item) => (
+                            <View key={item.id} style={styles.navItemWrapper}>
+                                <DashboardAction
+                                    label={item.title}
+                                    icon={<MaterialIcons name={item.icon} size={32} color={item.color} />}
+                                    onPress={() => handleNavPress(item.route)}
+                                    isActive={true}
+                                    style={styles.navAction}
+                                />
                             </View>
                         ))}
                     </View>
@@ -176,21 +175,18 @@ export default function AdminDashboardScreen({ navigation }) {
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Hızlı İşlemler</Text>
                     <View style={styles.quickActions}>
-                        <TouchableOpacity
-                            style={styles.actionButton}
-                            onPress={() => navigation.navigate('WorkerJobs', { openCreate: true })}
-                        >
-                            <View style={[styles.actionIcon, { backgroundColor: 'rgba(57, 255, 20, 0.1)' }]}>
-                                <MaterialIcons name="add-task" size={24} color="#CCFF04" />
-                            </View>
-                            <Text style={styles.actionText}>Yeni İş</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={styles.actionButton}
+                        <DashboardAction
+                            label="Yeni İş"
+                            icon={<MaterialIcons name="add-task" size={32} color={COLORS.cyan500} />}
+                            onPress={() => navigation.navigate('CreateJob')}
+                            style={{ flex: 1 }}
+                        />
+                        <DashboardAction
+                            label="Yeni Kullanıcı"
+                            icon={<MaterialIcons name="person-add" size={32} color={COLORS.pink500} />}
                             onPress={() => navigation.navigate('UserManagement', { openCreate: true })}
-                        >
-                        </TouchableOpacity>
+                            style={{ flex: 1 }}
+                        />
                     </View>
                 </View>
 
@@ -198,31 +194,30 @@ export default function AdminDashboardScreen({ navigation }) {
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                         <Text style={styles.sectionTitle}>Son İşler</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('WorkerJobs')}>
+                        <TouchableOpacity onPress={() => navigation.navigate('JobAssignment')}>
                             <Text style={styles.seeAllText}>Tümünü Gör</Text>
                         </TouchableOpacity>
                     </View>
-                    {/* We would ideally fetch real recent jobs here. For now, a static placeholder or passed prop */}
                     <View style={styles.recentList}>
-                        <TouchableOpacity style={styles.recentItem} onPress={() => navigation.navigate('WorkerJobs')}>
+                        <TouchableOpacity style={styles.recentItem} onPress={() => navigation.navigate('JobAssignment')}>
                             <View style={styles.recentIcon}>
-                                <MaterialIcons name="work" size={20} color="#CCFF04" />
+                                <MaterialIcons name="work" size={20} color={COLORS.primary} />
                             </View>
                             <View style={styles.recentInfo}>
                                 <Text style={styles.recentTitle}>Klima Montajı - A Blok</Text>
                                 <Text style={styles.recentSubtitle}>Ahmet Yılmaz • 2 saat önce</Text>
                             </View>
-                            <MaterialIcons name="chevron-right" size={20} color="#64748b" />
+                            <MaterialIcons name="chevron-right" size={20} color={COLORS.slate600} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.recentItem} onPress={() => navigation.navigate('WorkerJobs')}>
+                        <TouchableOpacity style={styles.recentItem} onPress={() => navigation.navigate('JobAssignment')}>
                             <View style={styles.recentIcon}>
-                                <MaterialIcons name="work" size={20} color="#CCFF04" />
+                                <MaterialIcons name="work" size={20} color={COLORS.primary} />
                             </View>
                             <View style={styles.recentInfo}>
                                 <Text style={styles.recentTitle}>Arıza Tespit - B Blok</Text>
                                 <Text style={styles.recentSubtitle}>Mehmet Demir • 5 saat önce</Text>
                             </View>
-                            <MaterialIcons name="chevron-right" size={20} color="#64748b" />
+                            <MaterialIcons name="chevron-right" size={20} color={COLORS.slate600} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -232,23 +227,19 @@ export default function AdminDashboardScreen({ navigation }) {
             {/* Bottom Navigation */}
             <View style={styles.bottomNav}>
                 <TouchableOpacity style={styles.navItem} onPress={() => { }}>
-                    <MaterialIcons name="dashboard" size={24} color="#CCFF04" />
-                    <Text style={[styles.navText, { color: '#CCFF04' }]}>Panel</Text>
+                    <MaterialIcons name="dashboard" size={24} color={COLORS.primary} />
+                    <Text style={[styles.navText, { color: COLORS.primary }]}>Panel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('TeamList')}>
-                    <MaterialIcons name="group" size={24} color="#94a3b8" />
+                    <MaterialIcons name="group" size={24} color={COLORS.slate400} />
                     <Text style={styles.navText}>Ekip</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('WorkerJobs')}>
-                    <MaterialIcons name="list-alt" size={24} color="#94a3b8" />
+                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('JobAssignment')}>
+                    <MaterialIcons name="list-alt" size={24} color={COLORS.slate400} />
                     <Text style={styles.navText}>Görevler</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem} onPress={() => { }}>
-                    <MaterialIcons name="analytics" size={24} color="#94a3b8" />
-                    <Text style={styles.navText}>Raporlar</Text>
-                </TouchableOpacity>
                 <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile')}>
-                    <MaterialIcons name="settings" size={24} color="#94a3b8" />
+                    <MaterialIcons name="settings" size={24} color={COLORS.slate400} />
                     <Text style={styles.navText}>Ayarlar</Text>
                 </TouchableOpacity>
             </View>
@@ -259,7 +250,7 @@ export default function AdminDashboardScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#010100',
+        backgroundColor: COLORS.backgroundDark,
     },
     scrollView: {
         flex: 1,
@@ -284,17 +275,17 @@ const styles = StyleSheet.create({
     },
     welcomeText: {
         fontSize: 14,
-        color: '#94a3b8',
+        color: COLORS.slate400,
     },
     userName: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#ffffff',
+        color: COLORS.textLight,
     },
     notificationButton: {
         padding: 8,
         position: 'relative',
-        backgroundColor: '#1e293b',
+        backgroundColor: COLORS.slate800,
         borderRadius: 20,
     },
     notificationBadge: {
@@ -304,209 +295,56 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: '#CCFF04',
+        backgroundColor: COLORS.primary,
         borderWidth: 2,
-        borderColor: '#010100',
-    },
-    navGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        padding: 12,
-        justifyContent: 'space-between', // Distribute space evenly
-    },
-    navCard: {
-        width: '31%', // Fits 3 items with space between
-        aspectRatio: 1.2, // Slightly shorter than square (1) to reduce vertical size
-        backgroundColor: '#1A1A1A',
-        borderRadius: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: '#333',
-        gap: 8,
-        marginBottom: 12,
-    },
-    navIconContainer: {
-        width: 40, // Slightly smaller icon container
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#CCFF04',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    navTitle: {
-        color: '#ffffff',
-        fontSize: 11, // Slightly smaller text
-        fontWeight: '600',
-        textAlign: 'center',
+        borderColor: COLORS.backgroundDark,
     },
     section: {
         padding: 16,
-        paddingTop: 4, // Reduce top padding
+        paddingTop: 4,
         gap: 12,
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#ffffff',
+        color: COLORS.textLight,
         marginBottom: 8,
     },
     statsGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'space-between',
-    },
-    statCard: {
-        width: '48%', // Fits 2 items with space
-        backgroundColor: '#101010',
-        borderRadius: 12,
-        padding: 12, // Reduced padding
-        borderWidth: 1,
-        borderColor: '#2a2a2a',
-        marginBottom: 12,
-    },
-    statHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 6,
-    },
-    statTitle: {
-        fontSize: 11,
-        color: '#94a3b8',
-        fontWeight: '500',
-    },
-    statValue: {
-        fontSize: 20, // Slightly smaller
-        fontWeight: 'bold',
-        color: '#ffffff',
-        marginBottom: 2,
-    },
-    statChange: {
-        fontSize: 11,
-        color: '#64748b',
-    },
-    bottomNav: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        backgroundColor: 'rgba(1, 1, 0, 0.95)',
-        borderTopWidth: 1,
-        borderTopColor: '#2a2a2a',
-        paddingVertical: 8,
-        paddingBottom: 20,
-    },
-    navItem: {
-        alignItems: 'center',
-        gap: 4,
-        padding: 8,
-    },
-    navText: {
-        fontSize: 10,
-        fontWeight: '500',
-        color: '#94a3b8',
-    },
-    // Drawer Styles
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'flex-start',
-    },
-    drawerContainer: {
-        width: '70%',
-        height: '100%',
-        backgroundColor: '#1A1A1A',
-        padding: 20,
-        paddingTop: 50,
-        borderRightWidth: 1,
-        borderRightColor: '#333',
-    },
-    drawerHeader: {
-        alignItems: 'center',
-        marginBottom: 30,
-        borderBottomWidth: 1,
-        borderBottomColor: '#333',
-        paddingBottom: 20,
-    },
-    drawerAvatar: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        marginBottom: 12,
-        borderWidth: 2,
-        borderColor: '#CCFF04',
-    },
-    drawerName: {
-        color: '#ffffff',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    drawerRole: {
-        color: '#CCFF04',
-        fontSize: 14,
-    },
-    drawerItems: {
-        gap: 8,
-    },
-    drawerItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        borderRadius: 8,
-        gap: 16,
-    },
-    drawerItemText: {
-        color: '#ffffff',
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    logoutButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        marginTop: 'auto',
-        gap: 16,
-        borderTopWidth: 1,
-        borderTopColor: '#333',
-        paddingTop: 20,
-    },
-    logoutText: {
-        color: '#ff4444',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    // Quick Actions Styles
-    quickActions: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
         gap: 12,
     },
-    actionButton: {
-        flex: 1,
-        backgroundColor: '#1A1A1A',
-        borderRadius: 12,
-        padding: 12,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#333',
+    statCard: {
+        width: '48%',
+        marginBottom: 0,
     },
-    actionIcon: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        alignItems: 'center',
+    navGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginHorizontal: -6,
+    },
+    navItemWrapper: {
+        width: '33.33%',
+        padding: 6,
+    },
+    navAction: {
+        height: 100,
         justifyContent: 'center',
-        marginBottom: 8,
+        backgroundColor: COLORS.primary, // Make nav items primary color? Or cardDark?
+        // DashboardAction defaults to cardDark. Let's override if needed.
+        // Actually, let's keep them cardDark but with primary icons.
+        // Wait, I passed icon color as black. If background is cardDark, icon should be primary.
+        // If background is primary, icon should be black.
+        // Let's stick to cardDark background for consistency.
+        backgroundColor: COLORS.cardDark,
+        borderColor: COLORS.slate800,
     },
-    actionText: {
-        color: '#ffffff',
-        fontSize: 11,
-        fontWeight: '600',
+    quickActions: {
+        flexDirection: 'row',
+        gap: 12,
     },
-    // Recent Jobs Styles
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -514,7 +352,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     seeAllText: {
-        color: '#CCFF04',
+        color: COLORS.primary,
         fontSize: 12,
         fontWeight: '600',
     },
@@ -524,11 +362,11 @@ const styles = StyleSheet.create({
     recentItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1A1A1A',
+        backgroundColor: COLORS.cardDark,
         padding: 12,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: '#333',
+        borderColor: COLORS.slate800,
     },
     recentIcon: {
         width: 36,
@@ -543,13 +381,112 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     recentTitle: {
-        color: '#ffffff',
+        color: COLORS.textLight,
         fontSize: 14,
         fontWeight: '600',
         marginBottom: 2,
     },
     recentSubtitle: {
-        color: '#94a3b8',
+        color: COLORS.slate400,
         fontSize: 12,
+    },
+    bottomNav: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        backgroundColor: 'rgba(1, 1, 0, 0.95)',
+        borderTopWidth: 1,
+        borderTopColor: COLORS.slate800,
+        paddingVertical: 8,
+        paddingBottom: 20,
+    },
+    navItem: {
+        alignItems: 'center',
+        gap: 4,
+        padding: 8,
+    },
+    navText: {
+        fontSize: 10,
+        fontWeight: '500',
+        color: COLORS.slate400,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'flex-start',
+    },
+    drawerContainer: {
+        width: '70%',
+        height: '100%',
+        backgroundColor: COLORS.cardDark,
+        padding: 20,
+        paddingTop: 50,
+        borderRightWidth: 1,
+        borderRightColor: COLORS.slate800,
+    },
+    drawerHeader: {
+        alignItems: 'center',
+        marginBottom: 30,
+        borderBottomWidth: 1,
+        borderBottomColor: COLORS.slate800,
+        paddingBottom: 20,
+    },
+    drawerAvatarContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: COLORS.slate800,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 12,
+        borderWidth: 2,
+        borderColor: COLORS.primary,
+    },
+    drawerAvatarText: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: COLORS.primary,
+    },
+    drawerName: {
+        color: COLORS.textLight,
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    drawerRole: {
+        color: COLORS.primary,
+        fontSize: 14,
+    },
+    drawerItems: {
+        gap: 8,
+    },
+    drawerItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        borderRadius: 8,
+        gap: 16,
+    },
+    drawerItemText: {
+        color: COLORS.textLight,
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    logoutButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        marginTop: 'auto',
+        gap: 16,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.slate800,
+        paddingTop: 20,
+    },
+    logoutText: {
+        color: COLORS.red500,
+        fontSize: 16,
+        fontWeight: '600',
     },
 });

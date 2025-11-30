@@ -197,7 +197,7 @@ export default function JobAssignmentScreen({ navigation }) {
             {/* FAB */}
             <TouchableOpacity
                 style={styles.fab}
-                onPress={() => Alert.alert('Yakında', 'İş ekleme özelliği yakında gelecek')}
+                onPress={() => navigation.navigate('CreateJob')}
                 activeOpacity={0.8}
             >
                 <MaterialIcons name="add" size={28} color={COLORS.black} />

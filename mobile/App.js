@@ -16,6 +16,10 @@ import AdminDashboardScreen from './src/screens/admin/AdminDashboardScreen';
 import UserManagementScreen from './src/screens/admin/UserManagementScreen';
 import CustomerManagementScreen from './src/screens/admin/CustomerManagementScreen';
 import ApprovalsScreen from './src/screens/admin/ApprovalsScreen';
+import CreateJobScreen from './src/screens/admin/CreateJobScreen';
+
+// ...
+
 import CostManagementScreen from './src/screens/manager/CostManagementScreen';
 import NotificationsScreen from './src/screens/worker/NotificationsScreen';
 
@@ -24,7 +28,7 @@ const Stack = createNativeStackNavigator();
 function AppNavigator() {
   const { user, loading } = useAuth();
 
-  console.log('AppNavigator - user:', user, 'loading:', loading);
+  console.log('AppNavigator - user:', user, 'loading:', loading, 'CreateJobScreen registered');
 
   if (loading) {
     return null; // Veya bir loading screen
@@ -116,6 +120,11 @@ function AppNavigator() {
               name="Approvals"
               component={ApprovalsScreen}
               options={{ title: 'Onaylar' }}
+            />
+            <Stack.Screen
+              name="CreateJob"
+              component={CreateJobScreen}
+              options={{ title: 'Yeni İş Oluştur', headerShown: false }}
             />
             {/* Profile Screen */}
             <Stack.Screen

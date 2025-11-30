@@ -13,7 +13,7 @@ const DashboardAction = ({ icon, label, onPress, isActive = true, disabled = fal
             onPress={onPress}
             disabled={disabled}
         >
-            <Text style={styles.icon}>{icon}</Text>
+            {typeof icon === 'string' ? <Text style={styles.icon}>{icon}</Text> : icon}
             <Text style={styles.label}>{label}</Text>
             {comingSoon && <Text style={styles.comingSoon}>Yakında</Text>}
         </TouchableOpacity>
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     active: {
-        borderColor: COLORS.primary,
+        borderColor: COLORS.slate700,
     },
     inactive: {
         borderColor: '#333',
