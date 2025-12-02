@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 // TODO: Update with ngrok URL when using tunnel
 // Get ngrok URL by running: ngrok http 3000
 // Example: https://abc123-def456.ngrok-free.app
-const NGROK_URL = 'NGROK_URL_BURAYA';  // ngrok URL'inizi buraya yapıştırın
+const NGROK_URL = 'https://nonblamably-appreciatory-corban.ngrok-free.dev';
 
 // Determine the correct base URL based on platform
 const getBaseUrl = () => {
