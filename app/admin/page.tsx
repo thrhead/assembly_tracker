@@ -23,22 +23,27 @@ export default async function AdminDashboard() {
   // Fetch real data for synchronization
   const [
     activeWorkers,
-    todaysCosts
+    todaysCosts,
+    pendingApprovalsCount
   ] = await Promise.all([
-    // Fetch active workers for "Ekip Durumu"
+    // Fetch active workers (those with IN_PROGRESS jobs)
     prisma.user.findMany({
       where: {
         role: 'WORKER',
-        isActive: true
+        isActive: true,
+        assignedJobs: {
+          some: {
+            job: {
+              status: 'IN_PROGRESS'
+            }
+          }
+        }
       },
       take: 5,
       select: {
         id: true,
         name: true,
-        avatarUrl: true,
-        // In a real app, we might have a separate 'status' or 'lastLocation' field
-        // For now, we'll mock the status based on active jobs or similar if needed,
-        // but to match mobile mock data style, we'll just list them.
+        avatarUrl: true
       }
     }),
     // Fetch today's costs for "Son Masraflar"
@@ -50,6 +55,12 @@ export default async function AdminDashboard() {
       },
       select: {
         amount: true
+      }
+    }),
+    // Fetch pending approvals count
+    prisma.approval.count({
+      where: {
+        status: 'PENDING'
       }
     })
   ])
@@ -78,7 +89,11 @@ export default async function AdminDashboard() {
         </div>
         <Link href="/admin/notifications" className="p-2 bg-zinc-800 rounded-full relative hover:bg-zinc-700 transition-colors">
           <BellIcon className="w-6 h-6 text-gray-300" />
-          <span className="absolute top-2 right-2 w-2 h-2 bg-[#CCFF04] rounded-full border-2 border-[#1A1A1A]"></span>
+          {pendingApprovalsCount > 0 && (
+            <span className="absolute top-0 right-0 w-5 h-5 bg-[#CCFF04] rounded-full border-2 border-[#1A1A1A] flex items-center justify-center text-[10px] font-bold text-black">
+              {pendingApprovalsCount}
+            </span>
+          )}
         </Link>
       </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -12,6 +12,7 @@ import {
     Modal,
     Alert
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import jobService from '../../services/job.service';
@@ -56,9 +57,11 @@ export default function WorkerJobsScreen({ navigation, route }) {
         }
     }, [route.params]);
 
-    useEffect(() => {
-        loadJobs();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadJobs();
+        }, [])
+    );
 
     useEffect(() => {
         filterJobs();

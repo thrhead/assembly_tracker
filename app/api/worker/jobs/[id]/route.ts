@@ -44,7 +44,13 @@ export async function GET(
           include: {
             team: {
               include: {
-                members: true
+                members: {
+                  include: {
+                    user: {
+                      select: { name: true }
+                    }
+                  }
+                }
               }
             },
             worker: {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -11,6 +11,7 @@ import {
     Dimensions,
     RefreshControl
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import jobService from '../../services/job.service';
@@ -40,7 +41,11 @@ export default function WorkerDashboardScreen({ navigation }) {
         { id: 3, name: 'Yeni Şube Kurulumu', code: 'PRJ-003', progress: 90 },
     ];
 
-    useEffect(() => { loadDashboardData(); }, []);
+    useFocusEffect(
+        useCallback(() => {
+            loadDashboardData();
+        }, [])
+    );
 
     const loadDashboardData = async () => {
         try {

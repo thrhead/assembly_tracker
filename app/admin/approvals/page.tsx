@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { formatDistanceToNow } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { ApprovalDialog } from '@/components/approvals/approval-dialog'
+import Link from 'next/link'
 
 async function getApprovals() {
   return await prisma.approval.findMany({
@@ -96,7 +97,14 @@ export default async function ApprovalsPage() {
                 </div>
               )}
 
-              <ApprovalDialog approval={approval} />
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" asChild>
+                  <Link href={`/admin/jobs/${approval.job.id}`}>
+                    Detayları İncele
+                  </Link>
+                </Button>
+                <ApprovalDialog approval={approval} />
+              </div>
             </CardContent>
           </Card>
         ))}

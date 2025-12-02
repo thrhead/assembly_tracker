@@ -6,6 +6,10 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { AdminJobDetailsTabs } from "@/components/admin/job-details-tabs"
 
+import { ApprovalActionCard } from "@/components/admin/approval-action-card"
+
+export const dynamic = 'force-dynamic'
+
 async function getJob(id: string) {
     return await prisma.job.findUnique({
         where: { id },
@@ -17,8 +21,29 @@ async function getJob(id: string) {
             },
             assignments: {
                 include: {
-                    team: true,
+                    team: {
+                        include: {
+                            members: {
+                                include: {
+                                    user: true
+                                }
+                            }
+                        }
+                    },
                     worker: true
+                }
+            },
+            approvals: {
+                where: {
+                    status: 'PENDING'
+                },
+                include: {
+                    requester: {
+                        select: {
+                            name: true,
+                            email: true
+                        }
+                    }
                 }
             },
             steps: {
@@ -52,6 +77,18 @@ async function getJob(id: string) {
                         }
                     }
                 }
+            },
+            costs: {
+                orderBy: {
+                    date: 'desc'
+                },
+                include: {
+                    createdBy: {
+                        select: {
+                            name: true
+                        }
+                    }
+                }
             }
         }
     })
@@ -66,7 +103,21 @@ export default async function AdminJobDetailsPage(props: {
         redirect("/login")
     }
 
-    const job = await getJob(params.id)
+    const [job, workers, teams] = await Promise.all([
+        getJob(params.id),
+        prisma.user.findMany({
+            where: { role: 'WORKER', isActive: true },
+            select: { id: true, name: true }
+        }),
+        prisma.team.findMany({
+            where: { isActive: true },
+            select: { id: true, name: true }
+        })
+    ])
+
+    console.log('Fetched workers:', workers)
+    console.log('Fetched teams:', teams)
+    console.log('Job Assignments:', JSON.stringify(job?.assignments, null, 2))
 
     if (!job) {
         return (
@@ -79,6 +130,8 @@ export default async function AdminJobDetailsPage(props: {
             </div>
         )
     }
+
+    const pendingApproval = job.approvals[0]
 
     return (
         <div className="space-y-6">
@@ -94,7 +147,15 @@ export default async function AdminJobDetailsPage(props: {
                 </div>
             </div>
 
-            <AdminJobDetailsTabs job={job} />
+            {pendingApproval && (
+                <ApprovalActionCard approval={pendingApproval} />
+            )}
+
+            <AdminJobDetailsTabs
+                job={job}
+                workers={workers}
+                teams={teams}
+            />
         </div>
     )
 }

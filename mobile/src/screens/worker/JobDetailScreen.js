@@ -22,6 +22,7 @@ import jobService from '../../services/job.service';
 import costService from '../../services/cost.service';
 import authService from '../../services/auth.service';
 import SuccessModal from '../../components/SuccessModal';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 const COLORS = {
     primary: "#CCFF04",
@@ -40,6 +41,8 @@ const COLORS = {
     white: "#ffffff",
 };
 
+
+
 export default function JobDetailScreen({ route, navigation }) {
     const { jobId } = route.params;
     const [job, setJob] = useState(null);
@@ -49,6 +52,7 @@ export default function JobDetailScreen({ route, navigation }) {
     const [uploading, setUploading] = useState(false);
     const [successModalVisible, setSuccessModalVisible] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
+    const [confirmationModalVisible, setConfirmationModalVisible] = useState(false);
 
     // Cost State
     const [costModalVisible, setCostModalVisible] = useState(false);
@@ -378,12 +382,33 @@ export default function JobDetailScreen({ route, navigation }) {
     const [completing, setCompleting] = useState(false);
 
     const handleCompleteJob = async () => {
-        console.log('[MOBILE] handleCompleteJob called');
-        console.log('[MOBILE] Job Steps:', JSON.stringify(job.steps, null, 2));
-
         const allStepsCompleted = job.steps.every(step => step.isCompleted);
-        console.log('[MOBILE] All steps completed:', allStepsCompleted);
-        setModalVisible(true);
+
+        if (!allStepsCompleted) {
+            Alert.alert("Uyarı", "İşi tamamlamak için tüm adımları bitirmelisiniz.");
+            return;
+        }
+
+        setConfirmationModalVisible(true);
+    };
+
+    const confirmCompleteJob = async () => {
+        setConfirmationModalVisible(false);
+        try {
+            setCompleting(true);
+            const result = await jobService.completeJob(jobId);
+            setSuccessMessage('İş tamamlandı ve onaya gönderildi');
+            setSuccessModalVisible(true);
+            setTimeout(() => {
+                setSuccessModalVisible(false);
+                navigation.goBack();
+            }, 2000);
+        } catch (error) {
+            console.error('Error completing job:', error);
+            Alert.alert('Hata', error.message || 'İş tamamlanırken bir hata oluştu');
+        } finally {
+            setCompleting(false);
+        }
     };
 
     if (loading) {
@@ -438,6 +463,38 @@ export default function JobDetailScreen({ route, navigation }) {
                         </View>
                     )}
                 </View>
+
+
+                {/* Assignments Section */}
+                <Text style={styles.sectionTitle}>Ekip ve Atamalar</Text>
+                {job.assignments && job.assignments.length > 0 ? (
+                    job.assignments.map((assignment, index) => (
+                        <View key={index} style={styles.card}>
+                            <View style={styles.infoRow}>
+                                <MaterialIcons name="group" size={20} color={COLORS.primary} />
+                                <View style={{ marginLeft: 8 }}>
+                                    {assignment.team ? (
+                                        <>
+                                            <Text style={[styles.infoText, { fontWeight: 'bold' }]}>{assignment.team.name}</Text>
+                                            {assignment.team.members && assignment.team.members.length > 0 && (
+                                                <Text style={[styles.infoText, { fontSize: 12, color: COLORS.textGray, marginTop: 4 }]}>
+                                                    {assignment.team.members.map(m => m.user?.name).filter(Boolean).join(', ')}
+                                                </Text>
+                                            )}
+                                        </>
+                                    ) : (
+                                        <Text style={styles.infoText}>{assignment.worker?.name}</Text>
+                                    )}
+                                </View>
+                            </View>
+                        </View>
+                    ))
+                ) : (
+                    <View style={styles.card}>
+                        <Text style={styles.infoText}>Atama bulunamadı.</Text>
+                    </View>
+                )}
+
                 {/* Steps Section */}
                 <Text style={styles.sectionTitle}>İş Adımları</Text>
                 {job.steps && job.steps.map((step, index) => {
@@ -782,7 +839,10 @@ export default function JobDetailScreen({ route, navigation }) {
                     ) : (
                         <TouchableOpacity
                             style={[styles.mainCompleteButton, (job.status === 'COMPLETED' || completing) && styles.disabledButton]}
-                            onPress={handleCompleteJob}
+                            onPress={() => {
+                                console.log('[MOBILE] Complete Job button pressed');
+                                handleCompleteJob();
+                            }}
                             disabled={job.status === 'COMPLETED' || completing}
                         >
                             {completing ? (
@@ -933,6 +993,17 @@ export default function JobDetailScreen({ route, navigation }) {
                     </View>
                 )
             }
+            <ConfirmationModal
+                visible={confirmationModalVisible}
+                title="İşi Tamamla"
+                message="İşi tamamlamak istediğinize emin misiniz? Bu işlem geri alınamaz."
+                onConfirm={confirmCompleteJob}
+                onCancel={() => setConfirmationModalVisible(false)}
+                confirmText="Tamamla"
+                cancelText="İptal"
+                type="warning"
+            />
+
             <SuccessModal
                 visible={successModalVisible}
                 message={successMessage}

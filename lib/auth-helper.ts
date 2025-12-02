@@ -3,8 +3,13 @@ import { jwtVerify } from "jose"
 
 export async function verifyAuth(req: Request) {
     // 1. Check NextAuth session (Cookies)
-    const session = await auth()
-    if (session) return session
+    // 1. Check NextAuth session (Cookies)
+    try {
+        const session = await auth()
+        if (session) return session
+    } catch (e) {
+        console.error("verifyAuth: NextAuth auth() failed:", e)
+    }
 
     // 2. Check Authorization header (Mobile)
     const authHeader = req.headers.get("Authorization")

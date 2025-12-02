@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { JobDetailsView } from '@/components/job-details-view'
+import { JobEditView } from '@/components/admin/job-edit-view'
 import { JobTimeline } from '@/components/charts/job-timeline'
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -27,9 +27,11 @@ const ProgressCharts = dynamic(
 
 interface AdminJobDetailsTabsProps {
     job: any
+    workers: { id: string; name: string | null }[]
+    teams: { id: string; name: string }[]
 }
 
-export function AdminJobDetailsTabs({ job }: AdminJobDetailsTabsProps) {
+export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabsProps) {
     const [latitude, setLatitude] = useState(job.latitude?.toString() || '')
     const [longitude, setLongitude] = useState(job.longitude?.toString() || '')
     const [saving, setSaving] = useState(false)
@@ -89,7 +91,7 @@ export function AdminJobDetailsTabs({ job }: AdminJobDetailsTabsProps) {
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-6">
-                    <JobDetailsView job={job} />
+                    <JobEditView job={job} workers={workers} teams={teams} />
                 </TabsContent>
 
                 <TabsContent value="timeline" className="space-y-6">
@@ -191,6 +193,47 @@ export function AdminJobDetailsTabs({ job }: AdminJobDetailsTabsProps) {
                                     <span className="font-medium">{job.status}</span>
                                 </div>
                                 <div className="flex justify-between">
+                                    <span className="text-gray-500">Başlangıç:</span>
+                                    <span className="font-medium">
+                                        {job.startedAt ? new Date(job.startedAt).toLocaleString('tr-TR') : '-'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Bitiş:</span>
+                                    <span className="font-medium">
+                                        {job.completedDate ? new Date(job.completedDate).toLocaleString('tr-TR') : '-'}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Atanan:</span>
+                                    <div className="text-right">
+                                        {job.assignments && job.assignments.length > 0 ? (
+                                            job.assignments.map((a: any) => (
+                                                <div key={a.id} className="font-medium">
+                                                    {a.team ? (
+                                                        <div className="flex flex-col items-end">
+                                                            <span>{a.team.name}</span>
+                                                            {a.team.members && a.team.members.length > 0 ? (
+                                                                <span className="text-sm text-gray-600">
+                                                                    ({a.team.members.map((m: any) => m.user.name).join(', ')})
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-xs text-red-500">
+                                                                    (Üye yok)
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        a.worker?.name
+                                                    )}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <span className="font-medium">Atanmamış</span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="flex justify-between">
                                     <span className="text-gray-500">Öncelik:</span>
                                     <span className="font-medium">{job.priority}</span>
                                 </div>
@@ -234,7 +277,7 @@ export function AdminJobDetailsTabs({ job }: AdminJobDetailsTabsProps) {
                         </Card>
                     </div>
                 </TabsContent>
-            </Tabs>
-        </div>
+            </Tabs >
+        </div >
     )
 }

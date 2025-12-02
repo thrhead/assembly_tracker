@@ -103,7 +103,7 @@ export async function notifyApprovalRejected(jobId: string, workerId: string, no
 
   if (!job) return
 
-  const message = notes 
+  const message = notes
     ? `${job.title} işiniz reddedildi. Not: ${notes}`
     : `${job.title} işiniz reddedildi. Lütfen tekrar kontrol edin.`
 
@@ -158,5 +158,83 @@ export async function getUnreadNotificationCount(userId: string) {
       userId,
       isRead: false
     }
+  })
+}
+/**
+ * Notify all admins and managers about approval result
+ */
+export async function notifyAdminsOfApprovalResult(
+  jobId: string,
+  approverId: string,
+  status: 'APPROVED' | 'REJECTED',
+  notes?: string
+) {
+  const job = await prisma.job.findUnique({
+    where: { id: jobId },
+    include: { customer: true }
+  })
+
+  if (!job) return
+
+  const approver = await prisma.user.findUnique({
+    where: { id: approverId }
+  })
+
+  // Get all admins and managers
+  const admins = await prisma.user.findMany({
+    where: {
+      role: { in: ['ADMIN', 'MANAGER'] },
+      isActive: true
+    }
+  })
+
+  const actionText = status === 'APPROVED' ? 'onaylandı' : 'reddedildi'
+  const type = status === 'APPROVED' ? 'SUCCESS' : 'ERROR'
+  const approverName = approver?.name || 'Bir yönetici'
+
+  const notifications = admins.map(admin => ({
+    userId: admin.id,
+    title: `İş ${status === 'APPROVED' ? 'Onaylandı' : 'Reddedildi'}`,
+    message: `${job.title} işi ${approverName} tarafından ${actionText}.${notes ? ` Not: ${notes}` : ''}`,
+    type,
+    link: `/admin/jobs/${jobId}`,
+    isRead: false
+  }))
+
+  await prisma.notification.createMany({
+    data: notifications
+  })
+}
+
+/**
+ * Notify all admins and managers when a job is completed and waiting for approval
+ */
+export async function notifyAdminsOfJobCompletion(jobId: string) {
+  const job = await prisma.job.findUnique({
+    where: { id: jobId },
+    include: { customer: true }
+  })
+
+  if (!job) return
+
+  // Get all admins and managers
+  const admins = await prisma.user.findMany({
+    where: {
+      role: { in: ['ADMIN', 'MANAGER'] },
+      isActive: true
+    }
+  })
+
+  const notifications = admins.map(admin => ({
+    userId: admin.id,
+    title: 'İş Tamamlandı - Onay Bekliyor',
+    message: `${job.title} işi tamamlandı ve onayınızı bekliyor.`,
+    type: 'WARNING',
+    link: `/admin/jobs/${jobId}`, // Direct link to job details for approval
+    isRead: false
+  }))
+
+  await prisma.notification.createMany({
+    data: notifications
   })
 }

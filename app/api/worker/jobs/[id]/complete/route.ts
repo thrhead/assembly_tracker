@@ -4,6 +4,7 @@ import { verifyAuth } from '@/lib/auth-helper'
 import { emitToUser, broadcast } from '@/lib/socket'
 import { JobCompletedPayload } from '@/lib/socket-events'
 import { sendJobCompletedEmail } from '@/lib/email'
+import { notifyAdminsOfJobCompletion } from '@/lib/notifications'
 
 export async function POST(
   req: Request,
@@ -98,16 +99,20 @@ export async function POST(
       completedAt: updatedJob.completedDate || new Date()
     }
 
-    // Notify job creator
-    if (job.creator?.id) {
-      emitToUser(job.creator.id, 'job:completed', socketPayload)
+    try {
+      // Notify job creator
+      if (job.creator?.id) {
+        emitToUser(job.creator.id, 'job:completed', socketPayload)
+      }
+
+      // Notify all admins/managers via database notification
+      await notifyAdminsOfJobCompletion(jobId)
+
+      // Broadcast to all admins via socket
+      broadcast('job:completed', socketPayload)
+    } catch (socketError) {
+      console.error('Socket error (non-fatal):', socketError);
     }
-
-    // Notify approver
-    emitToUser(approver.id, 'job:completed', socketPayload)
-
-    // Broadcast to all admins
-    broadcast('job:completed', socketPayload)
 
     // Send email notification (async, don't block)
     if (approver.email) {

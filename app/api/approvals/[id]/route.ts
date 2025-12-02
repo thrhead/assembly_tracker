@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { z } from 'zod'
-import { notifyApprovalApproved, notifyApprovalRejected } from '@/lib/notifications'
+import { notifyApprovalApproved, notifyApprovalRejected, notifyAdminsOfApprovalResult } from '@/lib/notifications'
 
 const updateApprovalSchema = z.object({
   status: z.enum(['APPROVED', 'REJECTED']),
@@ -56,12 +56,12 @@ export async function PATCH(
     if (status === 'APPROVED') {
       await prisma.job.update({
         where: { id: approval.jobId },
-        data: { 
+        data: {
           status: 'COMPLETED',
           completedDate: new Date()
         }
       })
-      
+
       // Notify requester
       await notifyApprovalApproved(approval.jobId, approval.requesterId)
     } else if (status === 'REJECTED') {
@@ -69,10 +69,13 @@ export async function PATCH(
         where: { id: approval.jobId },
         data: { status: 'IN_PROGRESS' }
       })
-      
+
       // Notify requester
       await notifyApprovalRejected(approval.jobId, approval.requesterId, notes)
     }
+
+    // Notify all admins about the decision
+    await notifyAdminsOfApprovalResult(approval.jobId, session.user.id, status, notes)
 
     return NextResponse.json({ success: true, approval: updatedApproval })
   } catch (error) {
