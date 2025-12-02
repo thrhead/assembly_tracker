@@ -10,6 +10,16 @@ export type SocketEvent =
     | 'step:completed'
     | 'team:assigned'
     | 'notification:new'
+    | 'photo:uploaded'
+
+export interface PhotoUploadedPayload {
+    jobId: string
+    stepId: string
+    subStepId: string | null
+    photoUrl: string
+    uploadedBy: string
+    uploadedAt: Date
+}
 
 export interface JobUpdatedPayload {
     jobId: string

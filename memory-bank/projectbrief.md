@@ -35,7 +35,7 @@ Assembly Tracker is a comprehensive platform for tracking field assembly and ser
 - **Real-time**: Socket.IO
 
 ## Current Status
-The application is in a Production-ready state for the Web platform (v2.0) and Beta state for the Mobile platform (v2.5). All core features including User/Customer management, Job tracking, and Cost management are implemented across both platforms.
+The application is in a Production-ready state for the Web platform (v2.0) and Stable state for the Mobile platform (v2.5). All core features including User/Customer management, Job tracking, and Cost management are implemented across both platforms.
 
 ## Next Steps
 1. Conduct extensive field testing for the mobile app

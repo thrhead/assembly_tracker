@@ -35,6 +35,18 @@ const COLORS = {
 
 export default function WorkerJobsScreen({ navigation, route }) {
     const { user } = useAuth();
+    const [jobs, setJobs] = useState([]);
+    const [filteredJobs, setFilteredJobs] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedFilter, setSelectedFilter] = useState('Tümü');
+    const [modalVisible, setModalVisible] = useState(false);
+    const [formData, setFormData] = useState({ title: '', description: '' });
+
+    const [showSearch, setShowSearch] = useState(false);
+
+    const isAdmin = user?.role === 'ADMIN' || user?.role === 'MANAGER';
 
     useEffect(() => {
         if (route.params?.openCreate && isAdmin) {
@@ -192,9 +204,26 @@ export default function WorkerJobsScreen({ navigation, route }) {
                 <View style={styles.headerLeft}>
                     <MaterialIcons name="assignment" size={30} color={COLORS.neonGreen} />
                 </View>
-                <Text style={styles.headerTitle}>Görevler</Text>
-                <TouchableOpacity style={styles.searchButton}>
-                    <MaterialIcons name="search" size={24} color={COLORS.neonGreen} />
+                {showSearch ? (
+                    <TextInput
+                        style={styles.searchInput}
+                        placeholder="İş ara..."
+                        placeholderTextColor={COLORS.textGray}
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        autoFocus
+                    />
+                ) : (
+                    <Text style={styles.headerTitle}>Görevler</Text>
+                )}
+                <TouchableOpacity
+                    style={styles.searchButton}
+                    onPress={() => {
+                        setShowSearch(!showSearch);
+                        if (showSearch) setSearchQuery('');
+                    }}
+                >
+                    <MaterialIcons name={showSearch ? "close" : "search"} size={24} color={COLORS.neonGreen} />
                 </TouchableOpacity>
             </View>
 
@@ -313,6 +342,18 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: COLORS.textLight,
+        flex: 1,
+        textAlign: 'center',
+    },
+    searchInput: {
+        flex: 1,
+        color: COLORS.textLight,
+        fontSize: 16,
+        paddingHorizontal: 12,
+        height: 40,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 8,
+        marginHorizontal: 12,
     },
     searchButton: {
         width: 40,

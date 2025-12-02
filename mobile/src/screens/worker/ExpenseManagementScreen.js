@@ -10,10 +10,13 @@ import {
     SafeAreaView,
     Dimensions,
     Modal,
-    Alert
+    Alert,
+    Platform
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
 import costService from '../../services/cost.service';
+import jobService from '../../services/job.service';
 
 const { width } = Dimensions.get('window');
 
@@ -40,9 +43,12 @@ const COLORS = {
 };
 
 export default function ExpenseManagementScreen({ navigation, route }) {
-    const [selectedProject, setSelectedProject] = useState('Müşteri Sahasında Ünite 4B Kurulumu');
+    const [projects, setProjects] = useState([]);
+    const [expenses, setExpenses] = useState([]);
+    const [selectedProject, setSelectedProject] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState('Tümü');
     const [searchQuery, setSearchQuery] = useState('');
+    const [loading, setLoading] = useState(true);
 
     // Create Modal State
     const [modalVisible, setModalVisible] = useState(false);
@@ -51,15 +57,41 @@ export default function ExpenseManagementScreen({ navigation, route }) {
         amount: '',
         category: 'Yemek',
         description: '',
-        jobId: '' // In a real app, this would be selected from a list
+        category: 'Yemek',
+        description: '',
+        jobId: '',
+        date: new Date()
     });
+    const [showDatePicker, setShowDatePicker] = useState(false);
 
     useEffect(() => {
+        loadData();
         if (route.params?.openCreate) {
             setModalVisible(true);
             navigation.setParams({ openCreate: undefined });
         }
     }, [route.params]);
+
+    const loadData = async () => {
+        try {
+            setLoading(true);
+            const myJobs = await jobService.getMyJobs();
+            const myCosts = await costService.getMyCosts();
+
+            setProjects(myJobs || []);
+            setExpenses(myCosts || []);
+
+            if (myJobs && myJobs.length > 0) {
+                setSelectedProject(myJobs[0]);
+                setFormData(prev => ({ ...prev, jobId: myJobs[0].id }));
+            }
+        } catch (error) {
+            console.error('Error loading jobs:', error);
+            Alert.alert('Hata', 'Projeler yüklenirken bir hata oluştu.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleCreateExpense = async () => {
         if (!formData.title || !formData.amount) {
@@ -71,73 +103,81 @@ export default function ExpenseManagementScreen({ navigation, route }) {
             await costService.create({
                 ...formData,
                 amount: parseFloat(formData.amount),
-                date: new Date().toISOString()
+                ...formData,
+                amount: parseFloat(formData.amount),
+                date: formData.date.toISOString()
             });
             Alert.alert('Başarılı', 'Masraf başarıyla eklendi.');
             setModalVisible(false);
-            setFormData({ title: '', amount: '', category: 'Yemek', description: '', jobId: '' });
-            // Refresh list if we were fetching real data
+            setFormData({ title: '', amount: '', category: 'Yemek', description: '', jobId: '', date: new Date() });
+            loadData();
         } catch (error) {
             console.error('Create expense error:', error);
             Alert.alert('Hata', 'Masraf eklenirken bir hata oluştu.');
         }
     };
 
-    const projects = [
-        'Müşteri Sahasında Ünite 4B Kurulumu',
-        'Merkez Ofis Klima Bakımı',
-        '123 Ana Cadde Saha Keşfi',
-        'Üç Aylık Bakım Kontrolü'
-    ];
+    const handleProjectSelect = (project) => {
+        setSelectedProject(project);
+        setFormData(prev => ({ ...prev, jobId: project.id }));
+    };
     const categories = [
         { id: 'Tümü', icon: 'tune', label: 'Tümü' },
         { id: 'Seyahat', icon: 'directions-car', label: 'Seyahat' },
+        { id: 'Yol', icon: 'commute', label: 'Yol' },
         { id: 'Yemek', icon: 'restaurant', label: 'Yemek' },
         { id: 'Malzeme', icon: 'storefront', label: 'Malzeme' },
+        { id: 'Konaklama', icon: 'hotel', label: 'Konaklama' },
+        { id: 'Yakıt', icon: 'local-gas-station', label: 'Yakıt' },
+        { id: 'Diğer', icon: 'more-horiz', label: 'Diğer' },
     ];
 
-    const expenses = [
-        {
-            id: 1,
-            title: 'Ekip Yemeği',
-            date: '26 Ekim 2023',
-            amount: '85.50',
-            category: 'Yemek',
-            status: 'APPROVED',
-            icon: 'restaurant',
-            color: 'red'
-        },
-        {
-            id: 2,
-            title: 'Müşteri Ulaşımı',
-            date: '26 Ekim 2023',
-            amount: '42.00',
-            category: 'Seyahat',
-            status: 'PENDING',
-            icon: 'directions-car',
-            color: 'blue'
-        },
-        {
-            id: 3,
-            title: 'Ofis Malzemeleri',
-            date: '25 Ekim 2023',
-            amount: '112.30',
-            category: 'Malzeme',
-            status: 'APPROVED',
-            icon: 'storefront',
-            color: 'purple'
-        },
-        {
-            id: 4,
-            title: 'Araç Yakıtı',
-            date: '25 Ekim 2023',
-            amount: '75.00',
-            category: 'Seyahat',
-            status: 'REJECTED',
-            icon: 'local-gas-station',
-            color: 'blue'
-        }
-    ];
+    const filteredExpenses = expenses.filter(expense => {
+        const matchesProject = selectedProject ? expense.jobId === selectedProject.id : true;
+        const matchesCategory = selectedCategory === 'Tümü' ? true : expense.category === selectedCategory;
+        const matchesSearch = searchQuery ? (expense.description?.toLowerCase().includes(searchQuery.toLowerCase()) || expense.category?.toLowerCase().includes(searchQuery.toLowerCase())) : true;
+        return matchesProject && matchesCategory && matchesSearch;
+    });
+
+    const groupExpensesByDate = (expenses) => {
+        const groups = {
+            'Bugün': [],
+            'Dün': [],
+            'Geçen Hafta': [],
+            'Geçen Ay': [],
+            'Daha Eski': []
+        };
+
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const lastWeek = new Date(today);
+        lastWeek.setDate(lastWeek.getDate() - 7);
+        const lastMonth = new Date(today);
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
+
+        expenses.forEach(expense => {
+            const date = new Date(expense.date);
+            const expenseDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+            if (expenseDate.getTime() === today.getTime()) {
+                groups['Bugün'].push(expense);
+            } else if (expenseDate.getTime() === yesterday.getTime()) {
+                groups['Dün'].push(expense);
+            } else if (expenseDate > lastWeek) {
+                groups['Geçen Hafta'].push(expense);
+            } else if (expenseDate > lastMonth) {
+                groups['Geçen Ay'].push(expense);
+            } else {
+                groups['Daha Eski'].push(expense);
+            }
+        });
+
+        return groups;
+    };
+
+    const groupedExpenses = groupExpensesByDate(filteredExpenses);
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -166,13 +206,14 @@ export default function ExpenseManagementScreen({ navigation, route }) {
         }
     };
 
-    const getIconBgColor = (colorName) => {
-        switch (colorName) {
-            case 'red': return 'rgba(248, 113, 113, 0.2)'; // red-900/40 approx
-            case 'blue': return 'rgba(96, 165, 250, 0.2)'; // blue-900/40 approx
-            case 'purple': return 'rgba(192, 132, 252, 0.2)'; // purple-900/40 approx
-            default: return 'rgba(148, 163, 184, 0.1)';
-        }
+    const getIconBgColor = (category) => {
+        // Simple mapping based on category or just random/fixed colors
+        return 'rgba(148, 163, 184, 0.1)';
+    };
+
+    const getCategoryIcon = (category) => {
+        const cat = categories.find(c => c.id === category);
+        return cat ? cat.icon : 'attach-money';
     };
 
     return (
@@ -195,20 +236,20 @@ export default function ExpenseManagementScreen({ navigation, route }) {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.projectFilterContainer}>
                     {projects.map((project, index) => (
                         <TouchableOpacity
-                            key={index}
+                            key={project.id || index}
                             style={[
                                 styles.projectChip,
-                                selectedProject === project ? styles.projectChipSelected : styles.projectChipUnselected
+                                selectedProject?.id === project.id ? styles.projectChipSelected : styles.projectChipUnselected
                             ]}
-                            onPress={() => setSelectedProject(project)}
+                            onPress={() => handleProjectSelect(project)}
                         >
                             <Text style={[
                                 styles.projectChipText,
-                                selectedProject === project ? styles.projectChipTextSelected : styles.projectChipTextUnselected
+                                selectedProject?.id === project.id ? styles.projectChipTextSelected : styles.projectChipTextUnselected
                             ]}>
-                                {project}
+                                {project.title}
                             </Text>
-                            {selectedProject === project && (
+                            {selectedProject?.id === project.id && (
                                 <MaterialIcons name="expand-more" size={20} color={COLORS.primary} />
                             )}
                         </TouchableOpacity>
@@ -274,49 +315,37 @@ export default function ExpenseManagementScreen({ navigation, route }) {
 
                 {/* Expenses List */}
                 <View style={styles.expensesList}>
-                    <Text style={styles.dateHeader}>Bugün</Text>
-                    {expenses.slice(0, 2).map((expense) => (
-                        <View key={expense.id} style={styles.expenseCard}>
-                            <View style={[styles.expenseIconCircle, { backgroundColor: getIconBgColor(expense.color) }]}>
-                                <MaterialIcons name={expense.icon} size={24} color={getIconColor(expense.color)} />
+                    {Object.entries(groupedExpenses).map(([groupName, groupExpenses]) => (
+                        groupExpenses.length > 0 && (
+                            <View key={groupName}>
+                                <Text style={styles.dateHeader}>{groupName}</Text>
+                                {groupExpenses.map((expense) => (
+                                    <View key={expense.id} style={styles.expenseCard}>
+                                        <View style={[styles.expenseIconCircle, { backgroundColor: getIconBgColor(expense.category) }]}>
+                                            <MaterialIcons name={getCategoryIcon(expense.category)} size={24} color={COLORS.textLight} />
+                                        </View>
+                                        <View style={styles.expenseInfo}>
+                                            <Text style={styles.expenseTitle}>{expense.description || expense.category}</Text>
+                                            <Text style={styles.expenseDate}>{new Date(expense.date).toLocaleDateString('tr-TR')}</Text>
+                                            {expense.job?.title && <Text style={{ fontSize: 12, color: COLORS.textGray }}>{expense.job.title}</Text>}
+                                        </View>
+                                        <View style={styles.expenseAmountContainer}>
+                                            <Text style={styles.expenseAmount}>₺{expense.amount}</Text>
+                                            <View style={styles.statusContainer}>
+                                                <View style={[styles.statusDot, { backgroundColor: getStatusColor(expense.status) }]} />
+                                                <Text style={[styles.statusText, { color: getStatusColor(expense.status) }]}>
+                                                    {getStatusText(expense.status)}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                ))}
                             </View>
-                            <View style={styles.expenseInfo}>
-                                <Text style={styles.expenseTitle}>{expense.title}</Text>
-                                <Text style={styles.expenseDate}>{expense.date}</Text>
-                            </View>
-                            <View style={styles.expenseAmountContainer}>
-                                <Text style={styles.expenseAmount}>₺{expense.amount}</Text>
-                                <View style={styles.statusContainer}>
-                                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(expense.status) }]} />
-                                    <Text style={[styles.statusText, { color: getStatusColor(expense.status) }]}>
-                                        {getStatusText(expense.status)}
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
+                        )
                     ))}
-
-                    <Text style={[styles.dateHeader, { marginTop: 16 }]}>Dün</Text>
-                    {expenses.slice(2, 4).map((expense) => (
-                        <View key={expense.id} style={styles.expenseCard}>
-                            <View style={[styles.expenseIconCircle, { backgroundColor: getIconBgColor(expense.color) }]}>
-                                <MaterialIcons name={expense.icon} size={24} color={getIconColor(expense.color)} />
-                            </View>
-                            <View style={styles.expenseInfo}>
-                                <Text style={styles.expenseTitle}>{expense.title}</Text>
-                                <Text style={styles.expenseDate}>{expense.date}</Text>
-                            </View>
-                            <View style={styles.expenseAmountContainer}>
-                                <Text style={styles.expenseAmount}>₺{expense.amount}</Text>
-                                <View style={styles.statusContainer}>
-                                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(expense.status) }]} />
-                                    <Text style={[styles.statusText, { color: getStatusColor(expense.status) }]}>
-                                        {getStatusText(expense.status)}
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                    ))}
+                    {filteredExpenses.length === 0 && (
+                        <Text style={{ color: COLORS.textGray, textAlign: 'center', marginTop: 20 }}>Masraf bulunamadı.</Text>
+                    )}
                 </View>
 
                 <View style={{ height: 100 }} />
@@ -356,6 +385,32 @@ export default function ExpenseManagementScreen({ navigation, route }) {
                                     value={formData.title}
                                     onChangeText={(text) => setFormData({ ...formData, title: text })}
                                 />
+                            </View>
+
+                            <View style={styles.formGroup}>
+                                <Text style={styles.label}>Tarih</Text>
+                                <TouchableOpacity
+                                    style={styles.dateSelector}
+                                    onPress={() => setShowDatePicker(true)}
+                                >
+                                    <MaterialIcons name="event" size={24} color={COLORS.textGray} />
+                                    <Text style={styles.dateText}>
+                                        {formData.date.toLocaleDateString('tr-TR')}
+                                    </Text>
+                                </TouchableOpacity>
+                                {showDatePicker && (
+                                    <DateTimePicker
+                                        value={formData.date}
+                                        mode="date"
+                                        display="default"
+                                        onChange={(event, selectedDate) => {
+                                            setShowDatePicker(Platform.OS === 'ios');
+                                            if (selectedDate) {
+                                                setFormData({ ...formData, date: selectedDate });
+                                            }
+                                        }}
+                                    />
+                                )}
                             </View>
 
                             <View style={styles.formGroup}>

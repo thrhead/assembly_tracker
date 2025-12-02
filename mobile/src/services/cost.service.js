@@ -16,6 +16,19 @@ const costService = {
     },
 
     /**
+     * Get worker's costs
+     * @returns {Promise<Array>}
+     */
+    getMyCosts: async () => {
+        try {
+            const response = await api.get('/api/worker/costs');
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    /**
      * Get all costs (Manager/Admin)
      * @param {Object} filters
      * @returns {Promise<Array>}

@@ -200,37 +200,32 @@ Projenin detaylı teknik dokümantasyonu `memory-bank/` klasöründe yer almakta
 
 Bu proje özel kullanım içindir. Ticari kullanım ve dağıtım hakları saklıdır. Detaylar için proje sahibi ile iletişime geçin.
 
-**Son Güncelleme:** 28 Kasım 2024
-**Versiyon:** 2.4.0 (Notifications & API Fixes)
+**Son Güncelleme:** 02 Aralık 2024
+**Versiyon:** 2.5.0 (Mobile Stable & Real-time Features)
 
-## 🚀 Son Güncellemeler (v2.4.0)
-
-### 🔔 Bildirim Sistemi
-*   **Badge Desteği:** Admin ve Worker dashboard'larında okunmamış bildirim sayısı (kırmızı nokta).
-*   **Akıllı Yönetim:** Bildirime tıklandığında otomatik "okundu" işaretleme ve listeden kaldırma.
-*   **API Entegrasyonu:** İş onay/red süreçlerinde otomatik bildirim gönderimi.
-
-### 🔧 Backend & API
-*   **Next.js 16 Uyumluluğu:** Tüm API route'larında `params` promise yapısına geçildi.
-*   **Auth Güvenliği:** `verifyAuth` ile tüm endpoint'ler hem Web hem Mobil (Bearer) token destekler hale geldi.
-*   **Admin Dashboard:** Layout sorunları giderildi, stabilite artırıldı.
+## 🚀 Son Güncellemeler (v2.5.0)
 
 ### 📱 Mobil Uygulama (React Native / Expo)
-*   **Worker Paneli:** İş listesi ve detay ekranları tamamlandı.
-*   **İş Detayları:**
-    *   Adım ve alt adım (checklist) takibi.
-    *   **Fotoğraf Yükleme:** Alt görev bazlı fotoğraf yükleme (Min 1, Max 3 kuralı).
-    *   **Sıralı İlerleme:** Adımların sırayla tamamlanması zorunluluğu.
-    *   **Yerel Depolama:** Fotoğraflar sunucu üzerinde `public/uploads` klasöründe saklanır.
-*   **Masraf Yönetimi:** Mobil üzerinden masraf ekleme ve durum takibi.
-*   **Profil:** Şifre değiştirme ve profil görüntüleme.
+*   **Tam Kararlılık:** Worker, Manager ve Admin modülleri test edildi ve kararlı sürüme geçti.
+*   **Yenilenen Dashboard:** Worker dashboard'u modern, neon-yeşil tema ile yeniden tasarlandı.
+*   **İş Akışı İyileştirmeleri:**
+    *   **İş Başlatma/Bitirme:** "İşi Başlat" ve "İşi Tamamla" butonları ile hassas zaman takibi.
+    *   **Zaman Damgaları:** İş, adım ve alt adımlar için başlangıç ve bitiş zamanlarının (StartedAt, CompletedAt) gösterimi.
+    *   **Hata Düzeltmeleri:** İş tamamlama (PUT/POST fix), login sorunları ve veri senkronizasyonu giderildi.
+*   **Masraf Yönetimi:**
+    *   Gerçek veri entegrasyonu tamamlandı.
+    *   Tarih seçimi ve gruplama özelliği eklendi.
+    *   Yeni kategoriler (Yol vb.) eklendi.
+
+### 🔔 Bildirim ve Gerçek Zamanlı İletişim
+*   **Socket.IO Entegrasyonu:** Mobil uygulama için tam Socket.IO desteği.
+*   **Anlık Bildirimler:** İş atama, tamamlama ve fotoğraf yükleme olaylarında anlık bildirimler.
+*   **Görsel Geri Bildirim:** İşlem başarılarında modern, animasyonlu "Success Modal" kullanımı.
 
 ### 🔧 Backend & API
-*   **Mobil API:** `/api/mobile/login` ile CSRF korumasını aşan özel login endpoint'i.
-*   **Yetkilendirme:** Mobil istekleri için `Authorization: Bearer` token desteği (`verifyAuth`).
-*   **CORS:** Mobil uygulamanın sunucuya erişimi için CORS yapılandırması (`middleware.ts`, `next.config.ts`).
-*   **Veritabanı:** SQLite (`dev.db`) kullanımı ve Prisma şema güncellemeleri (`subStepId` desteği).
-*   **Network:** Sunucu `0.0.0.0` üzerinden yayın yaparak yerel ağ erişimine açıldı.
+*   **Auth Fixes:** Mobil API endpoint'leri için `verifyAuth` (Bearer Token) standardizasyonu tamamlandı.
+*   **Data Integrity:** İş tamamlama ve onay süreçlerindeki veri tutarsızlıkları giderildi.
+*   **Admin Tools:** Veritabanı kontrolü ve kullanıcı yönetimi için iyileştirmeler.
 
 ### ⚠️ Önemli Notlar
 *   **E-posta Bildirimleri:** Yerel geliştirme ortamında timeout sorununu önlemek için geçici olarak devre dışı bırakıldı.

@@ -14,6 +14,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import jobService from '../../services/job.service';
+import costService from '../../services/cost.service';
 import { COLORS } from '../../constants/theme';
 import StatCard from '../../components/StatCard';
 import JobCard from '../../components/JobCard';
@@ -30,6 +31,7 @@ export default function WorkerDashboardScreen({ navigation }) {
     const [activeJobs, setActiveJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [activeFilter, setActiveFilter] = useState('ALL'); // 'ALL', 'IN_PROGRESS', 'PENDING'
 
     // Mock Data for UI
     const projects = [
@@ -42,26 +44,38 @@ export default function WorkerDashboardScreen({ navigation }) {
 
     const loadDashboardData = async () => {
         try {
-            // Mocking data for now to match design
-            setStats({ activeJobs: 12, completedJobs: 8, totalEarnings: 15400 });
-            setActiveJobs([
-                {
-                    id: '1',
-                    title: 'Ofis Masası Montajı',
-                    location: 'Levent, İstanbul',
-                    time: '10:00 - 12:00',
-                    status: 'In Progress',
-                    progress: 60
-                },
-                {
-                    id: '2',
-                    title: 'Mutfak Dolabı Kurulumu',
-                    location: 'Kadıköy, İstanbul',
-                    time: '14:00 - 16:00',
-                    status: 'Pending',
-                    progress: 0
-                }
-            ]);
+            setLoading(true);
+            const jobs = await jobService.getMyJobs();
+            const costs = await costService.getMyCosts();
+
+            // Filter active and completed jobs
+            const active = jobs.filter(j => ['PENDING', 'IN_PROGRESS'].includes(j.status));
+            const completed = jobs.filter(j => j.status === 'COMPLETED');
+
+            // Process active jobs for display
+            const formattedActiveJobs = active.map(job => {
+                const totalSteps = job.steps ? job.steps.length : 0;
+                const completedSteps = job.steps ? job.steps.filter(s => s.isCompleted).length : 0;
+                const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+
+                return {
+                    id: job.id,
+                    title: job.title,
+                    location: job.location || job.customer?.company || 'Konum belirtilmemiş',
+                    time: job.scheduledDate ? new Date(job.scheduledDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : 'Saat belirtilmemiş',
+                    status: job.status === 'IN_PROGRESS' ? 'In Progress' : 'Pending',
+                    progress: progress,
+                    priority: job.priority
+                };
+            });
+
+            setActiveJobs(formattedActiveJobs);
+            setStats({
+                activeJobs: active.length,
+                completedJobs: completed.length,
+                totalEarnings: costs ? costs.reduce((sum, cost) => sum + (cost.amount || 0), 0) : 0
+            });
+
         } catch (error) {
             console.error('Error loading dashboard data:', error);
         } finally {
@@ -103,6 +117,13 @@ export default function WorkerDashboardScreen({ navigation }) {
         </View>
     );
 
+    const getFilteredJobs = () => {
+        if (activeFilter === 'ALL') return activeJobs;
+        if (activeFilter === 'IN_PROGRESS') return activeJobs.filter(job => job.status === 'In Progress');
+        if (activeFilter === 'PENDING') return activeJobs.filter(job => job.status === 'Pending');
+        return activeJobs;
+    };
+
     const renderActiveTasks = () => (
         <View style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
@@ -114,27 +135,44 @@ export default function WorkerDashboardScreen({ navigation }) {
 
             {/* Filter Tabs */}
             <View style={styles.filterContainer}>
-                <TouchableOpacity style={[styles.filterTab, styles.activeFilterTab]}>
-                    <Text style={[styles.filterText, styles.activeFilterText]}>Tümü</Text>
+                <TouchableOpacity
+                    style={[styles.filterTab, activeFilter === 'ALL' && styles.activeFilterTab]}
+                    onPress={() => setActiveFilter('ALL')}
+                >
+                    <Text style={[styles.filterText, activeFilter === 'ALL' && styles.activeFilterText]}>Tümü</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.filterTab}>
-                    <Text style={styles.filterText}>Devam Eden</Text>
+                <TouchableOpacity
+                    style={[styles.filterTab, activeFilter === 'IN_PROGRESS' && styles.activeFilterTab]}
+                    onPress={() => setActiveFilter('IN_PROGRESS')}
+                >
+                    <Text style={[styles.filterText, activeFilter === 'IN_PROGRESS' && styles.activeFilterText]}>Devam Eden</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.filterTab}>
-                    <Text style={styles.filterText}>Bekleyen</Text>
+                <TouchableOpacity
+                    style={[styles.filterTab, activeFilter === 'PENDING' && styles.activeFilterTab]}
+                    onPress={() => setActiveFilter('PENDING')}
+                >
+                    <Text style={[styles.filterText, activeFilter === 'PENDING' && styles.activeFilterText]}>Bekleyen</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Task Cards */}
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tasksScroll}>
-                {activeJobs.map((job) => (
-                    <JobCard
-                        key={job.id}
-                        job={job}
-                        onPress={() => navigation.navigate('JobDetail', { jobId: job.id })}
-                        style={{ width: width * 0.75, marginRight: 16 }}
-                    />
-                ))}
+                {getFilteredJobs().length > 0 ? (
+                    getFilteredJobs().map((job) => (
+                        <JobCard
+                            key={job.id}
+                            job={job}
+                            onPress={() => navigation.navigate('JobDetail', { jobId: job.id })}
+                            style={{ width: width * 0.75, marginRight: 16 }}
+                        />
+                    ))
+                ) : (
+                    <Text style={{ color: COLORS.slate500, marginLeft: 4, fontStyle: 'italic' }}>
+                        {activeFilter === 'ALL' ? 'Aktif görev bulunmuyor.' :
+                            activeFilter === 'IN_PROGRESS' ? 'Devam eden görev bulunmuyor.' :
+                                'Bekleyen görev bulunmuyor.'}
+                    </Text>
+                )}
             </ScrollView>
         </View>
     );
@@ -213,14 +251,7 @@ export default function WorkerDashboardScreen({ navigation }) {
                 <View style={{ height: 80 }} />
             </ScrollView>
 
-            {/* FAB */}
-            <TouchableOpacity
-                style={styles.fab}
-                onPress={() => navigation.navigate('Jobs')}
-                activeOpacity={0.8}
-            >
-                <MaterialIcons name="add" size={30} color={COLORS.black} />
-            </TouchableOpacity>
+
         </SafeAreaView>
     );
 }

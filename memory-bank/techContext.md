@@ -21,19 +21,20 @@
 - **Authentication**: NextAuth.js (JWT Strategy)
 - **Real-time**: Socket.IO
 
-### Mobile (v2.5 - Beta)
+### Mobile (v2.5 - Stable)
 - **Framework**: React Native 0.74+
 - **Platform**: Expo SDK 51
 - **Navigation**: React Navigation 6 (Stack & Bottom Tabs)
 - **Storage**: AsyncStorage
 - **HTTP Client**: Axios
+- **Real-time**: Socket.IO Client
 - **Maps**: react-native-maps
 - **UI**: StyleSheet API + Custom Components
 - **Features**:
-  - **Worker**: Job List, Detail, Checklist, Photo Upload, Map
+  - **Worker**: Job List, Detail, Checklist, Photo Upload, Map, Expenses
   - **Manager**: Team List, Job Assignment, Dashboard
   - **Admin**: User CRUD, Customer CRUD, Dashboard
-  - **Shared**: Auth, Profile, Settings
+  - **Shared**: Auth, Profile, Settings, Notifications
 
 ### DevOps
 - **Version Control**: Git

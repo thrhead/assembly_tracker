@@ -75,6 +75,35 @@ export async function POST(
             }
         })
 
+        // Emit Socket.IO event
+        const socketPayload = {
+            jobId: params.id,
+            stepId: params.stepId,
+            subStepId: subStepId || null,
+            photoUrl: photoUrl,
+            uploadedBy: session.user.name || session.user.email || 'Unknown',
+            uploadedAt: new Date()
+        }
+
+        // Import socket functions dynamically to avoid circular deps if any
+        const { emitToUser, broadcast } = await import('@/lib/socket')
+
+        // Notify team lead/manager/admin
+        // Find relevant users (e.g. job creator, team lead)
+        const job = await prisma.job.findUnique({
+            where: { id: params.id },
+            include: {
+                creator: true,
+                assignments: { include: { team: true } }
+            }
+        })
+
+        if (job) {
+            if (job.creatorId) emitToUser(job.creatorId, 'photo:uploaded', socketPayload)
+            // Broadcast to admins/managers
+            broadcast('photo:uploaded', socketPayload)
+        }
+
         return NextResponse.json(photo)
     } catch (error) {
         console.error('Photo upload error:', error)

@@ -1,17 +1,30 @@
 # Aktif Bağlam
 
-**Son Güncelleme:** 28 Kasım 2024  
-**Versiyon:** 2.4.0 (Notifications & API Fixes)
+**Son Güncelleme:** 02 Aralık 2024  
+**Versiyon:** 2.5.0 (Mobile Stable & Real-time Features)
 
 ### Mevcut Durum
 
 - **Web Uygulaması:** Production-ready (v2.0). Tüm temel ve gelişmiş özellikler tamamlandı.
-- **Mobil Uygulama:** Beta aşamasında (v2.5). Worker, Manager ve Admin rolleri için tüm temel özellikler entegre edildi.
+- **Mobil Uygulama:** Stable (v2.5.0). Worker, Manager ve Admin rolleri için tüm özellikler tamamlandı ve test edildi.
 - **Teknik Stack:** Next.js + PostgreSQL + Prisma + NextAuth.js + React Native (Expo)
 
-### Son Değişiklikler (Kasım 2024)
+### Son Değişiklikler (Aralık 2024)
 
-1.  **Mobil Uygulama - Tam Entegrasyon (v2.5)**:
+1.  **Mobil Uygulama Kararlılık Güncellemesi (v2.5.0)**:
+    - **Bug Fixes**:
+        - İş tamamlama servisinde PUT/POST uyumsuzluğu giderildi.
+        - Login ekranındaki render sorunları çözüldü.
+        - Veri senkronizasyonu ve state yönetimi iyileştirildi.
+    - **UX İyileştirmeleri**:
+        - Worker Dashboard modern neon-yeşil tema ile yenilendi.
+        - İşlem başarılarında animasyonlu "Success Modal" eklendi.
+        - İş ve adım zamanlamaları (Başlangıç/Bitiş) görünür hale getirildi.
+    - **Yeni Özellikler**:
+        - **Real-time**: Socket.IO ile anlık bildirimler mobile taşındı.
+        - **Masraf Yönetimi**: Gerçek veri entegrasyonu, tarih seçimi ve yeni kategoriler.
+
+2.  **Mobil Uygulama - Tam Entegrasyon (v2.5)**:
     - **Foundation (100%)**:
         - Expo + React Native projesi oluşturuldu (`/mobile`)
         - React Navigation ile rol bazlı yönlendirme (Worker, Manager, Admin)

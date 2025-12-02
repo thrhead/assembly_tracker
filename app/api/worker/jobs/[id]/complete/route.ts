@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 import { emitToUser, broadcast } from '@/lib/socket'
 import { JobCompletedPayload } from '@/lib/socket-events'
 import { sendJobCompletedEmail } from '@/lib/email'
@@ -10,7 +10,7 @@ export async function POST(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth()
+    const session = await verifyAuth(req)
     if (!session || !['WORKER', 'TEAM_LEAD'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

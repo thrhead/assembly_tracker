@@ -116,7 +116,7 @@ const jobService = {
      */
     completeJob: async (jobId) => {
         try {
-            const response = await api.put(`/api/worker/jobs/${jobId}/complete`);
+            const response = await api.post(`/api/worker/jobs/${jobId}/complete`);
             return response.data;
         } catch (error) {
             throw error;
@@ -236,6 +236,34 @@ const jobService = {
         try {
             // This endpoint needs to exist on backend, or we filter getAllJobs
             const response = await api.get('/api/admin/jobs?status=PENDING_APPROVAL');
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    startJob: async (jobId) => {
+        try {
+            const response = await api.post(`/api/worker/jobs/${jobId}/start`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    startStep: async (jobId, stepId) => {
+        try {
+            const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/start`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    startSubstep: async (jobId, stepId, substepId) => {
+        try {
+            // Using flattened route to avoid deep nesting issues
+            const response = await api.post(`/api/worker/substeps/${substepId}/start`);
             return response.data;
         } catch (error) {
             throw error;

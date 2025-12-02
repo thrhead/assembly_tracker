@@ -104,12 +104,12 @@ api.interceptors.response.use(
                     console.error('Server error:', data.message);
                     break;
                 default:
-                    console.error('API error:', data.message || 'Unknown error');
+                    console.error('API error:', data.message || data.error || 'Unknown error');
             }
 
             return Promise.reject({
                 status,
-                message: data.message || 'An error occurred',
+                message: data.message || data.error || 'An error occurred',
                 data: data,
             });
         } else if (error.request) {

@@ -404,7 +404,8 @@
 ## 🚧 Devam Eden / Planlanmış
 
 ### Kısa Vadeli (Next Sprint)
-- [ ] Mobile App Testing & Polish
+- [x] Mobile App Testing & Polish (Completed v2.5.0)
+- [x] Real-time Notifications (Socket.IO Mobile)
 - [ ] Push Notifications (Expo)
 - [ ] Offline Mode (Mobile)
 
@@ -484,7 +485,7 @@
 - ✅ Substep time tracking
 - ✅ Modern UI redesign
 
-### v2.5 - Mobile App (Tamamlandı - Kasım 2025) ✅
+### v2.5 - Mobile App (Tamamlandı - Aralık 2024) ✅
 - ✅ React Native + Expo Foundation
 - ✅ Worker Features (Complete)
 - ✅ Manager Features (Complete)
@@ -493,6 +494,10 @@
 - ✅ **Substep Photo Constraints (Min 1, Max 3)**
 - ✅ **Local File Upload Strategy**
 - ✅ **Sequential Substep Locking**
+- ✅ **Real-time Notifications (Socket.IO)**
+- ✅ **Job Start/End Time Tracking**
+- ✅ **Expense Management (Real Data)**
+- ✅ **Dashboard Redesign (Neon Theme)**
 
 ### v3.0 (Gelecek - 2025 Q1)
 - [ ] Offline support

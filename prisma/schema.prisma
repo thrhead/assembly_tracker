@@ -103,6 +103,7 @@ model Job {
   longitude      Float?
   scheduledDate  DateTime?
   scheduledEndDate DateTime?
+  startedAt      DateTime?
   completedDate  DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt

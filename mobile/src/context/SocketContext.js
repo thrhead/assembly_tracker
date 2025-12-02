@@ -86,6 +86,30 @@ export const SocketProvider = ({ children }) => {
             console.log('[Socket] 🔔 New notification received:', notification);
             setUnreadCount(prev => prev + 1);
             setNotifications(prev => [notification, ...prev]);
+
+            // Show alert for notification
+            if (Platform.OS !== 'web') {
+                const { Alert } = require('react-native');
+                Alert.alert(notification.title, notification.message);
+            }
+        });
+
+        // Listen for job completion
+        socketInstance.on('job:completed', (data) => {
+            console.log('[Socket] ✅ Job completed:', data);
+            if (Platform.OS !== 'web') {
+                const { Alert } = require('react-native');
+                Alert.alert('İş Tamamlandı', `${data.title} işi ${data.completedBy} tarafından tamamlandı.`);
+            }
+        });
+
+        // Listen for photo upload
+        socketInstance.on('photo:uploaded', (data) => {
+            console.log('[Socket] 📸 Photo uploaded:', data);
+            if (Platform.OS !== 'web') {
+                const { Alert } = require('react-native');
+                Alert.alert('Fotoğraf Yüklendi', `${data.uploadedBy} yeni bir fotoğraf yükledi.`);
+            }
         });
 
         return () => {

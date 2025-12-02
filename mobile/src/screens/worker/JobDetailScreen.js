@@ -16,10 +16,12 @@ import {
     SafeAreaView
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
 import jobService from '../../services/job.service';
 import costService from '../../services/cost.service';
 import authService from '../../services/auth.service';
+import SuccessModal from '../../components/SuccessModal';
 
 const COLORS = {
     primary: "#CCFF04",
@@ -45,12 +47,16 @@ export default function JobDetailScreen({ route, navigation }) {
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [successModalVisible, setSuccessModalVisible] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
 
     // Cost State
     const [costModalVisible, setCostModalVisible] = useState(false);
     const [costAmount, setCostAmount] = useState('');
     const [costCategory, setCostCategory] = useState('Yemek');
     const [costDescription, setCostDescription] = useState('');
+    const [costDate, setCostDate] = useState(new Date());
+    const [showDatePicker, setShowDatePicker] = useState(false);
     const [submittingCost, setSubmittingCost] = useState(false);
     const [userRole, setUserRole] = useState(null);
 
@@ -60,7 +66,17 @@ export default function JobDetailScreen({ route, navigation }) {
     const [selectedStepId, setSelectedStepId] = useState(null);
     const [selectedSubstepId, setSelectedSubstepId] = useState(null);
 
-    const COST_CATEGORIES = ['Yemek', 'Yakıt', 'Konaklama', 'Malzeme', 'Diğer'];
+    const COST_CATEGORIES = ['Yemek', 'Yol', 'Yakıt', 'Konaklama', 'Malzeme', 'Diğer'];
+
+    const formatDate = (dateString) => {
+        if (!dateString) return null;
+        return new Date(dateString).toLocaleString('tr-TR', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
 
     useEffect(() => {
         loadJobDetails();
@@ -106,6 +122,17 @@ export default function JobDetailScreen({ route, navigation }) {
             loadJobDetails();
         } catch (error) {
             console.error('[MOBILE] Error toggling substep:', error);
+            Alert.alert('Hata', 'İşlem gerçekleştirilemedi');
+        }
+    };
+
+    const handleToggleStep = async (stepId, currentStatus) => {
+        try {
+            const isCompleted = !currentStatus;
+            await jobService.toggleStep(jobId, stepId, isCompleted);
+            loadJobDetails();
+        } catch (error) {
+            console.error('[MOBILE] Error toggling step:', error);
             Alert.alert('Hata', 'İşlem gerçekleştirilemedi');
         }
     };
@@ -161,7 +188,8 @@ export default function JobDetailScreen({ route, navigation }) {
 
             await jobService.uploadPhotos(jobId, stepId, formData, substepId);
 
-            Alert.alert('Başarılı', 'Fotoğraf yüklendi');
+            setSuccessMessage('Fotoğraf başarıyla yüklendi');
+            setSuccessModalVisible(true);
             loadJobDetails();
         } catch (error) {
             console.error('Error uploading photo:', error);
@@ -253,6 +281,46 @@ export default function JobDetailScreen({ route, navigation }) {
         setRejectionModalVisible(true);
     };
 
+    const handleStartJob = async () => {
+        try {
+            setLoading(true);
+            await jobService.startJob(jobId);
+            Alert.alert('Başarılı', 'İş başlatıldı.');
+            loadJobDetails();
+        } catch (error) {
+            console.error('Error starting job:', error);
+            Alert.alert('Hata', 'İş başlatılamadı.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleStartStep = async (stepId) => {
+        try {
+            setLoading(true);
+            await jobService.startStep(jobId, stepId);
+            loadJobDetails();
+        } catch (error) {
+            console.error('Error starting step:', error);
+            Alert.alert('Hata', 'Adım başlatılamadı.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleStartSubstep = async (stepId, substepId) => {
+        try {
+            setLoading(true);
+            await jobService.startSubstep(jobId, stepId, substepId);
+            loadJobDetails();
+        } catch (error) {
+            console.error('Error starting substep:', error);
+            Alert.alert('Hata', 'Alt adım başlatılamadı.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleAcceptJob = async () => {
         Alert.alert(
             "Montajı Kabul Et",
@@ -285,8 +353,10 @@ export default function JobDetailScreen({ route, navigation }) {
             await costService.create({
                 jobId: job.id,
                 amount: parseFloat(costAmount),
+                amount: parseFloat(costAmount),
                 category: costCategory,
                 description: costDescription,
+                date: costDate.toISOString(),
                 currency: 'TRY'
             });
 
@@ -295,6 +365,7 @@ export default function JobDetailScreen({ route, navigation }) {
             setCostAmount('');
             setCostDescription('');
             setCostCategory('Yemek');
+            setCostDate(new Date());
             loadJobDetails();
         } catch (error) {
             console.error('Error creating cost:', error);
@@ -304,42 +375,14 @@ export default function JobDetailScreen({ route, navigation }) {
         }
     };
 
+    const [completing, setCompleting] = useState(false);
+
     const handleCompleteJob = async () => {
+        console.log('[MOBILE] handleCompleteJob called');
+        console.log('[MOBILE] Job Steps:', JSON.stringify(job.steps, null, 2));
+
         const allStepsCompleted = job.steps.every(step => step.isCompleted);
-
-        if (!allStepsCompleted) {
-            Alert.alert("Uyarı", "İşi tamamlamak için tüm adımları bitirmelisiniz.");
-            return;
-        }
-
-        Alert.alert(
-            "İşi Tamamla",
-            "İşi tamamlamak istediğinize emin misiniz?",
-            [
-                { text: "İptal", style: "cancel" },
-                {
-                    text: "Tamamla",
-                    onPress: async () => {
-                        try {
-                            setLoading(true);
-                            await jobService.completeJob(jobId);
-                            Alert.alert("Başarılı", "İş tamamlandı ve onaya gönderildi.", [
-                                { text: "Tamam", onPress: () => navigation.goBack() }
-                            ]);
-                        } catch (error) {
-                            console.error('[MOBILE] Error completing job:', error);
-                            Alert.alert('Hata', 'İş tamamlanırken bir hata oluştu');
-                        } finally {
-                            setLoading(false);
-                        }
-                    }
-                }
-            ]
-        );
-    };
-
-    const openImageModal = (uri) => {
-        setSelectedImage(uri);
+        console.log('[MOBILE] All steps completed:', allStepsCompleted);
         setModalVisible(true);
     };
 
@@ -382,13 +425,23 @@ export default function JobDetailScreen({ route, navigation }) {
                         <MaterialIcons name="description" size={16} color={COLORS.textGray} />
                         <Text style={styles.description}>{job.description}</Text>
                     </View>
+                    {job.startedAt && (
+                        <View style={styles.infoRow}>
+                            <MaterialIcons name="play-circle-outline" size={16} color={COLORS.primary} />
+                            <Text style={styles.infoText}>Başlangıç: {formatDate(job.startedAt)}</Text>
+                        </View>
+                    )}
+                    {job.completedDate && (
+                        <View style={styles.infoRow}>
+                            <MaterialIcons name="check-circle-outline" size={16} color={COLORS.green500} />
+                            <Text style={styles.infoText}>Bitiş: {formatDate(job.completedDate)}</Text>
+                        </View>
+                    )}
                 </View>
-
                 {/* Steps Section */}
                 <Text style={styles.sectionTitle}>İş Adımları</Text>
                 {job.steps && job.steps.map((step, index) => {
                     const isLocked = index > 0 && !job.steps[index - 1].isCompleted;
-                    const allSubstepsApproved = !step.subSteps || step.subSteps.every(s => s.isCompleted && s.approvalStatus === 'APPROVED');
 
                     return (
                         <View key={step.id} style={[styles.stepCard, isLocked && styles.lockedCard]}>
@@ -400,6 +453,16 @@ export default function JobDetailScreen({ route, navigation }) {
                                     <Text style={[styles.stepTitle, step.isCompleted && styles.completedText]}>
                                         {step.title || step.name}
                                     </Text>
+                                    {step.startedAt && (
+                                        <Text style={styles.dateText}>
+                                            Başladı: {formatDate(step.startedAt)}
+                                        </Text>
+                                    )}
+                                    {step.completedAt && (
+                                        <Text style={styles.dateText}>
+                                            Bitti: {formatDate(step.completedAt)}
+                                        </Text>
+                                    )}
                                     {(step.approvalStatus && step.approvalStatus !== 'PENDING') &&
                                         (!step.subSteps || step.subSteps.every(s => s.isCompleted && s.approvalStatus === 'APPROVED')) && (
                                             <View style={[
@@ -442,8 +505,8 @@ export default function JobDetailScreen({ route, navigation }) {
                                         const substepPhotos = substep.photos || [];
                                         const photoCount = substepPhotos.length;
                                         const isSubstepLocked = subIndex > 0 && !step.subSteps[subIndex - 1].isCompleted;
-                                        const canComplete = photoCount >= 1;
-                                        const canUpload = photoCount < 3;
+                                        const canComplete = photoCount >= 1 && substep.startedAt;
+                                        const canUpload = photoCount < 3 && substep.startedAt;
 
                                         return (
                                             <View key={substep.id} style={[styles.substepWrapper, isSubstepLocked && styles.lockedCard]}>
@@ -452,6 +515,16 @@ export default function JobDetailScreen({ route, navigation }) {
                                                         <Text style={[styles.substepText, substep.isCompleted && styles.completedText]}>
                                                             {substep.title || substep.name}
                                                         </Text>
+                                                        {substep.startedAt && (
+                                                            <Text style={styles.dateText}>
+                                                                Başladı: {formatDate(substep.startedAt)}
+                                                            </Text>
+                                                        )}
+                                                        {substep.completedAt && (
+                                                            <Text style={styles.dateText}>
+                                                                Bitti: {formatDate(substep.completedAt)}
+                                                            </Text>
+                                                        )}
                                                         {substep.approvalStatus && (
                                                             <View style={[
                                                                 styles.statusBadge,
@@ -472,19 +545,33 @@ export default function JobDetailScreen({ route, navigation }) {
                                                     {!['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
                                                         <View style={styles.actionButtons}>
                                                             {!substep.isCompleted ? (
-                                                                <TouchableOpacity
-                                                                    style={[styles.completeButton, (!canComplete || isSubstepLocked) && styles.disabledButton]}
-                                                                    onPress={() => {
-                                                                        if (!canComplete) {
-                                                                            Alert.alert('Uyarı', 'Tamamlamak için en az 1 fotoğraf yüklemelisiniz.');
-                                                                            return;
-                                                                        }
-                                                                        handleSubstepToggle(step.id, substep.id, false);
-                                                                    }}
-                                                                    disabled={!canComplete || isSubstepLocked}
-                                                                >
-                                                                    <Text style={styles.btnText}>Tamamla</Text>
-                                                                </TouchableOpacity>
+                                                                !substep.startedAt ? (
+                                                                    <TouchableOpacity
+                                                                        style={[styles.startButton, isSubstepLocked && styles.disabledButton]}
+                                                                        onPress={() => handleStartSubstep(step.id, substep.id)}
+                                                                        disabled={isSubstepLocked}
+                                                                    >
+                                                                        <Text style={styles.btnText}>Başla</Text>
+                                                                    </TouchableOpacity>
+                                                                ) : (
+                                                                    <TouchableOpacity
+                                                                        style={[styles.completeButton, (!canComplete || isSubstepLocked) && styles.disabledButton]}
+                                                                        onPress={() => {
+                                                                            if (!substep.startedAt) {
+                                                                                Alert.alert('Uyarı', 'Önce işe başlamalısınız.');
+                                                                                return;
+                                                                            }
+                                                                            if (photoCount < 1) {
+                                                                                Alert.alert('Uyarı', 'Tamamlamak için en az 1 fotoğraf yüklemelisiniz.');
+                                                                                return;
+                                                                            }
+                                                                            handleSubstepToggle(step.id, substep.id, false);
+                                                                        }}
+                                                                        disabled={!canComplete || isSubstepLocked}
+                                                                    >
+                                                                        <Text style={styles.btnText}>Tamamla</Text>
+                                                                    </TouchableOpacity>
+                                                                )
                                                             ) : (
                                                                 <TouchableOpacity
                                                                     style={styles.undoButton}
@@ -519,7 +606,7 @@ export default function JobDetailScreen({ route, navigation }) {
                                                         <Text style={styles.photoCountText}>
                                                             Fotoğraflar ({photoCount}/3)
                                                         </Text>
-                                                        {canUpload && (
+                                                        {canUpload ? (
                                                             <View style={styles.photoButtonsContainer}>
                                                                 <TouchableOpacity
                                                                     style={styles.photoIconBtn}
@@ -534,6 +621,8 @@ export default function JobDetailScreen({ route, navigation }) {
                                                                     <MaterialIcons name="photo-library" size={20} color={COLORS.primary} />
                                                                 </TouchableOpacity>
                                                             </View>
+                                                        ) : (
+                                                            !substep.startedAt && <Text style={styles.lockedText}>Fotoğraf yüklemek için başlayın</Text>
                                                         )}
                                                     </View>
                                                 )}
@@ -550,6 +639,85 @@ export default function JobDetailScreen({ route, navigation }) {
                                             </View>
                                         );
                                     })}
+                                </View>
+                            )}
+
+                            {(!step.subSteps || step.subSteps.length === 0) && !['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
+                                <View style={{ marginTop: 12 }}>
+                                    <View style={styles.actionButtons}>
+                                        {!step.isCompleted ? (
+                                            !step.startedAt ? (
+                                                <TouchableOpacity
+                                                    style={[styles.startButton, isLocked && styles.disabledButton]}
+                                                    onPress={() => handleStartStep(step.id)}
+                                                    disabled={isLocked}
+                                                >
+                                                    <Text style={styles.btnText}>Başla</Text>
+                                                </TouchableOpacity>
+                                            ) : (
+                                                <TouchableOpacity
+                                                    style={[styles.completeButton, ((step.photos?.length || 0) < 1 || isLocked) && styles.disabledButton]}
+                                                    onPress={() => {
+                                                        if (!step.startedAt) {
+                                                            Alert.alert('Uyarı', 'Önce işe başlamalısınız.');
+                                                            return;
+                                                        }
+                                                        if ((step.photos?.length || 0) < 1) {
+                                                            Alert.alert('Uyarı', 'Tamamlamak için en az 1 fotoğraf yüklemelisiniz.');
+                                                            return;
+                                                        }
+                                                        handleToggleStep(step.id, false);
+                                                    }}
+                                                    disabled={(step.photos?.length || 0) < 1 || isLocked}
+                                                >
+                                                    <Text style={styles.btnText}>Tamamla</Text>
+                                                </TouchableOpacity>
+                                            )
+                                        ) : (
+                                            <TouchableOpacity
+                                                style={styles.undoButton}
+                                                onPress={() => handleToggleStep(step.id, true)}
+                                            >
+                                                <Text style={styles.btnText}>Geri Al</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                    </View>
+
+                                    {!step.isCompleted && (
+                                        <View style={styles.stepPhotoContainer}>
+                                            <Text style={styles.photoCountText}>
+                                                Fotoğraflar ({step.photos?.length || 0}/3)
+                                            </Text>
+                                            {step.startedAt && (step.photos?.length || 0) < 3 ? (
+                                                <View style={styles.photoButtonsContainer}>
+                                                    <TouchableOpacity
+                                                        style={styles.photoIconBtn}
+                                                        onPress={() => pickImage(step.id, null, 'camera')}
+                                                    >
+                                                        <MaterialIcons name="camera-alt" size={20} color={COLORS.primary} />
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity
+                                                        style={styles.photoIconBtn}
+                                                        onPress={() => pickImage(step.id, null, 'gallery')}
+                                                    >
+                                                        <MaterialIcons name="photo-library" size={20} color={COLORS.primary} />
+                                                    </TouchableOpacity>
+                                                </View>
+                                            ) : (
+                                                !step.startedAt && <Text style={styles.lockedText}>Fotoğraf yüklemek için başlayın</Text>
+                                            )}
+                                        </View>
+                                    )}
+
+                                    {step.photos && step.photos.length > 0 && (
+                                        <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
+                                            {step.photos.map((photo, pIndex) => (
+                                                <TouchableOpacity key={pIndex} onPress={() => openImageModal(photo.url || photo)}>
+                                                    <Image source={{ uri: photo.url || photo }} style={styles.thumbnail} />
+                                                </TouchableOpacity>
+                                            ))}
+                                        </ScrollView>
+                                    )}
                                 </View>
                             )}
                         </View>
@@ -604,15 +772,28 @@ export default function JobDetailScreen({ route, navigation }) {
             {/* Footer Actions */}
             <View style={styles.footer}>
                 {!['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) ? (
-                    <TouchableOpacity
-                        style={[styles.mainCompleteButton, job.status === 'COMPLETED' && styles.disabledButton]}
-                        onPress={handleCompleteJob}
-                        disabled={job.status === 'COMPLETED'}
-                    >
-                        <Text style={styles.mainCompleteButtonText}>
-                            {job.status === 'COMPLETED' ? "İş Tamamlandı" : "İşi Tamamla"}
-                        </Text>
-                    </TouchableOpacity>
+                    job.status === 'PENDING' ? (
+                        <TouchableOpacity
+                            style={styles.mainCompleteButton}
+                            onPress={handleStartJob}
+                        >
+                            <Text style={styles.mainCompleteButtonText}>İşi Başlat</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity
+                            style={[styles.mainCompleteButton, (job.status === 'COMPLETED' || completing) && styles.disabledButton]}
+                            onPress={handleCompleteJob}
+                            disabled={job.status === 'COMPLETED' || completing}
+                        >
+                            {completing ? (
+                                <ActivityIndicator color={COLORS.black} />
+                            ) : (
+                                <Text style={styles.mainCompleteButtonText}>
+                                    {job.status === 'COMPLETED' ? "İş Tamamlandı" : "İşi Tamamla"}
+                                </Text>
+                            )}
+                        </TouchableOpacity>
+                    )
                 ) : (
                     <View style={{ width: '100%' }}>
                         <View style={styles.acceptanceStatusContainer}>
@@ -636,7 +817,6 @@ export default function JobDetailScreen({ route, navigation }) {
                 )}
             </View>
 
-            {/* Modals */}
             <Modal visible={modalVisible} transparent={true} onRequestClose={() => setModalVisible(false)}>
                 <View style={styles.modalContainer}>
                     <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
@@ -652,6 +832,30 @@ export default function JobDetailScreen({ route, navigation }) {
                 <View style={styles.modalContainer}>
                     <View style={styles.formCard}>
                         <Text style={styles.modalTitle}>Masraf Ekle</Text>
+                        <Text style={styles.inputLabel}>Tarih</Text>
+                        <TouchableOpacity
+                            style={styles.dateSelector}
+                            onPress={() => setShowDatePicker(true)}
+                        >
+                            <MaterialIcons name="event" size={24} color={COLORS.textGray} />
+                            <Text style={styles.dateText}>
+                                {costDate.toLocaleDateString('tr-TR')}
+                            </Text>
+                        </TouchableOpacity>
+                        {showDatePicker && (
+                            <DateTimePicker
+                                value={costDate}
+                                mode="date"
+                                display="default"
+                                onChange={(event, selectedDate) => {
+                                    setShowDatePicker(Platform.OS === 'ios');
+                                    if (selectedDate) {
+                                        setCostDate(selectedDate);
+                                    }
+                                }}
+                            />
+                        )}
+
                         <Text style={styles.inputLabel}>Tutar (TL)</Text>
                         <TextInput
                             style={styles.input}
@@ -721,13 +925,21 @@ export default function JobDetailScreen({ route, navigation }) {
                 </View>
             </Modal>
 
-            {uploading && (
-                <View style={styles.loadingOverlay}>
-                    <ActivityIndicator size="large" color={COLORS.primary} />
-                    <Text style={styles.loadingText}>Yükleniyor...</Text>
-                </View>
-            )}
-        </SafeAreaView>
+            {
+                uploading && (
+                    <View style={styles.loadingOverlay}>
+                        <ActivityIndicator size="large" color={COLORS.primary} />
+                        <Text style={styles.loadingText}>Yükleniyor...</Text>
+                    </View>
+                )
+            }
+            <SuccessModal
+                visible={successModalVisible}
+                message={successMessage}
+                onClose={() => setSuccessModalVisible(false)}
+            />
+
+        </SafeAreaView >
     );
 }
 
@@ -861,6 +1073,12 @@ const styles = StyleSheet.create({
     },
     completeButton: {
         backgroundColor: COLORS.primary,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 6,
+    },
+    startButton: {
+        backgroundColor: COLORS.blue500,
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 6,
@@ -1198,5 +1416,21 @@ const styles = StyleSheet.create({
     statusPending: { color: COLORS.blue500 },
     acceptJobButton: {
         backgroundColor: COLORS.green500,
+    },
+    dateText: {
+        fontSize: 12,
+        color: COLORS.textGray,
+        marginTop: 2,
+    },
+    dateSelector: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
+        borderRadius: 8,
+        padding: 12,
+        marginBottom: 16,
+        gap: 8,
     },
 });

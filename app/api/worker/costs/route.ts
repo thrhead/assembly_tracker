@@ -108,3 +108,33 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
+
+export async function GET(req: Request) {
+    try {
+        const session = await verifyAuth(req)
+        if (!session) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const costs = await prisma.costTracking.findMany({
+            where: {
+                createdById: session.user.id
+            },
+            include: {
+                job: {
+                    select: {
+                        title: true
+                    }
+                }
+            },
+            orderBy: {
+                date: 'desc'
+            }
+        })
+
+        return NextResponse.json(costs)
+    } catch (error) {
+        console.error('Fetch costs error:', error)
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    }
+}
