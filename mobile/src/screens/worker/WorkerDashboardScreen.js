@@ -7,10 +7,10 @@ import {
     TouchableOpacity,
     Image,
     StatusBar,
-    SafeAreaView,
     Dimensions,
     RefreshControl
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
@@ -302,5 +302,6 @@ const styles = StyleSheet.create({
     projectInfo: { flex: 1 },
     projectTitle: { color: COLORS.white, fontSize: 16, fontWeight: '600', marginBottom: 4 },
     projectCode: { color: COLORS.slate500, fontSize: 14 },
-    fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 }
+    fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
+    roleText: { color: COLORS.slate500, fontSize: 12, marginTop: 2 }
 });

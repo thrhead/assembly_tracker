@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 // TODO: Update with ngrok URL when using tunnel
 // Get ngrok URL by running: ngrok http 3000
 // Example: https://abc123-def456.ngrok-free.app
-const NGROK_URL = 'https://nonblamably-appreciatory-corban.ngrok-free.dev';
+const NGROK_URL = 'https://pointer-toner-compute-circulation.trycloudflare.com';
 
 // Determine the correct base URL based on platform
 const getBaseUrl = () => {
@@ -38,6 +38,7 @@ const api = axios.create({
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
+        'Bypass-Tunnel-Reminder': 'true', // Needed for localtunnel
     },
 });
 

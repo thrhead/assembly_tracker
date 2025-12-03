@@ -1,7 +1,12 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { enableFreeze } from 'react-native-screens';
+
+enableFreeze(false);
+import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { COLORS } from './src/constants/theme';
 import LoginScreen from './src/screens/LoginScreen';
@@ -25,7 +30,7 @@ import CreateJobScreen from './src/screens/admin/CreateJobScreen';
 import CostManagementScreen from './src/screens/manager/CostManagementScreen';
 import NotificationsScreen from './src/screens/worker/NotificationsScreen';
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 function AppNavigator() {
   const { user, loading } = useAuth();
@@ -130,7 +135,7 @@ function AppNavigator() {
             <Stack.Screen
               name="CreateJob"
               component={CreateJobScreen}
-              options={{ title: 'Yeni İş Oluştur', headerShown: false }}
+              options={{ title: 'Yeni İş Oluştur' }}
             />
             {/* Profile Screen */}
             <Stack.Screen
@@ -197,14 +202,18 @@ class ErrorBoundary extends React.Component {
 export default function App() {
   console.log('App component mounted. Wrapping with Providers...');
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <SocketProvider>
-          <AppNavigator />
-          <ToastNotification />
-        </SocketProvider>
-      </AuthProvider>
-    </ErrorBoundary>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ErrorBoundary>
+        <SafeAreaProvider>
+          <AuthProvider>
+            <SocketProvider>
+              <AppNavigator />
+              <ToastNotification />
+            </SocketProvider>
+          </AuthProvider>
+        </SafeAreaProvider>
+      </ErrorBoundary>
+    </GestureHandlerRootView>
   );
 }
 
