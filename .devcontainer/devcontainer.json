@@ -1,0 +1,23 @@
+{
+  "name": "Assembly Tracker Dev",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/assembly_tracker",
+
+  "forwardPorts": [3000, 5432],
+
+  "postCreateCommand": "npm install && if [ ! -f .env ]; then cp .env.example .env; fi",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "prisma.prisma",
+        "bradlc.vscode-tailwindcss"
+      ]
+    }
+  },
+
+  "remoteUser": "node"
+}
