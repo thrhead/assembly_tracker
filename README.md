@@ -1,91 +1,86 @@
-# 🛠️ Montaj Takip Sistemi (Assembly Tracker)
+# Assembly Tracker (Montaj Takip Sistemi)
 
+Assembly Tracker, montaj ve saha operasyonlarını yönetmek, iş süreçlerini takip etmek ve maliyetleri kontrol altına almak için geliştirilmiş kapsamlı bir **Saha Yönetim Sistemi**dir.
 
+Modern web teknolojileri (Next.js 16) ve mobil uygulama (React Native/Expo 54) ile güçlendirilmiş bu proje; yöneticiler, takım liderleri, saha çalışanları ve müşteriler için özelleştirilmiş deneyimler sunar.
 
-**Fabrika dışında çalışan montaj ve servis ekiplerinin gerçek zamanlı takibi, maliyet kontrolü ve iş yönetim süreçlerini dijitalleştiren modern web ve mobil uygulaması.**
+---
 
-Bu proje; Next.js 16, React Native ve modern web teknolojileri kullanılarak geliştirilmiş kapsamlı bir kurumsal çözümdür.
-
------
-
-## ✨ Temel Özellikler
+## 🚀 Özellikler
 
 ### 📋 İş ve Süreç Yönetimi
-
-  * **Detaylı İş Takibi:** Montaj süreçleri için checklist sistemi, alt görevler (sub-steps) ve ilerleme takibi.
-  * **Zaman Yönetimi:** İş başlangıç/bitiş süreleri ve alt görev bazlı hassas zaman raporlama.
-  * **Otomasyon:** Alt görevler tamamlandığında ana görevin otomatik kapanması.
-  * **Görev Bloklama:** Sorunlu adımları işaretleme, bloklama nedeni ve not ekleme.
+*   **Detaylı İş Takibi:** Adımlar (Checklist), alt adımlar ve fotoğraf kanıtlı ilerleme takibi.
+*   **Zaman Yönetimi:** İş başlangıç/bitiş süreleri ve alt görev bazlı hassas zaman raporlama (`StartedAt` / `CompletedAt`).
+*   **Otomasyon:** Alt görevler tamamlandığında ana görevin durumunun otomatik güncellenmesi.
+*   **Engel Bildirimi:** Sorunlu adımları bloklama, neden belirtme ve not ekleme.
 
 ### 👥 Ekip ve Rol Yönetimi
-
-  * **Gelişmiş Yetkilendirme:** 5 farklı rol desteği (Admin, Manager, Team Lead, Worker, Customer).
-  * **Dinamik Ekipler:** Ekip oluşturma, üye atama ve performans grafikleri.
-  * **Müşteri Paneli:** Müşterilerin kendi iş durumlarını takip edebileceği özel arayüz.
+*   **Gelişmiş Yetkilendirme:** 5 farklı rol desteği (**Admin**, **Manager**, **Team Lead**, **Worker**, **Customer**).
+*   **Dinamik Ekipler:** Ekip oluşturma, üye atama ve performans grafikleri.
+*   **Müşteri Paneli:** Müşterilerin kendi iş durumlarını takip edebileceği özel arayüz.
 
 ### 💰 Maliyet ve Finans
-
-  * **Masraf Takibi:** Malzeme, ulaşım, işçilik gibi kategorilerde masraf girişi (₺ desteği).
-  * **Onay Mekanizması:** Personel masrafları için Admin/Manager onay akışı.
+*   **Masraf Takibi:** Malzeme, ulaşım, yemek vb. kategorilerde kanıtlı (fiş/fatura) masraf girişi.
+*   **Onay Mekanizması:** Personel masrafları için Admin/Manager onay akışı.
+*   **Raporlama:** Proje bazlı maliyet analizleri.
 
 ### 📱 Mobil ve Saha Operasyonları
-
-  * **Cross-Platform Mobil Uygulama:** React Native (Expo) ile iOS ve Android uyumlu.
-  * **Saha Odaklı Arayüz:** Worker rolü için optimize edilmiş, kolay kullanımlı mobil ekranlar.
-  * **Medya Yönetimi:** Cloudinary entegrasyonu ile iş adımlarına fotoğraf yükleme ve otomatik temizlik.
-  * **Lokasyon:** Harita entegrasyonu ve navigasyon özellikleri.
+*   **Cross-Platform:** React Native (Expo SDK 54) ile iOS ve Android tam uyumluluk.
+*   **Saha Odaklı Arayüz:** Worker rolü için optimize edilmiş, büyük butonlar ve kolay navigasyon.
+*   **Medya Yönetimi:** İş adımlarına fotoğraf yükleme (Kamera veya Galeri).
+*   **Lokasyon:** Harita entegrasyonu ve navigasyon özellikleri.
 
 ### 🔔 Bildirim ve Raporlama
+*   **Real-time Bildirimler:** Socket.IO ile anlık iş atama, onay ve durum bildirimleri.
+*   **Görsel Geri Bildirim:** İşlem başarılarında animasyonlu modal ve uyarılar.
+*   **PDF Raporlama:** İş detaylarının ve maliyet tablolarının PDF çıktısı.
 
-  * **Real-time Bildirimler:** Socket.IO ile anlık iş ve onay bildirimleri.
-  * **Email Bildirimleri:** Resend ile tamamlanan işler ve maliyet onayları için e-posta gönderimi.
-  * **PDF Raporlama:** İş detaylarının ve maliyet tablolarının PDF olarak çıktısının alınması.
-
------
+---
 
 ## 🛠️ Teknoloji Yığını (Tech Stack)
 
 ### Frontend (Web)
-
-  * **Framework:** Next.js 16 (App Router, Turbopack)
-  * **Language:** TypeScript
-  * **Styling:** TailwindCSS, Radix UI, Lucide React
-  * **State & Forms:** React Hook Form, Zod, Sonner (Toast)
-  * **Visualization:** Recharts, Leaflet (Maps)
+*   **Framework:** Next.js 16 (App Router)
+*   **Language:** TypeScript
+*   **Core:** React 19
+*   **Styling:** TailwindCSS v4, Radix UI, Lucide React
+*   **State & Forms:** React Hook Form, Zod, Sonner
+*   **Visualization:** Recharts, Leaflet
 
 ### Mobile (App)
-
-  * **Framework:** React Native, Expo
-  * **Navigation:** React Navigation
-  * **Storage:** AsyncStorage
+*   **Framework:** React Native 0.81+, Expo SDK 54
+*   **Navigation:** React Navigation 7
+*   **Networking:** Axios, Socket.IO Client
+*   **Storage:** AsyncStorage
 
 ### Backend & Database
+*   **API:** Next.js API Routes (Serverless Functions)
+*   **Server:** Custom Server (Socket.IO entegrasyonu için)
+*   **Database:** PostgreSQL (Neon Serverless uyumlu)
+*   **ORM:** Prisma ORM 5.x
+*   **Auth:** NextAuth.js v5 (Beta)
+*   **Real-time:** Socket.IO v4
 
-  * **API:** Next.js API Routes (Serverless)
-  * **Database:** PostgreSQL (Neon Serverless önerilir)
-  * **ORM:** Prisma ORM
-  * **Auth:** NextAuth.js v4
-  * **Real-time:** Socket.IO (Custom Server)
+---
 
-### DevOps & Services
+## 📚 Dokümantasyon ve İlerleme
 
-  * **Media:** Cloudinary (Image Hosting)
-  * **Email:** Resend & React Email
-  * **PDF:** jsPDF
+Projenin gelişim süreci ve planları için aşağıdaki belgeleri inceleyebilirsiniz:
 
------
+*   **[CHANGELOG.md](CHANGELOG.md):** Sürüm notları, yapılan güncellemeler ve düzeltmeler.
+*   **[ROADMAP.md](ROADMAP.md):** Gelecek planları, hedeflenen özellikler ve yol haritası.
+*   **memory-bank/:** Projenin teknik mimarisi, tasarım kararları ve aktif geliştirme notları için kapsamlı "Hafıza Bankası" klasörü.
+
+---
 
 ## 📦 Kurulum ve Başlangıç
 
-Projeyi yerel ortamınızda çalıştırmak için aşağıdaki adımları izleyin.
-
 ### Gereksinimler
+*   Node.js 18+ (20+ önerilir)
+*   PostgreSQL Veritabanı
+*   npm veya pnpm
 
-  * Node.js 18+
-  * PostgreSQL (Local veya Neon/Supabase gibi hosted çözümler)
-  * npm veya pnpm
-
-### 1\. Web Uygulaması Kurulumu
+### 1. Web Uygulaması Kurulumu
 
 ```bash
 # Repository'yi klonlayın
@@ -97,27 +92,35 @@ npm install
 
 # Environment variables dosyasını oluşturun
 cp .env.example .env
+# .env dosyasındaki veritabanı bağlantı bilgilerini güncelleyin
 
 # Veritabanı şemasını oluşturun ve seed verilerini yükleyin
 npx prisma generate
 npx prisma db push
-npx prisma db seed
+npm run db:seed
 
-# Development sunucusunu başlatın
+# Development sunucusunu başlatın (Socket.IO destekli custom server)
 npm run dev
 ```
 
-### 2\. Mobil Uygulama Kurulumu
+### 2. Mobil Uygulama Kurulumu
 
 ```bash
 cd mobile
+
+# Bağımlılıkları yükleyin
 npm install
+
+# Uygulamayı başlatın
 npx expo start
 ```
+*Mobil uygulama için `mobile/src/services/api.js` veya `.env` dosyasındaki API URL'inin bilgisayarınızın yerel IP adresi olduğundan emin olun.*
 
-### ⚙️ Environment Variables (.env)
+---
 
-Aşağıdaki değişkenleri `.env` dosyanıza ekleyin:
+## ⚙️ Environment Variables (.env)
+
+Aşağıdaki değişkenler `.env` dosyasında tanımlanmalıdır:
 
 ```env
 # Database
@@ -125,109 +128,55 @@ DATABASE_URL="postgresql://user:pass@host/db"
 
 # NextAuth
 NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-secret-key" # Oluşturmak için: openssl rand -base64 32
+NEXTAUTH_SECRET="your-super-secret-key"
 
-# Cloudinary (Fotoğraf Yükleme için)
+# Cloudinary (Opsiyonel - Varsayılan: Yerel Depolama)
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your-cloud-name"
 CLOUDINARY_API_KEY="your-api-key"
 CLOUDINARY_API_SECRET="your-api-secret"
 
-# Resend (Email Bildirimleri için)
+# Resend (Email Bildirimleri - Opsiyonel)
 RESEND_API_KEY="re_your_key"
 FROM_EMAIL="noreply@yourdomain.com"
 ```
 
------
+---
 
 ## 👥 Test Kullanıcıları (Seed Data)
 
-Veritabanı seed işlemi (`npm run db:seed`) sonrası aşağıdaki hesaplarla giriş yapabilirsiniz:
+`npm run db:seed` komutu ile oluşturulan varsayılan kullanıcılar:
 
-| Rol | E-posta | Şifre | Yetki Özeti |
+| Rol | E-posta | Şifre | Yetki |
 | :--- | :--- | :--- | :--- |
-| **Admin** | `admin@montaj.com` | `admin123` | Tam yetki, sistem yönetimi, tüm raporlar |
-| **Manager** | `manager@montaj.com` | `manager123` | Ekip yönetimi, iş atama, onay verme |
-| **Team Lead** | `teamlead@montaj.com` | `teamlead123` | Ekip içi yönetim, iş takibi |
-| **Worker** | `worker1@montaj.com` | `worker123` | İş görüntüleme, checklist, fotoğraf yükleme |
-| **Customer** | `customer@sirket.com` | `customer123` | Sadece kendi işlerini görüntüleme |
+| **Admin** | `admin@montaj.com` | `admin123` | Tam yetki, sistem yönetimi |
+| **Manager** | `manager@montaj.com` | `manager123` | Ekip ve iş yönetimi |
+| **Team Lead** | `teamlead@montaj.com` | `teamlead123` | Ekip takibi |
+| **Worker** | `worker1@montaj.com` | `worker123` | Saha işlemleri |
+| **Customer** | `customer@sirket.com` | `customer123` | İş durumu görüntüleme |
 
------
+---
 
 ## 📁 Proje Yapısı
 
 ```
 assembly_tracker/
 ├── app/                      # Next.js App Router (Sayfalar ve API)
-│   ├── (auth)/               # Login/Register işlemleri
-│   ├── admin/                # Admin paneli sayfaları
-│   ├── manager/              # Manager paneli sayfaları
-│   ├── worker/               # Worker paneli sayfaları
-│   └── api/                  # Backend API uçları
-├── components/               # React Bileşenleri
-│   ├── ui/                   # Temel UI elemanları (Button, Input vb.)
-│   ├── forms/                # Form yapıları
-│   └── charts/               # Grafik bileşenleri
-├── lib/                      # Yardımcı fonksiyonlar (Auth, DB, Utils)
-├── mobile/                   # React Native Mobil Projesi
-├── prisma/                   # Veritabanı şeması ve seed dosyaları
-└── memory-bank/              # Proje dokümantasyonu ve mimari notlar
+│   ├── (auth)/               # Login/Register
+│   ├── admin/                # Admin Paneli
+│   ├── worker/               # Worker Paneli
+│   └── api/                  # Backend API Endpointleri
+├── components/               # React Bileşenleri (UI, Forms, Charts)
+├── lib/                      # Yardımcı Fonksiyonlar ve Konfigürasyonlar
+├── mobile/                   # React Native (Expo) Mobil Projesi
+├── prisma/                   # Veritabanı Şeması ve Seed
+├── public/                   # Statik Dosyalar (Uploads vb.)
+└── memory-bank/              # Proje Dokümantasyonu (Technical Context)
 ```
 
------
-
-## 🎯 Roller ve Yetkiler
-
-1.  **🔴 Admin:** Sistemdeki tüm verilere (Kullanıcılar, Ekipler, Müşteriler) tam erişim. Maliyet onaylama ve PDF rapor indirme yetkisi.
-2.  **🟠 Manager:** Operasyonel yönetim. İş oluşturma, ekiplere iş atama ve maliyetleri inceleme/onaylama.
-3.  **🟡 Team Lead:** Kendi ekibinin performansını ve işlerini takip etme.
-4.  **🟢 Worker:** Sahadaki personel. İşleri görüntüler, adımları tamamlar, fotoğraf yükler ve masraf girişi yapar.
-5.  **🔵 Customer:** Sadece kendisiyle ilgili işlerin durumunu (Bekliyor, Tamamlandı vb.) görüntüler.
-
------
-
-## 📚 Dokümantasyon
-
-Projenin detaylı teknik dokümantasyonu `memory-bank/` klasöründe yer almaktadır:
-
-  * `projectbrief.md`: Proje özeti ve hedefler.
-  * `techContext.md`: Teknik altyapı detayları.
-  * `systemPatterns.md`: Mimari desenler ve veritabanı yapısı.
-  * `activeContext.md`: Aktif geliştirme notları.
-
------
+---
 
 ## 📄 Lisans
 
-Bu proje özel kullanım içindir. Ticari kullanım ve dağıtım hakları saklıdır. Detaylar için proje sahibi ile iletişime geçin.
+Bu proje özel kullanım içindir. Ticari kullanım ve dağıtım hakları saklıdır.
 
-**Son Güncelleme:** 02 Aralık 2024
-**Versiyon:** 2.5.0 (Mobile Stable & Real-time Features)
-
-## 🚀 Son Güncellemeler (v2.5.0)
-
-### 📱 Mobil Uygulama (React Native / Expo)
-*   **Tam Kararlılık:** Worker, Manager ve Admin modülleri test edildi ve kararlı sürüme geçti.
-*   **Yenilenen Dashboard:** Worker dashboard'u modern, neon-yeşil tema ile yeniden tasarlandı.
-*   **İş Akışı İyileştirmeleri:**
-    *   **İş Başlatma/Bitirme:** "İşi Başlat" ve "İşi Tamamla" butonları ile hassas zaman takibi.
-    *   **Zaman Damgaları:** İş, adım ve alt adımlar için başlangıç ve bitiş zamanlarının (StartedAt, CompletedAt) gösterimi.
-    *   **Hata Düzeltmeleri:** İş tamamlama (PUT/POST fix), login sorunları ve veri senkronizasyonu giderildi.
-*   **Masraf Yönetimi:**
-    *   Gerçek veri entegrasyonu tamamlandı.
-    *   Tarih seçimi ve gruplama özelliği eklendi.
-    *   Yeni kategoriler (Yol vb.) eklendi.
-
-### 🔔 Bildirim ve Gerçek Zamanlı İletişim
-*   **Socket.IO Entegrasyonu:** Mobil uygulama için tam Socket.IO desteği.
-*   **Anlık Bildirimler:** İş atama, tamamlama ve fotoğraf yükleme olaylarında anlık bildirimler.
-*   **Görsel Geri Bildirim:** İşlem başarılarında modern, animasyonlu "Success Modal" kullanımı.
-
-### 🔧 Backend & API
-*   **Auth Fixes:** Mobil API endpoint'leri için `verifyAuth` (Bearer Token) standardizasyonu tamamlandı.
-*   **Data Integrity:** İş tamamlama ve onay süreçlerindeki veri tutarsızlıkları giderildi.
-*   **Admin Tools:** Veritabanı kontrolü ve kullanıcı yönetimi için iyileştirmeler.
-
-### ⚠️ Önemli Notlar
-*   **E-posta Bildirimleri:** Yerel geliştirme ortamında timeout sorununu önlemek için geçici olarak devre dışı bırakıldı.
-*   **Fotoğraf Yükleme:** Cloudinary yerine yerel dosya sistemi kullanılıyor.
-
+**Son Güncelleme:** Bugün (Aralık 2024)
