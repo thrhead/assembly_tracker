@@ -7,12 +7,41 @@ import StatCard from '../../components/StatCard';
 import DashboardAction from '../../components/DashboardAction';
 import { COLORS } from '../../constants/theme';
 
+import api from '../../services/api';
+
 const { width } = Dimensions.get('window');
 
 export default function AdminDashboardScreen({ navigation }) {
     const { user, logout } = useAuth();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [statsData, setStatsData] = useState({
+        totalJobs: 0,
+        activeTeams: 0,
+        completedJobs: 0,
+        pendingJobs: 0
+    });
+
+    const fetchStats = async () => {
+        try {
+            const response = await api.get('/admin/stats');
+            setStatsData(response.data);
+        } catch (error) {
+            console.error('Error fetching admin stats:', error);
+        }
+    };
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchStats();
+        }, [])
+    );
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await fetchStats();
+        setRefreshing(false);
+    };
 
     // Navigation Items Data
     const navItems = [
@@ -24,39 +53,33 @@ export default function AdminDashboardScreen({ navigation }) {
         { id: 'costs', title: 'Maliyetler', icon: 'attach-money', route: 'CostManagement', color: COLORS.green500 },
     ];
 
-    // Mock data matching Web Dashboard Stats
+    // Real data from API
     const stats = [
         {
             title: 'Toplam İş',
-            value: '124',
+            value: (statsData?.totalJobs || 0).toString(),
             icon: 'work',
             color: COLORS.primary,
         },
         {
             title: 'Aktif Ekipler',
-            value: '8',
+            value: (statsData?.activeTeams || 0).toString(),
             icon: 'groups',
             color: COLORS.blue500,
         },
         {
             title: 'Tamamlanan',
-            value: '12',
+            value: (statsData?.completedJobs || 0).toString(),
             icon: 'check-circle',
             color: COLORS.green500,
         },
         {
             title: 'Bekleyen',
-            value: '3',
+            value: (statsData?.pendingJobs || 0).toString(),
             icon: 'access-time',
             color: COLORS.amber500,
         }
     ];
-
-    const onRefresh = () => {
-        setRefreshing(true);
-        // Simulate reload
-        setTimeout(() => setRefreshing(false), 1000);
-    };
 
     const handleNavPress = (route) => {
         setIsDrawerOpen(false);

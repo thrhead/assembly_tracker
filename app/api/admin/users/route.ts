@@ -3,6 +3,20 @@ import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { hash } from 'bcryptjs'
+import * as fs from 'fs';
+import * as path from 'path';
+
+const LOG_FILE = path.join(process.cwd(), 'api_debug.log');
+
+function logToFile(message: string) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `${timestamp} - ${message}\n`;
+    try {
+        fs.appendFileSync(LOG_FILE, logMessage);
+    } catch (e) {
+        console.error('Failed to write to log file:', e);
+    }
+}
 
 const createUserSchema = z.object({
     name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
@@ -12,13 +26,13 @@ const createUserSchema = z.object({
 })
 
 export async function GET(req: Request) {
-    console.log("Users API: Request received")
+    logToFile("Users API: GET Request received")
     try {
         const session = await verifyAuth(req)
-        console.log("Users API: Session:", session ? "Found" : "Null", "Role:", session?.user?.role)
+        logToFile(`Users API: Session: ${session ? "Found" : "Null"}, Role: ${session?.user?.role}`)
 
         if (!session || session.user.role !== 'ADMIN') {
-            console.log("Users API: Unauthorized access attempt")
+            logToFile("Users API: Unauthorized access attempt")
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
@@ -39,6 +53,8 @@ export async function GET(req: Request) {
             ]
         }
 
+        logToFile(`[API] Users Fetch Query: ${JSON.stringify(where)}`)
+
         const users = await prisma.user.findMany({
             where,
             orderBy: { createdAt: 'desc' },
@@ -55,7 +71,7 @@ export async function GET(req: Request) {
 
         return NextResponse.json(users)
     } catch (error) {
-        console.error('Users fetch error:', error)
+        logToFile(`Users fetch error: ${error}`)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
@@ -68,6 +84,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json()
+        logToFile(`[API] User Create Request Body: ${JSON.stringify(body)}`)
         const data = createUserSchema.parse(body)
 
         // Check if email exists
@@ -103,7 +120,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json(newUser, { status: 201 })
     } catch (error) {
-        console.error('User create error:', error)
+        logToFile(`[API] User Create Error: ${error}`)
         if (error instanceof z.ZodError) {
             const errorMessage = error.issues.map(issue => issue.message).join(', ')
             return NextResponse.json({ error: errorMessage, details: error.issues }, { status: 400 })

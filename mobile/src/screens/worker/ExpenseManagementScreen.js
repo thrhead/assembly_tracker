@@ -57,8 +57,6 @@ export default function ExpenseManagementScreen({ navigation, route }) {
         amount: '',
         category: 'Yemek',
         description: '',
-        category: 'Yemek',
-        description: '',
         jobId: '',
         date: new Date()
     });
@@ -100,11 +98,18 @@ export default function ExpenseManagementScreen({ navigation, route }) {
         }
 
         try {
+            // Backend requires 'description' but mobile has 'title' and 'description'.
+            // Combine them or use title as description if description is empty.
+            const finalDescription = formData.description
+                ? `${formData.title} - ${formData.description}`
+                : formData.title;
+
             await costService.create({
-                ...formData,
+                jobId: formData.jobId,
                 amount: parseFloat(formData.amount),
-                ...formData,
-                amount: parseFloat(formData.amount),
+                currency: 'TRY',
+                category: formData.category,
+                description: finalDescription,
                 date: formData.date.toISOString()
             });
             Alert.alert('Başarılı', 'Masraf başarıyla eklendi.');
@@ -259,16 +264,12 @@ export default function ExpenseManagementScreen({ navigation, route }) {
                 {/* Budget Card */}
                 <View style={styles.budgetCard}>
                     <View style={styles.budgetHeader}>
-                        <Text style={styles.budgetTitle}>Kullanılan Toplam Bütçe</Text>
-                        <Text style={styles.budgetAmount}>₺13,000</Text>
+                        <Text style={styles.budgetTitle}>Toplam Harcama</Text>
+                        <Text style={styles.budgetAmount}>
+                            ₺{filteredExpenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </Text>
                     </View>
-                    <View style={styles.progressBarBg}>
-                        <View style={[styles.progressBarFill, { width: '65%' }]} />
-                    </View>
-                    <View style={styles.budgetFooter}>
-                        <Text style={styles.budgetFooterText}>₺7,000 Kalan</Text>
-                        <Text style={styles.budgetFooterText}>₺20,000 Toplam</Text>
-                    </View>
+                    {/* Progress bar and remaining budget removed as per request */}
                 </View>
 
                 {/* Search */}

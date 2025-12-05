@@ -17,6 +17,7 @@ if (-not (Test-Path $CloudflaredPath)) {
 
 # Kill existing cloudflared processes
 Get-Process cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force
+Start-Sleep -Seconds 2
 
 # Function to start tunnel and get URL
 function Start-Tunnel {
@@ -27,7 +28,11 @@ function Start-Tunnel {
     
     # Clear existing log file
     if (Test-Path $LogFile) {
-        Remove-Item $LogFile -Force
+        try {
+            Remove-Item $LogFile -Force -ErrorAction Stop
+        } catch {
+            Write-Host "Warning: Could not delete $LogFile. It might be in use." -ForegroundColor Yellow
+        }
     }
 
     Write-Host "Starting Cloudflare Tunnel for port $Port..." -ForegroundColor Cyan

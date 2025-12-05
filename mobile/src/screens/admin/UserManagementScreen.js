@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../services/api';
+
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, Alert, ScrollView, TextInput } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import userService from '../../services/user.service';
@@ -114,6 +116,8 @@ export default function UserManagementScreen({ navigation, route }) {
         );
     };
 
+    const [saving, setSaving] = useState(false);
+
     const handleSaveUser = async () => {
         if (!formData.name || !formData.email) {
             Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
@@ -125,6 +129,7 @@ export default function UserManagementScreen({ navigation, route }) {
             return;
         }
 
+        setSaving(true);
         try {
             if (editingUser) {
                 // Update existing user
@@ -144,7 +149,10 @@ export default function UserManagementScreen({ navigation, route }) {
             loadUsers();
         } catch (error) {
             console.error('Save user error:', error);
-            Alert.alert('Hata', error.response?.data?.error || 'İşlem başarısız.');
+            const errorMessage = error.response?.data?.error || error.message || 'İşlem başarısız.';
+            Alert.alert('Hata', errorMessage);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -367,12 +375,17 @@ export default function UserManagementScreen({ navigation, route }) {
                                     onPress={handleSaveUser}
                                     variant="primary"
                                     style={{ flex: 1 }}
+                                    loading={saving}
                                 />
                             </View>
                         </ScrollView>
                     </View>
                 </View>
             </Modal>
+
+            <View style={{ padding: 10, alignItems: 'center', backgroundColor: COLORS.cardDark }}>
+                <Text style={{ color: COLORS.slate500, fontSize: 10 }}>API: {API_BASE_URL}</Text>
+            </View>
         </View>
     );
 }

@@ -3,6 +3,20 @@ import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { hash } from 'bcryptjs'
+import * as fs from 'fs';
+import * as path from 'path';
+
+const LOG_FILE = path.join(process.cwd(), 'api_debug.log');
+
+function logToFile(message: string) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `${timestamp} - ${message}\n`;
+    try {
+        fs.appendFileSync(LOG_FILE, logMessage);
+    } catch (e) {
+        console.error('Failed to write to log file:', e);
+    }
+}
 
 const updateUserSchema = z.object({
     name: z.string().min(2).optional(),
@@ -17,13 +31,16 @@ export async function PUT(
     props: { params: Promise<{ id: string }> }
 ) {
     const params = await props.params
+    logToFile(`[API] User Update Request for ID: ${params.id}`)
     try {
         const session = await verifyAuth(req)
         if (!session || session.user.role !== 'ADMIN') {
+            logToFile(`[API] User Update Unauthorized: ${session?.user?.role}`)
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
         const body = await req.json()
+        logToFile(`[API] User Update Body: ${JSON.stringify(body)}`)
         const data = updateUserSchema.parse(body)
 
         const updateData: any = { ...data }
@@ -46,9 +63,11 @@ export async function PUT(
             }
         })
 
+        logToFile(`[API] User Updated Successfully: ${updatedUser.email}`)
+
         return NextResponse.json(updatedUser)
     } catch (error) {
-        console.error('User update error:', error)
+        logToFile(`[API] User Update Error: ${error}`)
         if (error instanceof z.ZodError) {
             const errorMessage = error.issues.map(issue => issue.message).join(', ')
             return NextResponse.json({ error: errorMessage, details: error.issues }, { status: 400 })
@@ -62,6 +81,7 @@ export async function DELETE(
     props: { params: Promise<{ id: string }> }
 ) {
     const params = await props.params
+    logToFile(`[API] User Delete Request for ID: ${params.id}`)
     try {
         const session = await verifyAuth(req)
         if (!session || session.user.role !== 'ADMIN') {
@@ -77,9 +97,11 @@ export async function DELETE(
             where: { id: params.id }
         })
 
+        logToFile(`[API] User Deleted Successfully: ${params.id}`)
+
         return NextResponse.json({ success: true })
     } catch (error) {
-        console.error('User delete error:', error)
+        logToFile(`[API] User Delete Error: ${error}`)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }

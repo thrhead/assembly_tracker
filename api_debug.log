@@ -1,0 +1,50 @@
+2025-12-04T23:45:35.470Z - [API] User Create Request Body: {"name":"Test User","email":"testuser_1764891935093@example.com","role":"WORKER","password":""}
+2025-12-04T23:45:59.334Z - [API] User Create Request Body: {"name":"Test User","email":"testuser_1764891959294@example.com","role":"WORKER","password":""}
+2025-12-04T23:46:05.400Z - Users API: GET Request received
+2025-12-04T23:46:05.408Z - Users API: Session: Found, Role: ADMIN
+2025-12-04T23:46:05.411Z - [API] Users Fetch Query: {}
+2025-12-04T23:58:28.471Z - Users API: GET Request received
+2025-12-04T23:58:28.616Z - Users API: Session: Found, Role: ADMIN
+2025-12-04T23:58:28.758Z - [API] Users Fetch Query: {}
+2025-12-04T23:58:42.873Z - Users API: GET Request received
+2025-12-04T23:58:43.124Z - Users API: Session: Found, Role: ADMIN
+2025-12-04T23:58:43.427Z - [API] Users Fetch Query: {}
+2025-12-05T00:02:08.519Z - Users API: GET Request received
+2025-12-05T00:02:08.535Z - Users API: Session: Found, Role: ADMIN
+2025-12-05T00:02:08.537Z - [API] Users Fetch Query: {}
+2025-12-05T00:02:11.693Z - Users API: GET Request received
+2025-12-05T00:02:11.713Z - Users API: Session: Found, Role: ADMIN
+2025-12-05T00:02:11.716Z - [API] Users Fetch Query: {}
+2025-12-05T00:03:03.875Z - [API] User Create Request Body: {"name":"Ah ali","email":"ah@montaj.com","role":"WORKER","password":"ah123"}
+2025-12-05T00:03:08.174Z - Users API: GET Request received
+2025-12-05T00:03:11.018Z - Users API: Session: Found, Role: ADMIN
+2025-12-05T00:03:11.020Z - [API] Users Fetch Query: {}
+2025-12-05T00:06:06.855Z - Users API: GET Request received
+2025-12-05T00:06:10.149Z - Users API: Session: Found, Role: ADMIN
+2025-12-05T00:06:10.152Z - [API] Users Fetch Query: {}
+2025-12-05T00:08:07.651Z - [API] User Create Request Body: {"name":"Test User","email":"testuser_1764893287621@example.com","role":"WORKER","password":""}
+2025-12-05T00:08:12.815Z - Users API: GET Request received
+2025-12-05T00:08:12.823Z - Users API: Session: Found, Role: ADMIN
+2025-12-05T00:08:12.826Z - [API] Users Fetch Query: {}
+2025-12-05T00:09:03.064Z - [API] User Update Request for ID: cmis3pt0r0000cjgvkuflgf89
+2025-12-05T00:09:03.073Z - [API] User Update Body: {"name":"Ah ali","email":"ah@montaj.com","role":"WORKER","password":"ahh123"}
+2025-12-05T00:09:06.346Z - [API] User Updated Successfully: ah@montaj.com
+2025-12-05T00:09:06.393Z - [API] User Create Request Body: {"name":"Test User","email":"testuser_1764893346354@example.com","role":"WORKER","password":""}
+2025-12-05T00:09:09.473Z - Users API: GET Request received
+2025-12-05T00:09:09.490Z - Users API: Session: Found, Role: ADMIN
+2025-12-05T00:09:09.492Z - [API] Users Fetch Query: {}
+2025-12-05T00:09:09.526Z - Users API: GET Request received
+2025-12-05T00:09:09.534Z - Users API: Session: Found, Role: ADMIN
+2025-12-05T00:09:09.536Z - [API] Users Fetch Query: {}
+2025-12-05T00:09:09.589Z - [API] User Update Request for ID: cmis3xhro0002cjgvob40dpiy
+2025-12-05T00:09:09.595Z - [API] User Update Body: {"name":"Updated User Name","role":"MANAGER"}
+2025-12-05T00:09:09.606Z - [API] User Updated Successfully: testuser_1764893346354@example.com
+2025-12-05T00:09:23.684Z - Users API: GET Request received
+2025-12-05T00:09:23.710Z - Users API: Session: Found, Role: ADMIN
+2025-12-05T00:09:23.713Z - [API] Users Fetch Query: {}
+2025-12-05T00:10:41.675Z - [API] User Update Request for ID: cmis3xhro0002cjgvob40dpiy
+2025-12-05T00:10:44.956Z - [API] User Update Body: {"name":"ah ah","email":"ahah@montaj.com","role":"WORKER","password":"ahh123"}
+2025-12-05T00:10:45.185Z - [API] User Updated Successfully: ahah@montaj.com
+2025-12-05T00:10:45.277Z - Users API: GET Request received
+2025-12-05T00:10:45.281Z - Users API: Session: Found, Role: ADMIN
+2025-12-05T00:10:45.283Z - [API] Users Fetch Query: {}

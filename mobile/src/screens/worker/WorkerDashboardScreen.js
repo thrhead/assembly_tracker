@@ -35,11 +35,7 @@ export default function WorkerDashboardScreen({ navigation }) {
     const [activeFilter, setActiveFilter] = useState('ALL'); // 'ALL', 'IN_PROGRESS', 'PENDING'
 
     // Mock Data for UI
-    const projects = [
-        { id: 1, name: 'Merkez Ofis Yenileme', code: 'PRJ-001', progress: 75 },
-        { id: 2, name: 'Depo Genişletme', code: 'PRJ-002', progress: 30 },
-        { id: 3, name: 'Yeni Şube Kurulumu', code: 'PRJ-003', progress: 90 },
-    ];
+    // Mock Data for UI removed
 
     useFocusEffect(
         useCallback(() => {
@@ -227,31 +223,7 @@ export default function WorkerDashboardScreen({ navigation }) {
                     </TouchableOpacity>
                 </View>
 
-                {/* Project Status */}
-                <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Proje Durumu</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('Jobs')}>
-                        <Text style={styles.viewAllText}>Tümünü Gör</Text>
-                    </TouchableOpacity>
-                </View>
-                <View style={styles.projectList}>
-                    {projects.map((project) => (
-                        <TouchableOpacity key={project.id} style={styles.projectCard}>
-                            <View style={styles.projectProgressContainer}>
-                                <Text style={styles.projectProgressText}>{project.progress}%</Text>
-                                <View style={styles.miniProgressBarBg}>
-                                    <View style={[styles.miniProgressBarFill, { width: `${project.progress}%` }]} />
-                                </View>
-                            </View>
-
-                            <View style={styles.projectInfo}>
-                                <Text style={styles.projectTitle}>{project.name}</Text>
-                                <Text style={styles.projectCode}>{project.code}</Text>
-                            </View>
-                            <MaterialIcons name="chevron-right" size={24} color={COLORS.slate500} />
-                        </TouchableOpacity>
-                    ))}
-                </View>
+                <View style={{ height: 80 }} />
 
                 <View style={{ height: 80 }} />
             </ScrollView>

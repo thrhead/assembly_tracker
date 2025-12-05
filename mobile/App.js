@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { enableFreeze } from 'react-native-screens';
+// import { enableFreeze } from 'react-native-screens';
 
-enableFreeze(false);
+// enableFreeze(false);
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
