@@ -23,9 +23,38 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const body = await req.json()
-        console.log('Create Cost Request Body:', body)
-        const data = createCostSchema.parse(body)
+        let data: any = {}
+        let file: File | null = null
+
+        const contentType = req.headers.get('content-type') || ''
+
+        if (contentType.includes('multipart/form-data')) {
+            const formData = await req.formData()
+            file = formData.get('receipt') as File
+
+            data = {
+                jobId: formData.get('jobId'),
+                amount: parseFloat(formData.get('amount') as string),
+                currency: formData.get('currency') || 'TRY',
+                category: formData.get('category'),
+                description: formData.get('description'),
+                date: formData.get('date') ? new Date(formData.get('date') as string) : new Date()
+            }
+        } else {
+            const body = await req.json()
+            data = createCostSchema.parse(body)
+        }
+
+        // Log request to file
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const logPath = path.join(process.cwd(), 'api_debug.log');
+            const logEntry = `${new Date().toISOString()} - [API] Cost Create Request (Multipart: ${contentType.includes('multipart/form-data')}): ${JSON.stringify(data)}\n`;
+            fs.appendFileSync(logPath, logEntry);
+        } catch (e) {
+            console.error('Failed to write to log file:', e);
+        }
 
         // Verify job exists
         const job = await prisma.job.findUnique({
@@ -39,6 +68,37 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Job not found' }, { status: 404 })
         }
 
+        let receiptUrl = data.receiptUrl
+
+        // Handle file upload if present
+        if (file) {
+            try {
+                const fs = require('fs').promises
+                const path = require('path')
+
+                let buffer: Buffer
+                if (typeof file.arrayBuffer === 'function') {
+                    const bytes = await file.arrayBuffer()
+                    buffer = Buffer.from(bytes)
+                } else {
+                    const bytes = await new Response(file).arrayBuffer()
+                    buffer = Buffer.from(bytes)
+                }
+
+                const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'costs', data.jobId)
+                await fs.mkdir(uploadDir, { recursive: true })
+
+                const filename = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`
+                const filepath = path.join(uploadDir, filename)
+
+                await fs.writeFile(filepath, buffer)
+                receiptUrl = `/uploads/costs/${data.jobId}/${filename}`
+            } catch (err) {
+                console.error('File upload error:', err)
+                return NextResponse.json({ error: 'Failed to upload receipt image' }, { status: 500 })
+            }
+        }
+
         // Create cost record
         const cost = await prisma.costTracking.create({
             data: {
@@ -47,7 +107,7 @@ export async function POST(req: Request) {
                 currency: data.currency,
                 category: data.category,
                 description: data.description,
-                receiptUrl: data.receiptUrl,
+                receiptUrl: receiptUrl,
                 date: data.date,
                 createdById: session.user.id,
                 status: 'PENDING'
@@ -74,35 +134,23 @@ export async function POST(req: Request) {
         // Broadcast to all admins/managers
         broadcast('cost:submitted', socketPayload)
 
-        // Send email notification to admins (async, don't block)
-        // Send email notification to admins (async, don't block)
-        /*
-        const admins = await prisma.user.findMany({
-            where: {
-                role: { in: ['ADMIN', 'MANAGER'] },
-                isActive: true
-            },
-            take: 1 // Just notify one admin
-        })
-
-        if (admins[0]?.email) {
-            sendCostApprovalEmail(admins[0].email, {
-                id: cost.id,
-                amount: data.amount,
-                category: data.category,
-                description: data.description,
-                jobTitle: job.title,
-                submittedBy: session.user.name || session.user.email || 'Unknown',
-                date: data.date
-            }).catch(err => console.error('Email send failed:', err))
-        }
-        */
-
         return NextResponse.json(cost, { status: 201 })
     } catch (error) {
         console.error('Create cost error:', error)
         if (error instanceof z.ZodError) {
             console.error('Create Cost Validation Error:', JSON.stringify(error.issues, null, 2))
+
+            // Log error to file
+            try {
+                const fs = require('fs');
+                const path = require('path');
+                const logPath = path.join(process.cwd(), 'api_debug.log');
+                const logEntry = `${new Date().toISOString()} - [API] Cost Create Validation Error: ${JSON.stringify(error.issues)}\n`;
+                fs.appendFileSync(logPath, logEntry);
+            } catch (e) {
+                console.error('Failed to write to log file:', e);
+            }
+
             return NextResponse.json({ error: 'Invalid data', details: error.issues }, { status: 400 })
         }
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

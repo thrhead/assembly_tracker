@@ -14,7 +14,9 @@ import {
     Platform
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Image } from 'react-native';
 import costService from '../../services/cost.service';
 import jobService from '../../services/job.service';
 
@@ -60,6 +62,7 @@ export default function ExpenseManagementScreen({ navigation, route }) {
         jobId: '',
         date: new Date()
     });
+    const [receiptImage, setReceiptImage] = useState(null);
     const [showDatePicker, setShowDatePicker] = useState(false);
 
     useEffect(() => {
@@ -97,6 +100,11 @@ export default function ExpenseManagementScreen({ navigation, route }) {
             return;
         }
 
+        if (!formData.jobId) {
+            Alert.alert('Hata', 'Lütfen bir proje seçiniz. Eğer projeniz yoksa masraf ekleyemezsiniz.');
+            return;
+        }
+
         try {
             // Backend requires 'description' but mobile has 'title' and 'description'.
             // Combine them or use title as description if description is empty.
@@ -104,17 +112,31 @@ export default function ExpenseManagementScreen({ navigation, route }) {
                 ? `${formData.title} - ${formData.description}`
                 : formData.title;
 
-            await costService.create({
-                jobId: formData.jobId,
-                amount: parseFloat(formData.amount),
-                currency: 'TRY',
-                category: formData.category,
-                description: finalDescription,
-                date: formData.date.toISOString()
-            });
+            const data = new FormData();
+            data.append('jobId', formData.jobId);
+            data.append('amount', parseFloat(formData.amount).toString());
+            data.append('currency', 'TRY');
+            data.append('category', formData.category);
+            data.append('description', finalDescription);
+            data.append('date', formData.date.toISOString());
+
+            if (receiptImage) {
+                const filename = receiptImage.split('/').pop();
+                const match = /\.(\w+)$/.exec(filename);
+                const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+                data.append('receipt', {
+                    uri: receiptImage,
+                    name: filename,
+                    type
+                });
+            }
+
+            await costService.create(data);
             Alert.alert('Başarılı', 'Masraf başarıyla eklendi.');
             setModalVisible(false);
             setFormData({ title: '', amount: '', category: 'Yemek', description: '', jobId: '', date: new Date() });
+            setReceiptImage(null);
             loadData();
         } catch (error) {
             console.error('Create expense error:', error);
@@ -465,6 +487,42 @@ export default function ExpenseManagementScreen({ navigation, route }) {
                                 />
                             </View>
 
+                            <View style={styles.formGroup}>
+                                <Text style={styles.label}>Fiş/Fatura Fotoğrafı</Text>
+                                <TouchableOpacity
+                                    style={styles.imageUploadButton}
+                                    onPress={async () => {
+                                        const result = await ImagePicker.launchImageLibraryAsync({
+                                            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                                            allowsEditing: true,
+                                            aspect: [4, 3],
+                                            quality: 0.5,
+                                        });
+
+                                        if (!result.canceled) {
+                                            setReceiptImage(result.assets[0].uri);
+                                        }
+                                    }}
+                                >
+                                    {receiptImage ? (
+                                        <Image source={{ uri: receiptImage }} style={styles.previewImage} />
+                                    ) : (
+                                        <View style={styles.uploadPlaceholder}>
+                                            <MaterialIcons name="add-a-photo" size={32} color={COLORS.textGray} />
+                                            <Text style={styles.uploadText}>Fotoğraf Ekle</Text>
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+                                {receiptImage && (
+                                    <TouchableOpacity
+                                        style={styles.removeImageButton}
+                                        onPress={() => setReceiptImage(null)}
+                                    >
+                                        <Text style={styles.removeImageText}>Fotoğrafı Kaldır</Text>
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+
                             <TouchableOpacity
                                 style={styles.submitButton}
                                 onPress={handleCreateExpense}
@@ -799,6 +857,38 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 8,
         marginBottom: 24,
+    },
+    imageUploadButton: {
+        height: 150,
+        backgroundColor: COLORS.cardBorder,
+        borderRadius: 12,
+        overflow: 'hidden',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
+        borderStyle: 'dashed',
+    },
+    previewImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    uploadPlaceholder: {
+        alignItems: 'center',
+    },
+    uploadText: {
+        color: COLORS.textGray,
+        marginTop: 8,
+        fontSize: 14,
+    },
+    removeImageButton: {
+        marginTop: 8,
+        alignItems: 'center',
+    },
+    removeImageText: {
+        color: COLORS.red400,
+        fontSize: 14,
     },
     submitButtonText: {
         color: COLORS.backgroundDark,

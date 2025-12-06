@@ -1,133 +1,121 @@
-import api from './api';
+import { API_BASE_URL, getAuthToken } from './api';
+
+const getHeaders = async (isFormData = false) => {
+    const token = await getAuthToken();
+    const headers = {
+        'Accept': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+    };
+    if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+    }
+    return headers;
+};
 
 const jobService = {
-    /**
-     * Get all jobs (Admin/Manager)
-     * @returns {Promise<Array>}
-     */
     getAll: async () => {
         try {
-            const response = await api.get('/api/admin/jobs');
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/admin/jobs`, { headers });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'İşler alınamadı');
+            return data;
         } catch (error) {
             console.error('Get all jobs error:', error);
             throw error;
         }
     },
 
-    /**
-     * Get all jobs assigned to the current worker
-     * @returns {Promise<{jobs}>}
-     */
     getMyJobs: async () => {
         try {
-            const response = await api.get('/api/worker/jobs');
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/worker/jobs`, { headers });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'İşlerim alınamadı');
+            return data;
         } catch (error) {
             throw error;
         }
     },
 
-    /**
-     * Get job details by ID
-     * @param {string} jobId
-     * @returns {Promise<{job}>}
-     */
     getJobById: async (jobId) => {
         try {
-            const response = await api.get(`/api/worker/jobs/${jobId}`);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}`, { headers });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'İş detayı alınamadı');
+            return data;
         } catch (error) {
             throw error;
         }
     },
 
-    /**
-     * Toggle job step completion
-     * @param {string} jobId
-     * @param {string} stepId
-     * @param {boolean} isCompleted
-     * @returns {Promise<{success}>}
-     */
     toggleStep: async (jobId, stepId, isCompleted) => {
         try {
-            const response = await api.post(
-                `/api/worker/jobs/${jobId}/steps/${stepId}/toggle`,
-                { isCompleted }
-            );
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}/steps/${stepId}/toggle`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ isCompleted })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'İşlem başarısız');
+            return data;
         } catch (error) {
             throw error;
         }
     },
 
-    /**
-     * Toggle substep completion
-     * @param {string} jobId
-     * @param {string} stepId
-     * @param {string} substepId
-     * @param {boolean} isCompleted
-     * @returns {Promise<{success}>}
-     */
     toggleSubstep: async (jobId, stepId, substepId, isCompleted) => {
         try {
-            const response = await api.post(
-                `/api/worker/jobs/${jobId}/steps/${stepId}/substeps/${substepId}/toggle`,
-                { isCompleted }
-            );
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}/steps/${stepId}/substeps/${substepId}/toggle`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ isCompleted })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'İşlem başarısız');
+            return data;
         } catch (error) {
             throw error;
         }
     },
 
-    /**
-     * Upload photos for a job step
-     * @param {string} jobId
-     * @param{string} stepId
-     * @param {FormData} formData
-     * @returns {Promise<{photos}>}
-     */
     uploadPhotos: async (jobId, stepId, formData, subStepId = null) => {
         try {
             if (subStepId) {
                 formData.append('subStepId', subStepId);
             }
-            const response = await api.post(
-                `/api/worker/jobs/${jobId}/steps/${stepId}/photos`,
-                formData,
-                {
-                    transformRequest: (data, headers) => {
-                        // Do not stringify FormData
-                        return data;
-                    },
-                }
-            );
-            return response.data;
+            const headers = await getHeaders(true); // True for FormData
+            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}/steps/${stepId}/photos`, {
+                method: 'POST',
+                headers, // No Content-Type
+                body: formData
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Fotoğraf yüklenemedi');
+            return data;
         } catch (error) {
             throw error;
         }
     },
 
-    /**
-     * Complete a job
-     * @param {string} jobId
-     * @returns {Promise<{success}>}
-     */
     completeJob: async (jobId) => {
         try {
-            const response = await api.post(`/api/worker/jobs/${jobId}/complete`);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}/complete`, {
+                method: 'POST',
+                headers
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'İş tamamlanamadı');
+            return data;
         } catch (error) {
             throw error;
         }
     },
 
-    /**
-     * Get all jobs (Manager/Admin)
-     * @param {Object} filters
-     * @returns {Promise<Array>}
-     */
     getAllJobs: async (filters = {}) => {
         try {
             const params = new URLSearchParams();
@@ -135,23 +123,27 @@ const jobService = {
             if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
             if (filters.priority) params.append('priority', filters.priority);
 
-            const response = await api.get(`/api/admin/jobs?${params.toString()}`);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/admin/jobs?${params.toString()}`, { headers });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'İşler alınamadı');
+            return data;
         } catch (error) {
             throw error;
         }
     },
 
-    /**
-     * Assign job to worker
-     * @param {string} jobId
-     * @param {string} workerId
-     * @returns {Promise<Object>}
-     */
     assignJob: async (jobId, workerId) => {
         try {
-            const response = await api.post(`/api/admin/jobs/${jobId}/assign`, { workerId });
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/admin/jobs/${jobId}/assign`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ workerId })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Atama başarısız');
+            return data;
         } catch (error) {
             throw error;
         }
@@ -159,8 +151,14 @@ const jobService = {
 
     approveStep: async (stepId) => {
         try {
-            const response = await api.post(`/api/manager/steps/${stepId}/approve`);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/manager/steps/${stepId}/approve`, {
+                method: 'POST',
+                headers
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Onaylama başarısız');
+            return data;
         } catch (error) {
             throw error;
         }
@@ -168,8 +166,15 @@ const jobService = {
 
     rejectStep: async (stepId, reason) => {
         try {
-            const response = await api.post(`/api/manager/steps/${stepId}/reject`, { reason });
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/manager/steps/${stepId}/reject`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ reason })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Reddetme başarısız');
+            return data;
         } catch (error) {
             throw error;
         }
@@ -177,8 +182,14 @@ const jobService = {
 
     approveSubstep: async (substepId) => {
         try {
-            const response = await api.post(`/api/manager/substeps/${substepId}/approve`);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/manager/substeps/${substepId}/approve`, {
+                method: 'POST',
+                headers
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Onaylama başarısız');
+            return data;
         } catch (error) {
             throw error;
         }
@@ -186,8 +197,15 @@ const jobService = {
 
     rejectSubstep: async (substepId, reason) => {
         try {
-            const response = await api.post(`/api/manager/substeps/${substepId}/reject`, { reason });
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/manager/substeps/${substepId}/reject`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ reason })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Reddetme başarısız');
+            return data;
         } catch (error) {
             throw error;
         }
@@ -195,38 +213,46 @@ const jobService = {
 
     acceptJob: async (jobId) => {
         try {
-            const response = await api.post(`/api/manager/jobs/${jobId}/accept`);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/manager/jobs/${jobId}/accept`, {
+                method: 'POST',
+                headers
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'İş kabul edilemedi');
+            return data;
         } catch (error) {
             throw error;
         }
     },
 
-
-    /**
-     * Create a new job
-     * @param {Object} jobData
-     * @returns {Promise<{job}>}
-     */
     create: async (jobData) => {
         try {
-            const response = await api.post('/api/admin/jobs', jobData);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/admin/jobs`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(jobData)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'İş oluşturulamadı');
+            return data;
         } catch (error) {
             throw error;
         }
     },
 
-    /**
-     * Update a job
-     * @param {string} jobId
-     * @param {Object} jobData
-     * @returns {Promise<{job}>}
-     */
     update: async (jobId, jobData) => {
         try {
-            const response = await api.put(`/api/admin/jobs/${jobId}`, jobData);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/admin/jobs/${jobId}`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify(jobData)
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Güncelleme başarısız');
+            return data;
         } catch (error) {
             throw error;
         }
@@ -235,8 +261,11 @@ const jobService = {
     getPendingApprovals: async () => {
         try {
             // This endpoint needs to exist on backend, or we filter getAllJobs
-            const response = await api.get('/api/admin/jobs?status=PENDING_APPROVAL');
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/admin/jobs?status=PENDING_APPROVAL`, { headers });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Onay bekleyen işler alınamadı');
+            return data;
         } catch (error) {
             throw error;
         }
@@ -244,8 +273,14 @@ const jobService = {
 
     startJob: async (jobId) => {
         try {
-            const response = await api.post(`/api/worker/jobs/${jobId}/start`);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}/start`, {
+                method: 'POST',
+                headers
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'İş başlatılamadı');
+            return data;
         } catch (error) {
             throw error;
         }
@@ -253,8 +288,14 @@ const jobService = {
 
     startStep: async (jobId, stepId) => {
         try {
-            const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/start`);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}/steps/${stepId}/start`, {
+                method: 'POST',
+                headers
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Adım başlatılamadı');
+            return data;
         } catch (error) {
             throw error;
         }
@@ -262,9 +303,14 @@ const jobService = {
 
     startSubstep: async (jobId, stepId, substepId) => {
         try {
-            // Using flattened route to avoid deep nesting issues
-            const response = await api.post(`/api/worker/substeps/${substepId}/start`);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/worker/substeps/${substepId}/start`, {
+                method: 'POST',
+                headers
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Alt adım başlatılamadı');
+            return data;
         } catch (error) {
             throw error;
         }

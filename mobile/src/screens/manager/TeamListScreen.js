@@ -19,7 +19,7 @@ export default function TeamListScreen({ navigation }) {
     const [formData, setFormData] = useState({ name: '', description: '', leadId: '', memberIds: [] });
     const [availableUsers, setAvailableUsers] = useState([]);
 
-    const isAdmin = user?.role === 'ADMIN';
+    const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
 
     useEffect(() => {
         loadData();
@@ -46,6 +46,9 @@ export default function TeamListScreen({ navigation }) {
                 setMembers(targetTeam ? targetTeam.members : []);
             }
 
+            console.log('DEBUG_TEAMS_DATA:', JSON.stringify(teamsData, null, 2));
+            console.log('DEBUG_USER_ROLE:', user?.role);
+            console.log('DEBUG_IS_ADMIN:', isAdmin);
         } catch (error) {
             console.error('Error loading data:', error);
             Alert.alert('Hata', 'Veriler yüklenemedi.');
@@ -194,6 +197,7 @@ export default function TeamListScreen({ navigation }) {
                         renderItem={renderTeamCard}
                         keyExtractor={item => item.id}
                         contentContainerStyle={styles.listContainer}
+                        style={{ flex: 1 }}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
                     />
                     <TouchableOpacity style={styles.fab} onPress={handleAddTeam} activeOpacity={0.8}>
@@ -206,6 +210,7 @@ export default function TeamListScreen({ navigation }) {
                     renderItem={renderMember}
                     keyExtractor={item => item.id}
                     contentContainerStyle={styles.listContainer}
+                    style={{ flex: 1 }}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
                     ListEmptyComponent={
                         <View style={styles.centerContainer}>

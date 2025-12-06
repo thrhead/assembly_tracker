@@ -33,12 +33,14 @@ export default function CustomerManagementScreen({ navigation }) {
     const loadCustomers = async () => {
         try {
             const data = await customerService.getAll();
+            console.log('DEBUG_CUSTOMERS_DATA:', JSON.stringify(data, null, 2));
             setCustomers(data);
             setLoading(false);
             setRefreshing(false);
         } catch (error) {
             console.error('Error loading customers:', error);
-            Alert.alert('Hata', 'Müşteriler yüklenemedi.');
+            console.error('Error details:', error.response?.data || error.message);
+            Alert.alert('Hata', 'Müşteriler yüklenemedi. ' + (error.response?.data?.error || error.message));
             setLoading(false);
             setRefreshing(false);
         }
@@ -249,6 +251,7 @@ export default function CustomerManagementScreen({ navigation }) {
                 renderItem={renderCustomer}
                 keyExtractor={item => item.id.toString()}
                 contentContainerStyle={styles.listContainer}
+                style={{ flex: 1 }}
                 ListEmptyComponent={renderEmptyState}
                 refreshControl={
                     <RefreshControl

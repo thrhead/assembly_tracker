@@ -1,4 +1,4 @@
-import api, { setAuthToken, clearAuthToken } from './api';
+import api, { setAuthToken, clearAuthToken, API_BASE_URL } from './api';
 
 const authService = {
     /**
@@ -9,21 +9,32 @@ const authService = {
      */
     login: async (email, password) => {
         try {
-            const response = await api.post('/api/mobile/login', {
-                email,
-                password,
+            console.log('[AuthContext] Attempting login to:', `${API_BASE_URL}/api/mobile/login`);
+
+            const response = await fetch(`${API_BASE_URL}/api/mobile/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ email, password }),
             });
 
-            console.log('Login response:', response.data);
-            if (response.data.token) {
-                console.log('Calling setAuthToken with:', response.data.token);
-                await setAuthToken(response.data.token);
-            } else {
-                console.error('No token in login response');
+            const data = await response.json();
+
+            console.log('[AuthContext] Login response status:', response.status);
+
+            if (!response.ok) {
+                throw new Error(data.message || data.error || 'Giriş yapılamadı');
             }
 
-            return response.data;
+            if (data.token) {
+                await setAuthToken(data.token);
+            }
+
+            return data;
         } catch (error) {
+            console.error('[AuthContext] Login error:', error);
             throw error;
         }
     },

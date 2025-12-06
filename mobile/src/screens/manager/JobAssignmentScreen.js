@@ -156,7 +156,7 @@ export default function JobAssignmentScreen({ navigation }) {
                     <Text style={styles.jobCount}>{jobs.length} İş</Text>
                 </View>
 
-                {jobs.slice(0, 10).map((job) => (
+                {jobs.map((job) => (
                     <TouchableOpacity
                         key={job.id}
                         style={styles.jobCard}

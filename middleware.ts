@@ -41,14 +41,21 @@ export async function middleware(request: NextRequest) {
 
   // Handle preflight requests
   if (request.method === "OPTIONS") {
+    const headers: Record<string, string> = {
+      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
+    }
+
+    if (origin) {
+      headers["Access-Control-Allow-Origin"] = origin
+      headers["Access-Control-Allow-Credentials"] = "true"
+    } else {
+      headers["Access-Control-Allow-Origin"] = "*"
+    }
+
     return new NextResponse(null, {
       status: 200,
-      headers: {
-        "Access-Control-Allow-Origin": origin || "*",
-        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version",
-        "Access-Control-Allow-Credentials": "true",
-      },
+      headers,
     })
   }
 
@@ -71,6 +78,9 @@ export async function middleware(request: NextRequest) {
     response.headers.set("Access-Control-Allow-Credentials", "true")
     response.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
     response.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Date, X-Api-Version")
+  } else {
+    // Falls back to * if no origin is provided (for mobile apps etc)
+    response.headers.set("Access-Control-Allow-Origin", "*")
   }
 
   return response

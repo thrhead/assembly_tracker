@@ -24,6 +24,8 @@ const teamSchema = z.object({
 export async function GET(req: Request) {
   try {
     const session = await verifyAuth(req)
+    console.log('[API] Teams GET Request - Session Role:', session?.user?.role)
+
     if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'MANAGER')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders })
     }

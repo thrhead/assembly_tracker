@@ -1,4 +1,13 @@
-import api from './api';
+import { API_BASE_URL, getAuthToken } from './api';
+
+const getHeaders = async () => {
+    const token = await getAuthToken();
+    return {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
+    };
+};
 
 const userService = {
     /**
@@ -12,9 +21,21 @@ const userService = {
             if (filters.role && filters.role !== 'ALL') params.append('role', filters.role);
             if (filters.search) params.append('search', filters.search);
 
-            const response = await api.get(`/api/admin/users?${params.toString()}`);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/admin/users?${params.toString()}`, {
+                method: 'GET',
+                headers
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Fetch users failed:', response.status, errorText);
+                throw new Error('Kullanıcılar getirilemedi');
+            }
+
+            return await response.json();
         } catch (error) {
+            console.error('UserService getAll error:', error);
             throw error;
         }
     },
@@ -26,8 +47,18 @@ const userService = {
      */
     create: async (userData) => {
         try {
-            const response = await api.post('/api/admin/users', userData);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(userData)
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Kullanıcı oluşturulamadı');
+            }
+            return data;
         } catch (error) {
             throw error;
         }
@@ -41,8 +72,18 @@ const userService = {
      */
     update: async (id, userData) => {
         try {
-            const response = await api.put(`/api/admin/users/${id}`, userData);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, {
+                method: 'PUT',
+                headers,
+                body: JSON.stringify(userData)
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Güncelleme başarısız');
+            }
+            return data;
         } catch (error) {
             throw error;
         }
@@ -55,8 +96,17 @@ const userService = {
      */
     delete: async (id) => {
         try {
-            const response = await api.delete(`/api/admin/users/${id}`);
-            return response.data;
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/admin/users/${id}`, {
+                method: 'DELETE',
+                headers
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || 'Silme başarısız');
+            }
+            return data;
         } catch (error) {
             throw error;
         }

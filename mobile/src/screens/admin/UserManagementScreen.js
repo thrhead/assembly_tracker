@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { API_BASE_URL } from '../../services/api';
-
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, Alert, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, Alert, RefreshControl, ActivityIndicator, Dimensions, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import userService from '../../services/user.service';
 import CustomButton from '../../components/CustomButton';
 import CustomInput from '../../components/CustomInput';
 import { COLORS } from '../../constants/theme';
+import { API_BASE_URL } from '../../services/api';
+
+const { height } = Dimensions.get('window');
 
 export default function UserManagementScreen({ navigation, route }) {
     const [users, setUsers] = useState([]);
@@ -14,32 +16,25 @@ export default function UserManagementScreen({ navigation, route }) {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedFilter, setSelectedFilter] = useState('ALL');
+    const [activeTab, setActiveTab] = useState('ALL');
     const [modalVisible, setModalVisible] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [formData, setFormData] = useState({ name: '', email: '', role: 'WORKER', password: '' });
-
-    const roleFilters = [
-        { key: 'ALL', label: 'Tümü' },
-        { key: 'ADMIN', label: 'Admin' },
-        { key: 'MANAGER', label: 'Manager' },
-        { key: 'WORKER', label: 'Worker' },
-    ];
-
-    useEffect(() => {
-        if (route.params?.openCreate) {
-            handleAddUser();
-            navigation.setParams({ openCreate: undefined });
-        }
-    }, [route.params]);
 
     useEffect(() => {
         loadUsers();
     }, []);
 
     useEffect(() => {
+        if (route.params?.openCreate) {
+            handleAddUser();
+            navigation.setParams({ openCreate: false });
+        }
+    }, [route.params]);
+
+    useEffect(() => {
         filterUsers();
-    }, [searchQuery, selectedFilter, users]);
+    }, [searchQuery, activeTab, users]);
 
     const loadUsers = async () => {
         try {
@@ -63,12 +58,10 @@ export default function UserManagementScreen({ navigation, route }) {
     const filterUsers = () => {
         let filtered = users;
 
-        // Role filter
-        if (selectedFilter !== 'ALL') {
-            filtered = filtered.filter(user => user.role === selectedFilter);
+        if (activeTab !== 'ALL') {
+            filtered = filtered.filter(user => user.role === activeTab);
         }
 
-        // Search filter
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
             filtered = filtered.filter(user =>
@@ -116,106 +109,105 @@ export default function UserManagementScreen({ navigation, route }) {
         );
     };
 
-    const [saving, setSaving] = useState(false);
-
     const handleSaveUser = async () => {
-        if (!formData.name || !formData.email) {
-            Alert.alert('Hata', 'Lütfen tüm alanları doldurun.');
+        if (!formData.name || !formData.email || !formData.role) {
+            Alert.alert('Hata', 'Lütfen tüm zorunlu alanları doldurun.');
             return;
         }
 
-        if (!formData.email.includes('@')) {
-            Alert.alert('Hata', 'Geçerli bir email adresi girin.');
-            return;
-        }
-
-        setSaving(true);
         try {
             if (editingUser) {
-                // Update existing user
-                await userService.update(editingUser.id, {
-                    name: formData.name,
-                    email: formData.email,
-                    role: formData.role,
-                    ...(formData.password ? { password: formData.password } : {})
-                });
+                const updateData = { ...formData };
+                if (!updateData.password) delete updateData.password;
+                await userService.update(editingUser.id, updateData);
                 Alert.alert('Başarılı', 'Kullanıcı güncellendi.');
             } else {
-                // Add new user
+                if (!formData.password) {
+                    Alert.alert('Hata', 'Yeni kullanıcı için şifre zorunludur.');
+                    return;
+                }
                 await userService.create(formData);
-                Alert.alert('Başarılı', 'Yeni kullanıcı eklendi.');
+                Alert.alert('Başarılı', 'Kullanıcı oluşturuldu.');
             }
             setModalVisible(false);
             loadUsers();
         } catch (error) {
             console.error('Save user error:', error);
-            const errorMessage = error.response?.data?.error || error.message || 'İşlem başarısız.';
-            Alert.alert('Hata', errorMessage);
-        } finally {
-            setSaving(false);
+            Alert.alert('Hata', 'İşlem başarısız.');
         }
     };
 
-    const getRoleBadge = (role) => {
-        switch (role) {
-            case 'ADMIN':
-                return { color: COLORS.red500, text: 'Admin' };
-            case 'MANAGER':
-                return { color: COLORS.amber500, text: 'Manager' };
-            case 'TEAM_LEAD':
-                return { color: COLORS.green500, text: 'Ekip Lideri' };
-            case 'WORKER':
-                return { color: COLORS.blue500, text: 'Worker' };
-            default:
-                return { color: COLORS.slate600, text: role };
-        }
-    };
+    const renderHeader = () => (
+        <View style={styles.headerContainer}>
+            {/* Search Bar */}
+            <View style={styles.searchContainer}>
+                <MaterialIcons name="search" size={20} color={COLORS.primary} style={{ marginRight: 8 }} />
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder="Kullanıcı ara..."
+                    placeholderTextColor={COLORS.slate400}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                />
+                {searchQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => setSearchQuery('')}>
+                        <MaterialIcons name="close" size={20} color={COLORS.slate400} />
+                    </TouchableOpacity>
+                )}
+            </View>
 
-    const renderUser = ({ item }) => {
-        const badge = getRoleBadge(item.role);
+            {/* Role Tabs */}
+            <View style={styles.tabsContainer}>
+                {['ALL', 'ADMIN', 'MANAGER', 'WORKER'].map((role) => (
+                    <TouchableOpacity
+                        key={role}
+                        style={[
+                            styles.tab,
+                            activeTab === role && styles.activeTab
+                        ]}
+                        onPress={() => setActiveTab(role)}
+                    >
+                        <Text style={[
+                            styles.tabText,
+                            activeTab === role && styles.activeTabText
+                        ]}>
+                            {role === 'ALL' ? 'Tümü' : role}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+        </View>
+    );
 
-        return (
-            <View style={styles.userCard}>
-                <View style={styles.userHeader}>
-                    <View style={[styles.avatar, { backgroundColor: badge.color }]}>
-                        <Text style={styles.avatarText}>{item.name.charAt(0).toUpperCase()}</Text>
-                    </View>
-                    <View style={styles.userInfo}>
-                        <Text style={styles.userName}>{item.name}</Text>
-                        <Text style={styles.userEmail}>{item.email}</Text>
-                        <View style={[styles.roleBadge, { backgroundColor: badge.color }]}>
-                            <Text style={styles.roleText}>{badge.text}</Text>
-                        </View>
-                    </View>
-                </View>
-                <View style={styles.userActions}>
-                    <CustomButton
-                        title="Düzenle"
-                        onPress={() => handleEditUser(item)}
-                        variant="ghost"
-                        icon={<MaterialIcons name="edit" size={18} color={COLORS.primary} />}
-                        style={{ flex: 1, marginRight: 8, height: 40 }}
-                        textStyle={{ fontSize: 14, color: COLORS.primary }}
-                    />
-                    <CustomButton
-                        title="Sil"
-                        onPress={() => handleDeleteUser(item)}
-                        variant="ghost"
-                        icon={<MaterialIcons name="delete" size={18} color={COLORS.red500} />}
-                        style={{ flex: 1, height: 40 }}
-                        textStyle={{ fontSize: 14, color: COLORS.red500 }}
-                    />
+    const renderUser = (item) => (
+        <View key={item.id} style={styles.userCard}>
+            <View style={styles.userIcon}>
+                <Text style={styles.userIconText}>{item.name.charAt(0).toUpperCase()}</Text>
+            </View>
+            <View style={styles.userInfo}>
+                <Text style={styles.userName}>{item.name}</Text>
+                <Text style={styles.userEmail}>{item.email}</Text>
+                <View style={styles.roleContainer}>
+                    <Text style={styles.userRole}>{item.role}</Text>
                 </View>
             </View>
-        );
-    };
+            <View style={styles.actionButtons}>
+                <TouchableOpacity onPress={() => handleEditUser(item)} style={styles.actionButton}>
+                    <MaterialIcons name="edit" size={20} color={COLORS.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteUser(item)} style={styles.actionButton}>
+                    <MaterialIcons name="delete" size={20} color={COLORS.red500} />
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
 
     const renderEmptyState = () => (
         <View style={styles.emptyContainer}>
-            <MaterialIcons name="person-off" size={48} color={COLORS.slate600} style={{ marginBottom: 16 }} />
-            <Text style={styles.emptyTitle}>Kullanıcı bulunamadı</Text>
+            <MaterialIcons name="person-off" size={64} color={COLORS.slate600} style={{ marginBottom: 16 }} />
+            <Text style={styles.emptyTitle}>Kullanıcı Bulunamadı</Text>
             <Text style={styles.emptyText}>
-                {searchQuery ? 'Arama kriterlerinize uygun kullanıcı bulunamadı.' : 'Henüz kullanıcı eklenmemiş.'}
+                {searchQuery ? 'Arama kriterlerinize uygun kullanıcı yok.' : 'Henüz kullanıcı eklenmemiş.'}
             </Text>
         </View>
     );
@@ -224,61 +216,16 @@ export default function UserManagementScreen({ navigation, route }) {
         return (
             <View style={styles.centerContainer}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={styles.loadingText}>Kullanıcılar yükleniyor...</Text>
             </View>
         );
     }
 
     return (
         <View style={styles.container}>
-            <View style={styles.headerContainer}>
-                {/* Search Bar */}
-                <View style={styles.searchContainer}>
-                    <MaterialIcons name="search" size={20} color={COLORS.primary} style={{ marginRight: 8 }} />
-                    <TextInput
-                        style={styles.searchInput}
-                        placeholder="Kullanıcı ara..."
-                        placeholderTextColor={COLORS.slate400}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                    {searchQuery.length > 0 && (
-                        <TouchableOpacity onPress={() => setSearchQuery('')}>
-                            <MaterialIcons name="close" size={20} color={COLORS.slate400} />
-                        </TouchableOpacity>
-                    )}
-                </View>
-
-                {/* Role Filter Tabs */}
-                <View style={styles.filtersContainer}>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        {roleFilters.map((filter) => (
-                            <TouchableOpacity
-                                key={filter.key}
-                                style={[
-                                    styles.filterChip,
-                                    selectedFilter === filter.key && styles.filterChipActive
-                                ]}
-                                onPress={() => setSelectedFilter(filter.key)}
-                            >
-                                <Text style={[
-                                    styles.filterChipText,
-                                    selectedFilter === filter.key && styles.filterChipTextActive
-                                ]}>
-                                    {filter.label}
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
-                </View>
-            </View>
-
-            <FlatList
-                data={filteredUsers}
-                renderItem={renderUser}
-                keyExtractor={item => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
-                ListEmptyComponent={renderEmptyState}
+            {renderHeader()}
+            <ScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
@@ -287,10 +234,21 @@ export default function UserManagementScreen({ navigation, route }) {
                         tintColor={COLORS.primary}
                     />
                 }
-            />
+                showsVerticalScrollIndicator={true}
+            >
+                {filteredUsers.length === 0 ? (
+                    renderEmptyState()
+                ) : (
+                    filteredUsers.map(item => renderUser(item))
+                )}
+            </ScrollView>
 
             {/* Floating Add Button */}
-            <TouchableOpacity style={styles.fab} onPress={handleAddUser} activeOpacity={0.8}>
+            <TouchableOpacity
+                style={styles.fab}
+                onPress={handleAddUser}
+                activeOpacity={0.8}
+            >
                 <MaterialIcons name="add" size={32} color={COLORS.black} />
             </TouchableOpacity>
 
@@ -303,89 +261,74 @@ export default function UserManagementScreen({ navigation, route }) {
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <ScrollView>
-                            <Text style={styles.modalTitle}>
-                                {editingUser ? 'Kullanıcıyı Düzenle' : 'Yeni Kullanıcı Ekle'}
-                            </Text>
+                        <Text style={styles.modalTitle}>{editingUser ? 'Kullanıcıyı Düzenle' : 'Yeni Kullanıcı'}</Text>
 
+                        <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
                             <CustomInput
-                                label="İsim Soyisim *"
+                                label="Ad Soyad *"
                                 value={formData.name}
                                 onChangeText={(text) => setFormData({ ...formData, name: text })}
-                                placeholder="Ali Yılmaz"
+                                placeholder="Ahmet Yılmaz"
                             />
 
                             <CustomInput
-                                label="Email *"
+                                label="E-posta *"
                                 value={formData.email}
                                 onChangeText={(text) => setFormData({ ...formData, email: text })}
-                                placeholder="ali@montaj.com"
+                                placeholder="ornek@email.com"
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                             />
 
-                            <CustomInput
-                                label={`Şifre ${editingUser ? '(Boş bırakılırsa değişmez)' : '*'}`}
-                                value={formData.password}
-                                onChangeText={(text) => setFormData({ ...formData, password: text })}
-                                placeholder={editingUser ? "Yeni şifre" : "Şifre"}
-                                secureTextEntry
-                            />
-
-                            <View style={styles.formGroup}>
-                                <Text style={styles.label}>Rol *</Text>
-                                <View style={styles.roleButtons}>
-                                    {['WORKER', 'TEAM_LEAD', 'MANAGER', 'ADMIN'].map((role) => {
-                                        const roleLabels = {
-                                            'WORKER': 'İşçi',
-                                            'TEAM_LEAD': 'Ekip Lideri',
-                                            'MANAGER': 'Yönetici',
-                                            'ADMIN': 'Admin'
-                                        };
-                                        return (
-                                            <TouchableOpacity
-                                                key={role}
-                                                style={[
-                                                    styles.roleButton,
-                                                    formData.role === role && styles.roleButtonActive
-                                                ]}
-                                                onPress={() => setFormData({ ...formData, role })}
-                                            >
-                                                <Text style={[
-                                                    styles.roleButtonText,
-                                                    formData.role === role && styles.roleButtonTextActive
-                                                ]}>
-                                                    {roleLabels[role]}
-                                                </Text>
-                                            </TouchableOpacity>
-                                        );
-                                    })}
-                                </View>
-                            </View>
-
-                            <View style={styles.modalButtons}>
-                                <CustomButton
-                                    title="İptal"
-                                    onPress={() => setModalVisible(false)}
-                                    variant="outline"
-                                    style={{ flex: 1 }}
+                            {!editingUser && (
+                                <CustomInput
+                                    label="Şifre *"
+                                    value={formData.password}
+                                    onChangeText={(text) => setFormData({ ...formData, password: text })}
+                                    placeholder="******"
+                                    secureTextEntry
                                 />
-                                <CustomButton
-                                    title={editingUser ? 'Güncelle' : 'Ekle'}
-                                    onPress={handleSaveUser}
-                                    variant="primary"
-                                    style={{ flex: 1 }}
-                                    loading={saving}
-                                />
+                            )}
+
+                            <Text style={styles.label}>Rol</Text>
+                            <View style={styles.roleSelector}>
+                                {['WORKER', 'TEAM_LEAD', 'MANAGER', 'ADMIN'].map((role) => (
+                                    <TouchableOpacity
+                                        key={role}
+                                        style={[
+                                            styles.roleOption,
+                                            formData.role === role && styles.activeRoleOption
+                                        ]}
+                                        onPress={() => setFormData({ ...formData, role })}
+                                    >
+                                        <Text style={[
+                                            styles.roleOptionText,
+                                            formData.role === role && styles.activeRoleOptionText
+                                        ]}>
+                                            {role}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
                             </View>
                         </ScrollView>
+
+                        <View style={styles.modalButtons}>
+                            <CustomButton
+                                title="İptal"
+                                onPress={() => setModalVisible(false)}
+                                variant="outline"
+                                style={{ flex: 1 }}
+                            />
+                            <CustomButton
+                                title="Kaydet"
+                                onPress={handleSaveUser}
+                                variant="primary"
+                                style={{ flex: 1 }}
+                            />
+                        </View>
                     </View>
                 </View>
             </Modal>
-
-            <View style={{ padding: 10, alignItems: 'center', backgroundColor: COLORS.cardDark }}>
-                <Text style={{ color: COLORS.slate500, fontSize: 10 }}>API: {API_BASE_URL}</Text>
-            </View>
         </View>
     );
 }
@@ -394,15 +337,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: COLORS.backgroundDark,
-    },
-    centerContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingText: {
-        marginTop: 10,
-        color: COLORS.slate400,
     },
     headerContainer: {
         backgroundColor: COLORS.cardDark,
@@ -426,56 +360,57 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: COLORS.textLight,
     },
-    filtersContainer: {
+    tabsContainer: {
         flexDirection: 'row',
         paddingHorizontal: 16,
+        gap: 8,
     },
-    filterChip: {
+    tab: {
         paddingHorizontal: 16,
-        paddingVertical: 8,
-        marginRight: 8,
+        paddingVertical: 6,
         borderRadius: 20,
         backgroundColor: COLORS.slate800,
     },
-    filterChipActive: {
+    activeTab: {
         backgroundColor: COLORS.primary,
     },
-    filterChipText: {
-        fontSize: 14,
+    tabText: {
+        fontSize: 12,
+        fontWeight: '600',
         color: COLORS.slate400,
-        fontWeight: '500',
     },
-    filterChipTextActive: {
+    activeTabText: {
         color: COLORS.black,
     },
     listContainer: {
         padding: 16,
-        paddingBottom: 80,
+        // Removed paddingBottom here as we use ListFooterComponent
     },
     userCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
         backgroundColor: COLORS.cardDark,
+        padding: 12,
         borderRadius: 12,
-        padding: 16,
         marginBottom: 12,
         borderWidth: 1,
         borderColor: COLORS.slate800,
     },
-    userHeader: {
-        flexDirection: 'row',
-        marginBottom: 12,
-    },
-    avatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
+    userIcon: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: COLORS.slate800,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
+        borderWidth: 1,
+        borderColor: COLORS.slate700,
     },
-    avatarText: {
+    userIconText: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#fff',
+        color: COLORS.primary,
     },
     userInfo: {
         flex: 1,
@@ -484,71 +419,75 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: COLORS.textLight,
-        marginBottom: 4,
+        marginBottom: 2,
     },
     userEmail: {
-        fontSize: 14,
-        color: COLORS.slate400,
-        marginBottom: 6,
-    },
-    roleBadge: {
-        alignSelf: 'flex-start',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    roleText: {
-        color: '#fff',
         fontSize: 12,
-        fontWeight: '600',
-    },
-    userActions: {
-        flexDirection: 'row',
-        borderTopWidth: 1,
-        borderTopColor: COLORS.slate800,
-        paddingTop: 12,
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 60,
-    },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: COLORS.textLight,
-        marginBottom: 8,
-    },
-    emptyText: {
-        fontSize: 14,
         color: COLORS.slate400,
-        textAlign: 'center',
-        paddingHorizontal: 32,
+        marginBottom: 4,
+    },
+    roleContainer: {
+        alignSelf: 'flex-start',
+        backgroundColor: 'rgba(204, 255, 4, 0.1)',
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 4,
+    },
+    userRole: {
+        fontSize: 10,
+        fontWeight: '600',
+        color: COLORS.primary,
+    },
+    actionButtons: {
+        flexDirection: 'row',
+        gap: 8,
+    },
+    actionButton: {
+        padding: 8,
     },
     fab: {
         position: 'absolute',
+        bottom: 50,
         right: 20,
-        bottom: 20,
         width: 56,
         height: 56,
         borderRadius: 28,
         backgroundColor: COLORS.primary,
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 8,
+        shadowColor: 'black',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    emptyContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 40,
+    },
+    emptyTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: COLORS.textLight,
+        marginTop: 16,
+    },
+    emptyText: {
+        fontSize: 14,
+        color: COLORS.slate500,
+        textAlign: 'center',
+        marginTop: 8,
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        padding: 20,
     },
     modalContent: {
         backgroundColor: COLORS.cardDark,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        borderRadius: 16,
         padding: 20,
-        maxHeight: '80%',
         borderWidth: 1,
         borderColor: COLORS.slate800,
     },
@@ -557,44 +496,44 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: COLORS.textLight,
         marginBottom: 20,
-    },
-    formGroup: {
-        marginBottom: 20,
+        textAlign: 'center',
     },
     label: {
         fontSize: 14,
         fontWeight: '600',
         color: COLORS.textLight,
         marginBottom: 8,
+        marginTop: 8,
     },
-    roleButtons: {
+    roleSelector: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 8,
+        marginBottom: 20,
     },
-    roleButton: {
-        flex: 1,
-        minWidth: '45%',
-        padding: 12,
+    roleOption: {
+        paddingHorizontal: 12,
+        paddingVertical: 8,
         borderRadius: 8,
         backgroundColor: COLORS.slate800,
-        alignItems: 'center',
-        marginBottom: 8,
+        borderWidth: 1,
+        borderColor: COLORS.slate700,
     },
-    roleButtonActive: {
+    activeRoleOption: {
         backgroundColor: COLORS.primary,
+        borderColor: COLORS.primary,
     },
-    roleButtonText: {
-        fontSize: 14,
-        fontWeight: '600',
+    roleOptionText: {
+        fontSize: 12,
         color: COLORS.slate400,
     },
-    roleButtonTextActive: {
+    activeRoleOptionText: {
         color: COLORS.black,
+        fontWeight: 'bold',
     },
     modalButtons: {
         flexDirection: 'row',
         gap: 12,
-        marginTop: 20,
+        marginTop: 10,
     },
 });

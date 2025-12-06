@@ -16,6 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import { COLORS } from '../constants/theme';
 import CustomButton from '../components/CustomButton';
 import CustomInput from '../components/CustomInput';
+import { API_BASE_URL } from '../services/api';
 
 const { width } = Dimensions.get('window');
 
@@ -29,6 +30,9 @@ export default function LoginScreen({ navigation }) {
   const { login } = useAuth();
 
   const handleLogin = async () => {
+    // Debug: Show current API URL
+    // Alert.alert('Debug Info', `Connecting to: ${API_BASE_URL}`);
+
     if (!email || !password) {
       Alert.alert('Hata', 'Lütfen e-posta ve şifre giriniz.');
       return;
@@ -41,7 +45,32 @@ export default function LoginScreen({ navigation }) {
     if (result.success) {
       // AuthContext handles navigation
     } else {
-      Alert.alert('Giriş Hatası', result.error || 'Bir hata oluştu');
+      console.error('Login Failed Detailed:', result);
+      Alert.alert(
+        'Giriş Hatası',
+        `${result.error || 'Bir hata oluştu'}\n\nURL: ${API_BASE_URL}`
+      );
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setLoading(true);
+    try {
+      const testUrl = `${API_BASE_URL}/api/mobile/login`; // Endpoint exists (POST)
+      Alert.alert('Test', `Bağlantı testi başlatılıyor...\nURL: ${testUrl}`);
+
+      // Try a simple GET fetch (should return 405 or 404, but implies connectivity)
+      const res = await fetch(testUrl, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      const text = await res.text();
+      Alert.alert('Bağlantı Sonucu', `Durum Kodu: ${res.status}\n\nYanıt: ${text.substring(0, 100)}...`);
+    } catch (e) {
+      Alert.alert('Bağlantı Hatası', `Hata: ${e.message}\n\nTür: ${e.name}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -124,7 +153,11 @@ export default function LoginScreen({ navigation }) {
           <Text style={{ color: COLORS.primary, marginLeft: 5 }}>Geri</Text>
         </TouchableOpacity>
 
+
         <Text style={styles.loginTitle}>Giriş Yap</Text>
+        <Text style={{ color: 'gray', textAlign: 'center', fontSize: 10, marginBottom: 10 }}>
+          API: {API_BASE_URL}
+        </Text>
 
         <CustomInput
           placeholder="E-posta"
@@ -147,8 +180,19 @@ export default function LoginScreen({ navigation }) {
           title="Giriş Yap"
           onPress={handleLogin}
           loading={loading}
+          onPress={handleLogin}
+          loading={loading}
           style={{ marginTop: 10 }}
         />
+
+        <TouchableOpacity
+          onPress={handleTestConnection}
+          style={{ padding: 10, alignItems: 'center', marginTop: 10 }}
+        >
+          <Text style={{ color: COLORS.primary, textDecorationLine: 'underline' }}>
+            Bağlantıyı Test Et
+          </Text>
+        </TouchableOpacity>
 
         <Text style={styles.hint}>
           Admin: admin@montaj.com / admin123{'\n'}

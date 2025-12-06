@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Modal, RefreshControl } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
@@ -130,7 +131,7 @@ export default function AdminDashboardScreen({ navigation }) {
     );
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
             {renderDrawer()}
             <ScrollView
                 style={styles.scrollView}
@@ -266,7 +267,7 @@ export default function AdminDashboardScreen({ navigation }) {
                     <Text style={styles.navText}>Ayarlar</Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -279,7 +280,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
-        paddingBottom: 80,
+        paddingBottom: 120, // Increased padding
     },
     header: {
         flexDirection: 'row',
@@ -355,12 +356,6 @@ const styles = StyleSheet.create({
     navAction: {
         height: 100,
         justifyContent: 'center',
-        backgroundColor: COLORS.primary, // Make nav items primary color? Or cardDark?
-        // DashboardAction defaults to cardDark. Let's override if needed.
-        // Actually, let's keep them cardDark but with primary icons.
-        // Wait, I passed icon color as black. If background is cardDark, icon should be primary.
-        // If background is primary, icon should be black.
-        // Let's stick to cardDark background for consistency.
         backgroundColor: COLORS.cardDark,
         borderColor: COLORS.slate800,
     },
