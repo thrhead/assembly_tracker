@@ -5,7 +5,7 @@ Write-Host "Stopping existing Node/Expo processes..." -ForegroundColor Yellow
 Get-Process -Name node, cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force
 
 Write-Host "Navigating to mobile directory..." -ForegroundColor Cyan
-Set-Location "mobile"
+Set-Location (Join-Path (Split-Path -Parent $PSScriptRoot) "mobile")
 
 Write-Host "Installing Expo SDK 52..." -ForegroundColor Cyan
 npm install expo@^52.0.0

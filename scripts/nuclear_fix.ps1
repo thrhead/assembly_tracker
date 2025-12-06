@@ -9,7 +9,7 @@ Write-Host "Stopping processes..." -ForegroundColor Cyan
 Get-Process -Name node, cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force
 
 # 2. Navigate to mobile
-Set-Location "mobile"
+Set-Location (Join-Path (Split-Path -Parent $PSScriptRoot) "mobile")
 
 # 3. Delete everything
 Write-Host "Deleting node_modules..." -ForegroundColor Cyan

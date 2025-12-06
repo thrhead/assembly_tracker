@@ -5,7 +5,7 @@ Write-Host "Stopping existing Node/Expo processes..." -ForegroundColor Yellow
 Get-Process -Name node, cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force
 
 Write-Host "Navigating to mobile directory..." -ForegroundColor Cyan
-Set-Location "mobile"
+Set-Location (Join-Path (Split-Path -Parent $PSScriptRoot) "mobile")
 
 Write-Host "Removing node_modules and package-lock.json..." -ForegroundColor Cyan
 if (Test-Path "node_modules") { Remove-Item "node_modules" -Recurse -Force }

@@ -7,7 +7,7 @@ Write-Host "Installing missing dependencies..." -ForegroundColor Cyan
 Get-Process -Name node, cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force
 
 # 2. Navigate
-Set-Location "mobile"
+Set-Location (Join-Path (Split-Path -Parent $PSScriptRoot) "mobile")
 
 # 3. Install react-native-screens
 Write-Host "Installing react-native-screens..." -ForegroundColor Cyan

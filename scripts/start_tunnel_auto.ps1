@@ -2,16 +2,18 @@
 $ErrorActionPreference = "Stop"
 
 # Configuration
-$CloudflaredPath = ".\cloudflared.exe"
+$ScriptDir = $PSScriptRoot
+$ProjectRoot = Split-Path -Parent $ScriptDir
+$CloudflaredPath = Join-Path $ScriptDir "cloudflared.exe"
 $BackendPort = 3000
 $BundlerPort = 8081
-$ApiFile = "mobile\src\services\api.js"
-$LogFileBackend = "cloudflared_backend.log"
-$LogFileBundler = "cloudflared_bundler.log"
+$ApiFile = Join-Path $ProjectRoot "mobile\src\services\api.js"
+$LogFileBackend = Join-Path $ScriptDir "cloudflared_backend.log"
+$LogFileBundler = Join-Path $ScriptDir "cloudflared_bundler.log"
 
 # Check if cloudflared exists
 if (-not (Test-Path $CloudflaredPath)) {
-    Write-Host "Error: cloudflared.exe not found."
+    Write-Host "Error: cloudflared.exe not found at $CloudflaredPath"
     exit 1
 }
 

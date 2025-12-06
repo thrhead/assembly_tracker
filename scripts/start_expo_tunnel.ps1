@@ -2,16 +2,18 @@
 $ErrorActionPreference = "Stop"
 
 # Configuration
-$CloudflaredPath = ".\cloudflared.exe"
+$ScriptDir = $PSScriptRoot
+$ProjectRoot = Split-Path -Parent $ScriptDir
+$CloudflaredPath = Join-Path $ScriptDir "cloudflared.exe"
 $BackendPort = 3000
 $BundlerPort = 8081
-$ApiFile = "mobile\src\services\api.js"
-$LogFileBackend = "cloudflared_backend.log"
-$LogFileBundler = "cloudflared_bundler.log"
+$ApiFile = Join-Path $ProjectRoot "mobile\src\services\api.js"
+$LogFileBackend = Join-Path $ScriptDir "cloudflared_backend.log"
+$LogFileBundler = Join-Path $ScriptDir "cloudflared_bundler.log"
 
 # Check if cloudflared exists
 if (-not (Test-Path $CloudflaredPath)) {
-    Write-Host "Error: cloudflared.exe not found in current directory." -ForegroundColor Red
+    Write-Host "Error: cloudflared.exe not found at $CloudflaredPath" -ForegroundColor Red
     exit 1
 }
 
@@ -112,14 +114,15 @@ Write-Host "--------------------------------------------------" -ForegroundColor
 
 # Generate QR Code for the correct URL
 Write-Host "Generating Correct QR Code..." -ForegroundColor Cyan
-node generate_qr.js $BundlerUrl
+$GenQRPath = Join-Path $ScriptDir "generate_qr.js"
+node $GenQRPath $BundlerUrl
 
 Write-Host "Starting Expo Server..." -ForegroundColor Cyan
 Write-Host "Press Enter to start Expo (Note: Expo might clear this screen)..." -ForegroundColor Green
 Read-Host
 
 # Change to mobile directory
-Set-Location "mobile"
+Set-Location (Join-Path $ProjectRoot "mobile")
 
 # Start Expo
 cmd /c "npx expo start"

@@ -5,7 +5,7 @@ Write-Host "Stopping existing Node/Expo processes..." -ForegroundColor Yellow
 Get-Process -Name node, cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force
 
 Write-Host "Navigating to mobile directory..." -ForegroundColor Cyan
-Set-Location "mobile"
+Set-Location (Join-Path (Split-Path -Parent $PSScriptRoot) "mobile")
 
 Write-Host "Reinstalling dependencies with pinned React Native version..." -ForegroundColor Cyan
 npm install

@@ -7,7 +7,7 @@ Write-Host "UPGRADING TO SDK 54 (Canary)..." -ForegroundColor Magenta
 Get-Process -Name node, cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force
 
 # 2. Navigate
-Set-Location "mobile"
+Set-Location (Join-Path (Split-Path -Parent $PSScriptRoot) "mobile")
 
 # 3. Clean
 if (Test-Path "node_modules") { Remove-Item "node_modules" -Recurse -Force }

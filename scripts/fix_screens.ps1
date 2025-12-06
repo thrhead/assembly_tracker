@@ -7,7 +7,7 @@ Write-Host "Fixing react-native-screens version..." -ForegroundColor Cyan
 Get-Process -Name node, cloudflared -ErrorAction SilentlyContinue | Stop-Process -Force
 
 # 2. Navigate
-Set-Location "mobile"
+Set-Location (Join-Path (Split-Path -Parent $PSScriptRoot) "mobile")
 
 # 3. Install correct version via Expo
 Write-Host "Installing react-native-screens via Expo..." -ForegroundColor Cyan
