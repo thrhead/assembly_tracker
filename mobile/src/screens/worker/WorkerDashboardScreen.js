@@ -130,6 +130,9 @@ export default function WorkerDashboardScreen({ navigation }) {
                     </View>
                     {/* Header Icons */}
                     <View style={styles.headerIcons}>
+                        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Calendar')}>
+                            <MaterialIcons name="calendar-today" size={24} color={COLORS.primary} />
+                        </TouchableOpacity>
                         <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Notifications')}>
                             <MaterialIcons name="notifications-none" size={24} color={COLORS.primary} />
                             <View style={styles.notificationBadge} />

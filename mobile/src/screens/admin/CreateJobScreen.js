@@ -351,7 +351,7 @@ export default function CreateJobScreen({ navigation }) {
                             >
                                 <Text style={styles.modalItemText}>
                                     {displayKey === 'complex_customer'
-                                        ? `${item.company} (${item.user?.name})`
+                                        ? `${item.company || item.companyName} (${item.user?.name || item.contactPerson})`
                                         : item[displayKey] || item}
                                 </Text>
                                 {displayKey === 'complex_customer' && formData.customerId === item.id && (
@@ -370,7 +370,7 @@ export default function CreateJobScreen({ navigation }) {
 
     const getCustomerLabel = () => {
         const customer = customers.find(c => c.id === formData.customerId);
-        return customer ? `${customer.company} (${customer.user?.name})` : 'Müşteri Seçiniz';
+        return customer ? `${customer.company || customer.companyName} (${customer.user?.name || customer.contactPerson})` : 'Müşteri Seçiniz';
     };
 
     const getTeamLabel = () => {

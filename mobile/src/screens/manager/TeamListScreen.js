@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Alert, Modal, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -18,6 +19,12 @@ export default function TeamListScreen({ navigation }) {
     const [editingTeam, setEditingTeam] = useState(null);
     const [formData, setFormData] = useState({ name: '', description: '', leadId: '', memberIds: [] });
     const [availableUsers, setAvailableUsers] = useState([]);
+    const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+
+    const [teamToDelete, setTeamToDelete] = useState(null);
+    const [resultModalVisible, setResultModalVisible] = useState(false);
+    const [resultType, setResultType] = useState('success'); // 'success' or 'error'
+    const [resultMessage, setResultMessage] = useState('');
 
     const isAdmin = user?.role?.toUpperCase() === 'ADMIN';
 
@@ -45,17 +52,19 @@ export default function TeamListScreen({ navigation }) {
                 }
                 setMembers(targetTeam ? targetTeam.members : []);
             }
-
-            console.log('DEBUG_TEAMS_DATA:', JSON.stringify(teamsData, null, 2));
-            console.log('DEBUG_USER_ROLE:', user?.role);
-            console.log('DEBUG_IS_ADMIN:', isAdmin);
         } catch (error) {
             console.error('Error loading data:', error);
-            Alert.alert('Hata', 'Veriler yüklenemedi.');
+            showResult('error', 'Veriler yüklenemedi.');
         } finally {
             setLoading(false);
             setRefreshing(false);
         }
+    };
+
+    const showResult = (type, message) => {
+        setResultType(type);
+        setResultMessage(message);
+        setResultModalVisible(true);
     };
 
     const onRefresh = () => {
@@ -82,23 +91,46 @@ export default function TeamListScreen({ navigation }) {
 
     const handleSaveTeam = async () => {
         if (!formData.name) {
-            Alert.alert('Hata', 'Ekip adı zorunludur.');
+            showResult('error', 'Ekip adı zorunludur.');
             return;
         }
 
         try {
             if (editingTeam) {
                 await teamService.update(editingTeam.id, formData);
-                Alert.alert('Başarılı', 'Ekip güncellendi.');
+                showResult('success', 'Ekip güncellendi.');
             } else {
                 await teamService.create(formData);
-                Alert.alert('Başarılı', 'Yeni ekip oluşturuldu.');
+                showResult('success', 'Yeni ekip oluşturuldu.');
             }
             setModalVisible(false);
             loadData();
         } catch (error) {
             console.error('Save team error:', error);
-            Alert.alert('Hata', 'İşlem başarısız.');
+            showResult('error', 'İşlem başarısız.');
+        }
+    };
+
+    const handleDeleteTeam = (team) => {
+        setTeamToDelete(team);
+        setDeleteModalVisible(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!teamToDelete) return;
+
+        try {
+            setLoading(true);
+            await teamService.delete(teamToDelete.id);
+            setDeleteModalVisible(false);
+            setTeamToDelete(null);
+            showResult('success', 'Ekip silindi.');
+            loadData();
+        } catch (error) {
+            console.error('Delete team error:', error);
+            setDeleteModalVisible(false); // Close confirm modal to show result modal
+            showResult('error', error.message || 'Ekip silinemedi.');
+            setLoading(false);
         }
     };
 
@@ -115,9 +147,22 @@ export default function TeamListScreen({ navigation }) {
                     )}
                 </View>
                 {isAdmin && (
-                    <TouchableOpacity onPress={() => handleEditTeam(item)} style={styles.editIcon}>
-                        <MaterialIcons name="edit" size={20} color={COLORS.primary} />
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row' }}>
+                        <TouchableOpacity
+                            onPress={() => handleEditTeam(item)}
+                            style={styles.editIcon}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                            <MaterialIcons name="edit" size={20} color={COLORS.primary} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => handleDeleteTeam(item)}
+                            style={[styles.editIcon, { marginLeft: 8 }]}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        >
+                            <MaterialIcons name="delete" size={20} color={COLORS.error || '#FF4444'} />
+                        </TouchableOpacity>
+                    </View>
                 )}
             </View>
 
@@ -304,6 +349,76 @@ export default function TeamListScreen({ navigation }) {
                             <CustomButton
                                 title="Kaydet"
                                 onPress={handleSaveTeam}
+                                variant="primary"
+                                style={{ flex: 1 }}
+                            />
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Delete Confirmation Modal */}
+            <Modal
+                visible={deleteModalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setDeleteModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Ekibi Sil</Text>
+                        <Text style={styles.deleteConfirmationText}>
+                            "{teamToDelete?.name}" ekibini silmek istediğinizden emin misiniz?
+                        </Text>
+                        <Text style={styles.deleteWarningText}>
+                            Bu işlem geri alınamaz.
+                        </Text>
+
+                        <View style={styles.modalButtons}>
+                            <CustomButton
+                                title="İptal"
+                                onPress={() => {
+                                    setDeleteModalVisible(false);
+                                    setTeamToDelete(null);
+                                }}
+                                variant="outline"
+                                style={{ flex: 1 }}
+                            />
+                            <CustomButton
+                                title="Sil"
+                                onPress={confirmDelete}
+                                variant="primary"
+                                style={{ flex: 1, backgroundColor: COLORS.error || '#FF4444' }}
+                            />
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+            {/* Result Modal */}
+            <Modal
+                visible={resultModalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setResultModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                            <MaterialIcons
+                                name={resultType === 'success' ? 'check-circle' : 'error'}
+                                size={48}
+                                color={resultType === 'success' ? COLORS.primary : (COLORS.error || '#FF4444')}
+                            />
+                        </View>
+                        <Text style={styles.modalTitle}>{resultType === 'success' ? 'Başarılı' : 'Hata'}</Text>
+                        <Text style={styles.deleteConfirmationText}>
+                            {resultMessage}
+                        </Text>
+
+                        <View style={styles.modalButtons}>
+                            <CustomButton
+                                title="Tamam"
+                                onPress={() => setResultModalVisible(false)}
                                 variant="primary"
                                 style={{ flex: 1 }}
                             />
@@ -541,5 +656,17 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: COLORS.slate400,
         marginTop: 2,
+    },
+    deleteConfirmationText: {
+        color: COLORS.textLight,
+        fontSize: 16,
+        textAlign: 'center',
+        marginBottom: 12,
+    },
+    deleteWarningText: {
+        color: COLORS.slate400,
+        fontSize: 14,
+        textAlign: 'center',
+        marginBottom: 24,
     },
 });

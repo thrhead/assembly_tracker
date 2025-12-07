@@ -200,7 +200,7 @@ Projenin detaylı teknik dokümantasyonu `memory-bank/` klasöründe yer almakta
 
 Bu proje özel kullanım içindir. Ticari kullanım ve dağıtım hakları saklıdır. Detaylar için proje sahibi ile iletişime geçin.
 
-**Son Güncelleme:** 02 Aralık 2024
+**Son Güncelleme:** 06 Aralık 2025
 **Versiyon:** 2.5.0 (Mobile Stable & Real-time Features)
 
 ## 🚀 Son Güncellemeler (v2.5.0)

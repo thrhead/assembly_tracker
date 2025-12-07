@@ -17,7 +17,7 @@ export async function GET(req: Request) {
         const session = await verifyAuth(req)
         console.log('[API] Customers GET Request - Session Role:', session?.user?.role)
 
-        if (!session || session.user.role !== 'ADMIN') {
+        if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 

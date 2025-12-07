@@ -40,13 +40,7 @@ function AppNavigator() {
 
   console.log('AppNavigator - user:', user, 'loading:', loading, 'CreateJobScreen registered');
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-      </View>
-    );
-  }
+
 
   // Determine initial route based on user role
   React.useEffect(() => {
@@ -74,6 +68,14 @@ function AppNavigator() {
       responseSubscription.remove();
     };
   }, []);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
   const getInitialRoute = () => {
     if (!user) return "Login";
 

@@ -23,28 +23,16 @@ import costService from '../../services/cost.service';
 import authService from '../../services/auth.service';
 import SuccessModal from '../../components/SuccessModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
+import { useAuth } from '../../context/AuthContext';
 
-const COLORS = {
-    primary: "#CCFF04",
-    backgroundLight: "#f8f8f5",
-    backgroundDark: "#010100",
-    cardDark: "#111827", // gray-900
-    cardBorder: "#1f2937", // gray-800
-    textLight: "#f8fafc", // slate-50
-    textGray: "#94a3b8", // slate-400
-    red500: "#ef4444",
-    red900: "#7f1d1d",
-    green500: "#22c55e",
-    orange500: "#f97316",
-    blue500: "#3b82f6",
-    black: "#000000",
-    white: "#ffffff",
-};
+import { COLORS } from '../../constants/theme';
+
 
 
 
 export default function JobDetailScreen({ route, navigation }) {
     const { jobId } = route.params;
+    const { user } = useAuth();
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
@@ -62,7 +50,6 @@ export default function JobDetailScreen({ route, navigation }) {
     const [costDate, setCostDate] = useState(new Date());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [submittingCost, setSubmittingCost] = useState(false);
-    const [userRole, setUserRole] = useState(null);
 
     // Rejection State
     const [rejectionModalVisible, setRejectionModalVisible] = useState(false);
@@ -84,19 +71,9 @@ export default function JobDetailScreen({ route, navigation }) {
 
     useEffect(() => {
         loadJobDetails();
-        checkUserRole();
     }, [jobId]);
 
-    const checkUserRole = async () => {
-        try {
-            const user = await authService.getProfile();
-            if (user) {
-                setUserRole(user.role);
-            }
-        } catch (error) {
-            console.error('JobDetailScreen: Error fetching user profile:', error);
-        }
-    };
+    // Removed checkUserRole as we use useAuth now
 
     const loadJobDetails = async () => {
         try {
@@ -270,6 +247,27 @@ export default function JobDetailScreen({ route, navigation }) {
         } catch (error) {
             console.error('Error rejecting substep:', error);
             Alert.alert('Hata', 'Reddetme işlemi başarısız oldu.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRejectJob = async () => {
+        if (!rejectionReason) {
+            Alert.alert('Uyarı', 'Lütfen bir red sebebi giriniz.');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            await jobService.rejectJob(jobId, rejectionReason);
+            Alert.alert('Başarılı', 'İş reddedildi.');
+            setRejectionModalVisible(false);
+            setRejectionReason('');
+            loadJobDetails();
+        } catch (error) {
+            console.error('Error rejecting job:', error);
+            Alert.alert('Hata', 'İş reddedilemedi.');
         } finally {
             setLoading(false);
         }
@@ -539,7 +537,7 @@ export default function JobDetailScreen({ route, navigation }) {
                                 <Text style={styles.rejectionReasonText}>Red Sebebi: {step.rejectionReason}</Text>
                             )}
 
-                            {['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (step.isCompleted || step.approvalStatus !== 'PENDING') && (
+                            {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (step.isCompleted || step.approvalStatus !== 'PENDING') && (
                                 <View style={styles.managerActions}>
                                     <TouchableOpacity
                                         style={[styles.actionButton, styles.rejectButton]}
@@ -599,7 +597,7 @@ export default function JobDetailScreen({ route, navigation }) {
                                                         {isSubstepLocked && <Text style={styles.lockedText}>(Önceki adımı tamamlayın)</Text>}
                                                     </View>
 
-                                                    {!['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
+                                                    {!['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (
                                                         <View style={styles.actionButtons}>
                                                             {!substep.isCompleted ? (
                                                                 !substep.startedAt ? (
@@ -640,7 +638,7 @@ export default function JobDetailScreen({ route, navigation }) {
                                                         </View>
                                                     )}
 
-                                                    {['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (substep.isCompleted || substep.approvalStatus !== 'PENDING') && (
+                                                    {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (substep.isCompleted || substep.approvalStatus !== 'PENDING') && (
                                                         <View style={styles.substepManagerActions}>
                                                             <TouchableOpacity
                                                                 style={[styles.miniActionButton, styles.rejectButton]}
@@ -658,7 +656,7 @@ export default function JobDetailScreen({ route, navigation }) {
                                                     )}
                                                 </View>
 
-                                                {!isSubstepLocked && !substep.isCompleted && !['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
+                                                {!isSubstepLocked && !substep.isCompleted && !['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (
                                                     <View style={styles.stepPhotoContainer}>
                                                         <Text style={styles.photoCountText}>
                                                             Fotoğraflar ({photoCount}/3)
@@ -699,7 +697,7 @@ export default function JobDetailScreen({ route, navigation }) {
                                 </View>
                             )}
 
-                            {(!step.subSteps || step.subSteps.length === 0) && !['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
+                            {(!step.subSteps || step.subSteps.length === 0) && !['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (
                                 <View style={{ marginTop: 12 }}>
                                     <View style={styles.actionButtons}>
                                         {!step.isCompleted ? (
@@ -784,7 +782,7 @@ export default function JobDetailScreen({ route, navigation }) {
                 {/* Costs Section */}
                 <View style={styles.sectionHeaderRow}>
                     <Text style={styles.sectionTitle}>Masraflar</Text>
-                    {!['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) && (
+                    {!['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (
                         <TouchableOpacity
                             style={styles.addCostButton}
                             onPress={() => setCostModalVisible(true)}
@@ -828,7 +826,7 @@ export default function JobDetailScreen({ route, navigation }) {
 
             {/* Footer Actions */}
             <View style={styles.footer}>
-                {!['ADMIN', 'MANAGER'].includes(userRole?.toUpperCase()) ? (
+                {!['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) ? (
                     job.status === 'PENDING' ? (
                         <TouchableOpacity
                             style={styles.mainCompleteButton}
@@ -855,24 +853,38 @@ export default function JobDetailScreen({ route, navigation }) {
                         </TouchableOpacity>
                     )
                 ) : (
-                    <View style={{ width: '100%' }}>
-                        <View style={styles.acceptanceStatusContainer}>
-                            <Text style={styles.acceptanceStatusLabel}>Montaj Durumu:</Text>
-                            <Text style={[
-                                styles.acceptanceStatusValue,
-                                job.acceptanceStatus === 'ACCEPTED' ? styles.statusApproved :
-                                    job.acceptanceStatus === 'REJECTED' ? styles.statusRejected : styles.statusPending
-                            ]}>
-                                {job.acceptanceStatus === 'ACCEPTED' ? 'KABUL EDİLDİ' :
-                                    job.acceptanceStatus === 'REJECTED' ? 'REDDEDİLDİ' : 'ONAY BEKLİYOR'}
-                            </Text>
+                    <View style={{ width: '100%', flexDirection: 'row', gap: 12 }}>
+                        <View style={{ flex: 1 }}>
+                            <View style={styles.acceptanceStatusContainer}>
+                                <Text style={styles.acceptanceStatusLabel}>Durum:</Text>
+                                <Text style={[
+                                    styles.acceptanceStatusValue,
+                                    job.acceptanceStatus === 'ACCEPTED' ? styles.statusApproved :
+                                        job.acceptanceStatus === 'REJECTED' ? styles.statusRejected : styles.statusPending
+                                ]}>
+                                    {job.acceptanceStatus === 'ACCEPTED' ? 'KABUL' :
+                                        job.acceptanceStatus === 'REJECTED' ? 'RED' : 'BEKLİYOR'}
+                                </Text>
+                            </View>
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                                <TouchableOpacity
+                                    style={[styles.mainCompleteButton, styles.rejectButton, { flex: 1, padding: 12 }]}
+                                    onPress={() => {
+                                        setSelectedStepId(null);
+                                        setSelectedSubstepId(null);
+                                        setRejectionModalVisible(true);
+                                    }}
+                                >
+                                    <Text style={styles.mainCompleteButtonText}>Reddet</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.mainCompleteButton, styles.acceptJobButton, { flex: 1, padding: 12 }]}
+                                    onPress={handleAcceptJob}
+                                >
+                                    <Text style={styles.mainCompleteButtonText}>Kabul Et</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                        <TouchableOpacity
-                            style={[styles.mainCompleteButton, styles.acceptJobButton]}
-                            onPress={handleAcceptJob}
-                        >
-                            <Text style={styles.mainCompleteButtonText}>Montajı Kabul Et</Text>
-                        </TouchableOpacity>
                     </View>
                 )}
             </View>
@@ -962,7 +974,9 @@ export default function JobDetailScreen({ route, navigation }) {
             <Modal visible={rejectionModalVisible} transparent={true} animationType="slide" onRequestClose={() => setRejectionModalVisible(false)}>
                 <View style={styles.modalContainer}>
                     <View style={styles.formCard}>
-                        <Text style={styles.modalTitle}>{selectedSubstepId ? 'Alt Görevi Reddet' : 'İş Adımını Reddet'}</Text>
+                        <Text style={styles.modalTitle}>
+                            {selectedSubstepId ? 'Alt Görevi Reddet' : selectedStepId ? 'İş Adımını Reddet' : 'İşi Reddet'}
+                        </Text>
                         <Text style={styles.inputLabel}>Red Sebebi</Text>
                         <TextInput
                             style={[styles.input, styles.textArea]}
@@ -977,7 +991,7 @@ export default function JobDetailScreen({ route, navigation }) {
                             <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setRejectionModalVisible(false)}>
                                 <Text style={styles.cancelButtonText}>İptal</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={[styles.modalButton, styles.rejectButton]} onPress={selectedSubstepId ? handleRejectSubstep : handleRejectStep}>
+                            <TouchableOpacity style={[styles.modalButton, styles.rejectButton]} onPress={selectedSubstepId ? handleRejectSubstep : selectedStepId ? handleRejectStep : handleRejectJob}>
                                 <Text style={styles.actionButtonText}>Reddet</Text>
                             </TouchableOpacity>
                         </View>

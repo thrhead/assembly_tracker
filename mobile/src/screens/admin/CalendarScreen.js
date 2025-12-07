@@ -1,127 +1,139 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Agenda } from 'react-native-calendars';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { Calendar } from 'react-native-calendars';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import api from '../../services/api';
 
-// Helper to format date as YYYY-MM-DD
 const formatDate = (date) => {
-    return date.toISOString().split('T')[0];
-};
-
-// Static objects defined OUTSIDE the component to prevent re-creation on every render
-const THEME = {
-    agendaDayTextColor: '#333',
-    agendaDayNumColor: '#333',
-    agendaTodayColor: '#4f46e5',
-    agendaKnobColor: '#4f46e5',
-    selectedDayBackgroundColor: '#4f46e5',
-    dotColor: '#4f46e5',
-};
-
-const RenderEmptyDate = () => {
-    return (
-        <View style={styles.emptyDate}>
-            <Text style={{ color: '#999' }}>Planlanmış iş yok</Text>
-        </View>
-    );
+    try {
+        return date.toISOString().split('T')[0];
+    } catch (e) {
+        return new Date().toISOString().split('T')[0];
+    }
 };
 
 export default function CalendarScreen({ navigation }) {
     const insets = useSafeAreaInsets();
-    const [items, setItems] = useState({});
+    const [markedDates, setMarkedDates] = useState({});
+    const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
+    const [eventsForDate, setEventsForDate] = useState([]);
+    const [allEvents, setAllEvents] = useState({});
     const [loading, setLoading] = useState(false);
 
-    // Memoize the today date string so it doesn't change on re-renders
-    const todayStr = useMemo(() => formatDate(new Date()), []);
-
-    // Load items for a month
-    const loadItems = useCallback(async (day) => {
-        // day is { timestamp, dateString, day, month, year }
-        const start = new Date(day.timestamp);
-        start.setDate(1); // 1st of month
-
-        const end = new Date(start);
-        end.setMonth(end.getMonth() + 1);
-        end.setDate(0); // Last of month
-
-        // API expects ISO strings
-        const startStr = formatDate(start);
-        const endStr = formatDate(end);
-
+    const fetchCalendarData = useCallback(async () => {
         try {
-            // Only fetch, don't set loading state to avoid re-renders if not strictly necessary for UI blocking
-            const response = await api.get(`/calendar/events?start=${startStr}&end=${endStr}`);
+            setLoading(true);
+            const now = new Date();
+            const start = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+            const end = new Date(now.getFullYear(), now.getMonth() + 4, 0);
+
+            const startStr = formatDate(start);
+            const endStr = formatDate(end);
+
+            console.log('[Calendar] Fetching:', startStr, 'to', endStr);
+            const response = await api.get(`/api/calendar/events?start=${encodeURIComponent(startStr)}&end=${encodeURIComponent(endStr)}`);
+            console.log('[Calendar] Response status:', response.status);
+            console.log('[Calendar] Events count:', response.data?.length);
+
             const events = response.data;
 
-            setItems(prevItems => {
-                const newItems = { ...prevItems };
-                let hasChanges = false;
+            if (!events || events.length === 0) {
+                console.log('[Calendar] No events returned from API');
+                setMarkedDates({});
+                setAllEvents({});
+                setEventsForDate([]);
+                return;
+            }
 
-                events.forEach(event => {
-                    // Calculate all dates for this event (multi-day support)
-                    // The API returns 'start' and 'end' as ISO strings
-                    const startDate = new Date(event.start);
-                    const endDate = new Date(event.end);
+            console.log('[Calendar] Sample event:', events[0]);
 
-                    // Loop from start date to end date
-                    let currentDate = new Date(startDate);
-                    while (currentDate <= endDate) {
-                        const dateKey = formatDate(currentDate);
+            const marked = {};
+            const eventsByDate = {};
 
-                        if (!newItems[dateKey]) {
-                            newItems[dateKey] = [];
-                            hasChanges = true;
-                        }
+            events.forEach(event => {
+                const startDate = new Date(event.start);
+                let endDate = event.end ? new Date(event.end) : new Date(startDate);
+                if (endDate < startDate) endDate = new Date(startDate);
 
-                        // Avoid duplicates if reloading
-                        const exists = newItems[dateKey].find(i => i.id === event.id);
-                        if (!exists) {
-                            newItems[dateKey].push({
-                                id: event.id,
-                                name: event.title,
-                                height: 80,
-                                start: event.start,
-                                end: event.end,
-                                color: event.color,
-                                details: event.extendedProps
-                            });
-                            hasChanges = true;
-                        }
+                let currentDate = new Date(startDate);
+                let safetyCounter = 0;
 
-                        // Move to next day
-                        currentDate.setDate(currentDate.getDate() + 1);
+                while (currentDate <= endDate && safetyCounter < 365) {
+                    const dateKey = formatDate(currentDate);
+
+                    if (!marked[dateKey]) {
+                        marked[dateKey] = { dots: [] };
                     }
-                });
 
-                // Only return new object if we actually changed something to avoid unnecessary updates
-                return hasChanges ? newItems : prevItems;
+                    // Add dot if not already added for this event (prevent duplicates if logic tweaks)
+                    // Limit dots to 3 to prevent UI overflow
+                    if (marked[dateKey].dots.length < 3) {
+                        marked[dateKey].dots.push({
+                            key: event.id,
+                            color: event.color || '#39FF14'
+                        });
+                    }
+
+                    if (!eventsByDate[dateKey]) {
+                        eventsByDate[dateKey] = [];
+                    }
+
+                    eventsByDate[dateKey].push({
+                        id: event.id,
+                        title: event.title,
+                        start: event.start,
+                        end: event.end,
+                        color: event.color,
+                        status: event.extendedProps?.status,
+                        location: event.extendedProps?.location,
+                        assignments: event.extendedProps?.assignments
+                    });
+
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    safetyCounter++;
+                }
             });
-        } catch (error) {
-            console.error('Calendar fetch error', error);
-        }
-    }, []);
 
-    const renderItem = useCallback((item) => {
-        // Determine the ID correctly - item.id should be the jobId according to how we map it.
-        // In the API (Calendar/route.ts), event.id IS job.id.
-        return (
-            <TouchableOpacity
-                style={[styles.item, { borderLeftColor: item.color || '#3788d8' }]}
-                onPress={() => {
-                    // Navigate to JobDetailScreen with jobId
-                    navigation.navigate('JobDetail', { jobId: item.id });
-                }}
-            >
-                <Text style={styles.itemTitle}>{item.name}</Text>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    <Text style={styles.itemTime}>{item.start.split('T')[1].substring(0, 5)}</Text>
-                    <Text style={[styles.itemTime, { color: item.color }]}>{item.details.status}</Text>
-                </View>
-                <Text style={[styles.itemTime, { marginTop: 2 }]}>{item.details.assignments}</Text>
-            </TouchableOpacity>
-        );
-    }, [navigation]);
+            console.log('[Calendar] Marked dates count:', Object.keys(marked).length);
+
+            setMarkedDates(marked);
+            setAllEvents(eventsByDate);
+            const todayEvents = eventsByDate[selectedDate] || [];
+            setEventsForDate(todayEvents);
+            console.log('[Calendar] Events for today:', selectedDate, todayEvents.length);
+        } catch (error) {
+            console.error('[Calendar] Error:', error);
+            console.error('[Calendar] Error response:', error.response?.data);
+        } finally {
+            setLoading(false);
+        }
+    }, [selectedDate]);
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchCalendarData();
+        }, [fetchCalendarData])
+    );
+
+    const onDayPress = useCallback((day) => {
+        console.log('[Calendar] Day pressed:', day.dateString);
+        setSelectedDate(day.dateString);
+        const dayEvents = allEvents[day.dateString] || [];
+        console.log('[Calendar] Events for day:', dayEvents.length);
+        setEventsForDate(dayEvents);
+    }, [allEvents]);
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'COMPLETED': return '#10B981';
+            case 'IN_PROGRESS': return '#F59E0B';
+            case 'PENDING': return '#6B7280';
+            case 'CANCELLED': return '#EF4444';
+            case 'ON_HOLD': return '#8B5CF6';
+            default: return '#3788d8';
+        }
+    };
 
     return (
         <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -132,16 +144,82 @@ export default function CalendarScreen({ navigation }) {
                 <Text style={styles.headerTitle}>Takvim</Text>
                 <View style={{ width: 50 }} />
             </View>
-            <Agenda
-                items={items}
-                loadItemsForMonth={loadItems}
-                selected={todayStr}
-                renderItem={renderItem}
-                renderEmptyDate={RenderEmptyDate}
-                showClosingKnob={true}
-                theme={THEME}
-                showOnlySelectedDayItems={true}
+
+            <Calendar
+                current={selectedDate}
+                markingType={'multi-dot'}
+                markedDates={{
+                    ...markedDates,
+                    [selectedDate]: {
+                        ...markedDates[selectedDate],
+                        selected: true,
+                        selectedColor: '#39FF14',
+                        selectedTextColor: '#000000'
+                    }
+                }}
+                onDayPress={onDayPress}
+                theme={{
+                    calendarBackground: '#0f172a',
+                    textSectionTitleColor: '#94a3b8',
+                    selectedDayBackgroundColor: '#39FF14',
+                    selectedDayTextColor: '#000000',
+                    todayTextColor: '#39FF14',
+                    dayTextColor: '#e2e8f0',
+                    textDisabledColor: '#475569',
+                    dotColor: '#39FF14',
+                    selectedDotColor: '#000000',
+                    arrowColor: '#39FF14',
+                    monthTextColor: '#e2e8f0',
+                    textDayFontWeight: '400',
+                    textMonthFontWeight: 'bold',
+                    textDayHeaderFontWeight: '500',
+                }}
             />
+
+            <View style={styles.eventsContainer}>
+                <Text style={styles.eventsTitle}>
+                    {new Date(selectedDate).toLocaleDateString('tr-TR', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    })}
+                </Text>
+                <ScrollView style={styles.eventsList}>
+                    {eventsForDate.length === 0 ? (
+                        <Text style={styles.noEvents}>Bu tarihte planlanmış iş yok</Text>
+                    ) : (
+                        eventsForDate.map((event, index) => (
+                            <TouchableOpacity
+                                key={`${event.id}-${index}`}
+                                style={[styles.eventCard, { borderLeftColor: event.color || '#39FF14' }]}
+                                onPress={() => {
+                                    console.log('[Calendar] Navigating to JobDetail with ID:', event.id);
+                                    navigation.navigate('JobDetail', { jobId: event.id });
+                                }}
+                            >
+                                <Text style={styles.eventTitle}>{event.title}</Text>
+                                {event.status && (
+                                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(event.status) }]}>
+                                        <Text style={styles.statusText}>{event.status}</Text>
+                                    </View>
+                                )}
+                                {event.location && (
+                                    <Text style={styles.eventDetail}>📍 {event.location}</Text>
+                                )}
+                                {event.assignments && (
+                                    <Text style={styles.eventDetail}>👤 {event.assignments}</Text>
+                                )}
+                            </TouchableOpacity>
+                        ))
+                    )}
+                </ScrollView>
+            </View>
+
+            {loading && (
+                <View style={styles.loader}>
+                    <ActivityIndicator size="large" color="#39FF14" />
+                </View>
+            )}
         </View>
     );
 }
@@ -149,7 +227,7 @@ export default function CalendarScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#0f172a',
     },
     header: {
         flexDirection: 'row',
@@ -157,42 +235,77 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
+        borderBottomColor: '#1e293b',
     },
     backButton: {
         padding: 8,
     },
     backButtonText: {
-        color: '#4f46e5',
-        fontWeight: '600',
-    },
-    item: {
-        backgroundColor: 'white',
-        flex: 1,
-        borderRadius: 5,
-        padding: 10,
-        marginRight: 10,
-        marginTop: 17,
-        borderLeftWidth: 4,
-        elevation: 2,
-    },
-    itemTitle: {
         fontSize: 16,
+        color: '#39FF14',
+    },
+    headerTitle: {
+        fontSize: 20,
         fontWeight: 'bold',
-        marginBottom: 4,
+        color: '#e2e8f0',
     },
-    itemTime: {
-        fontSize: 12,
-        color: '#666',
-    },
-    emptyDate: {
-        height: 15,
+    eventsContainer: {
         flex: 1,
-        paddingTop: 30,
-        alignItems: 'center'
-    }
+        padding: 16,
+        backgroundColor: '#0f172a',
+    },
+    eventsTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#e2e8f0',
+        marginBottom: 12,
+    },
+    eventsList: {
+        flex: 1,
+    },
+    noEvents: {
+        textAlign: 'center',
+        color: '#64748b',
+        marginTop: 24,
+    },
+    eventCard: {
+        backgroundColor: '#1e293b',
+        borderRadius: 8,
+        padding: 12,
+        marginBottom: 12,
+        borderLeftWidth: 4,
+    },
+    eventTitle: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#e2e8f0',
+        marginBottom: 8,
+    },
+    statusBadge: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4,
+        marginBottom: 8,
+    },
+    statusText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    eventDetail: {
+        fontSize: 14,
+        color: '#94a3b8',
+        marginTop: 4,
+    },
+    loader: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    },
 });

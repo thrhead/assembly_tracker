@@ -277,3 +277,39 @@ model CostTracking {
 
   @@map("cost_tracking")
 }
+
+// Job Templates
+model JobTemplate {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  steps       TemplateStep[]
+  
+  @@map("job_templates")
+}
+
+model TemplateStep {
+  id          String   @id @default(cuid())
+  templateId  String
+  title       String
+  order       Int
+  
+  template    JobTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  subSteps    TemplateSubStep[]
+
+  @@map("template_steps")
+}
+
+model TemplateSubStep {
+  id          String   @id @default(cuid())
+  stepId      String
+  title       String
+  order       Int
+  
+  step        TemplateStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@map("template_sub_steps")
+}

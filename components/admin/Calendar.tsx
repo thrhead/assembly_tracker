@@ -17,19 +17,23 @@ export default function Calendar() {
         try {
             const start = info.startStr
             const end = info.endStr
-            const res = await fetch(`/api/calendar/events?start=${start}&end=${end}`)
+            // Encode dates to prevent + from becoming space in URL
+            const url = `/api/calendar/events?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+
+            const res = await fetch(url)
+
             if (res.ok) {
                 const data = await res.json()
                 setEvents(data)
             }
-        } catch (error) {
-            console.error('Failed to fetch events', error)
+        } catch (error: any) {
+            console.error('Failed to fetch calendar events:', error)
         }
     }
 
     return (
         <Card className="h-full flex flex-col">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="pb-2">
                 <CardTitle>Takvim ve Kaynak Planlama</CardTitle>
             </CardHeader>
             <CardContent className="flex-1">
@@ -84,10 +88,7 @@ export default function Calendar() {
                         )
                     }}
                     eventClick={(info) => {
-                        // Show details in a simple alert for now, or consider a dialog
-                        const props = info.event.extendedProps
-                        const message = `İş: ${info.event.title}\nDurum: ${props.status}\nKonum: ${props.location || 'Belirtilmedi'}\nAtamalar: ${props.assignments || 'Atama Yok'}`
-                        alert(message)
+                        router.push(`/admin/jobs/${info.event.id}`)
                     }}
                     height="100%"
                     allDaySlot={false}

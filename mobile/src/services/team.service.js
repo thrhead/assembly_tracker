@@ -74,6 +74,19 @@ const teamService = {
             throw error;
         }
     },
+    /**
+     * Delete a team
+     * @param {string} teamId
+     * @returns {Promise<void>}
+     */
+    delete: async (teamId) => {
+        try {
+            const response = await api.delete(`/api/teams/${teamId}`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    },
 };
 
 export default teamService;

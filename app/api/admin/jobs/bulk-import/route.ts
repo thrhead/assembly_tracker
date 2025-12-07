@@ -1,20 +1,23 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { NextResponse } from "next/server"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/db"
+import { NextResponse } from "next/server"
 import * as XLSX from "xlsx"
 
 export async function POST(req: Request) {
     try {
         const session = await auth()
         if (!session || (session.user.role !== "ADMIN" && session.user.role !== "TEAM_LEAD")) {
-            return new NextResponse("Unauthorized", { status: 401 })
+            return new NextResponse("Yetkisiz Erişim", { status: 401 })
         }
 
         const formData = await req.formData()
         const file = formData.get("file") as File
 
         if (!file) {
-            return new NextResponse("File is required", { status: 400 })
+            return new NextResponse("Dosya gerekli", { status: 400 })
         }
 
         const buffer = await file.arrayBuffer()
@@ -24,7 +27,7 @@ export async function POST(req: Request) {
         const jsonData = XLSX.utils.sheet_to_json(worksheet)
 
         if (jsonData.length === 0) {
-            return new NextResponse("Excel file is empty", { status: 400 })
+            return new NextResponse("Excel dosyası boş", { status: 400 })
         }
 
         console.log("Processing bulk upload:", jsonData.length, "rows")
@@ -53,7 +56,7 @@ export async function POST(req: Request) {
                     // 1. Get or Validate Customer
                     const companyName = rows[0]["Customer Company"] || rows[0]["Müşteri"] || rows[0]["Firma"]
                     if (!companyName) {
-                        throw new Error(`Customer Company missing for job: ${title}`)
+                        throw new Error(`Exper şu iş için müşteri firması eksik: ${title}`)
                     }
 
                     const customer = await tx.customer.findFirst({
@@ -61,7 +64,7 @@ export async function POST(req: Request) {
                     })
 
                     if (!customer) {
-                        throw new Error(`Customer '${companyName}' not found. Please create the customer first.`)
+                        throw new Error(`'${companyName}' isimli müşteri bulunamadı. Lütfen önce müşteriyi oluşturun.`)
                     }
 
                     // 2. Create Job
@@ -122,7 +125,7 @@ export async function POST(req: Request) {
                             // Extra fields
                             // const isMandatory = (sRow["Mandatory"] || sRow["Zorunlu"] || "NO").toUpperCase() === "YES"
                             // type isn't strictly in schema yet? Wait, let me check schema again.
-                            // Schema has: JobSubStep: title, isCompleted, etc. NO TYPE field in `JobSubStep` in schema.prisma!
+                            // Schema has: JobSubStep: id, stepId, title, isCompleted... NO TYPE field in `JobSubStep` in schema.prisma!
                             // Waiting... the schema `JobSubStep` model:
                             // model JobSubStep { id, stepId, title, isCompleted... } 
                             // There is NO `type` (checkbox/photo) or `isMandatory` in the current schema.
@@ -145,7 +148,7 @@ export async function POST(req: Request) {
             } catch (error: any) {
                 console.error(`Error processing job ${title}:`, error)
                 errorCount++
-                errors.push(`Job "${title}": ${error.message}`)
+                errors.push(`İş "${title}": ${error.message}`)
             }
         }
 
@@ -157,6 +160,6 @@ export async function POST(req: Request) {
 
     } catch (error) {
         console.error("Bulk upload error:", error)
-        return new NextResponse("Internal Server Error", { status: 500 })
+        return new NextResponse("Sunucu Hatası", { status: 500 })
     }
 }

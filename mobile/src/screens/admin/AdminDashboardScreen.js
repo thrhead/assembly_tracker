@@ -15,6 +15,7 @@ const { width } = Dimensions.get('window');
 export default function AdminDashboardScreen({ navigation }) {
     const { user, logout } = useAuth();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [recentJobs, setRecentJobs] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const [statsData, setStatsData] = useState({
         totalJobs: 0,
@@ -25,18 +26,20 @@ export default function AdminDashboardScreen({ navigation }) {
 
     const fetchStats = async () => {
         try {
-            const response = await api.get('/admin/stats');
-            setStatsData(response.data);
+            console.log('[Dashboard] Fetching stats and jobs...');
+            const [statsRes, jobsRes] = await Promise.all([
+                api.get('/admin/stats'),
+                api.get('/admin/jobs')
+            ]);
+
+            console.log('[Dashboard] Data received:', statsRes.data, jobsRes.data?.length);
+            setStatsData(statsRes.data);
+            setRecentJobs(jobsRes.data?.slice(0, 5) || []); // Take first 5 recent jobs
         } catch (error) {
-            console.error('Error fetching admin stats:', error);
+            console.error('Error fetching admin dashboard data:', error);
+            // Optionally set empty state on error
         }
     };
-
-    useFocusEffect(
-        useCallback(() => {
-            fetchStats();
-        }, [])
-    );
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -49,7 +52,7 @@ export default function AdminDashboardScreen({ navigation }) {
         { id: 'users', title: 'Kullanıcılar', icon: 'people', route: 'UserManagement', color: COLORS.blue500 },
         { id: 'customers', title: 'Müşteriler', icon: 'business', route: 'CustomerManagement', color: COLORS.purple500 },
         { id: 'teams', title: 'Ekipler', icon: 'groups', route: 'TeamList', color: COLORS.indigo500 },
-        { id: 'jobs', title: 'İşler', icon: 'work', route: 'JobAssignment', color: COLORS.orange500 },
+        { id: 'jobs', title: 'İşler', icon: 'work', route: 'Jobs', color: COLORS.orange500 },
         { id: 'approvals', title: 'Onaylar', icon: 'fact-check', route: 'Approvals', color: COLORS.teal500 },
         { id: 'costs', title: 'Maliyetler', icon: 'attach-money', route: 'CostManagement', color: COLORS.green500 },
         { id: 'calendar', title: 'Takvim', icon: 'calendar-today', route: 'Calendar', color: COLORS.purple500 },
@@ -219,31 +222,35 @@ export default function AdminDashboardScreen({ navigation }) {
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                         <Text style={styles.sectionTitle}>Son İşler</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('JobAssignment')}>
+                        <TouchableOpacity onPress={() => navigation.navigate('Jobs')}>
                             <Text style={styles.seeAllText}>Tümünü Gör</Text>
                         </TouchableOpacity>
                     </View>
                     <View style={styles.recentList}>
-                        <TouchableOpacity style={styles.recentItem} onPress={() => navigation.navigate('JobAssignment')}>
-                            <View style={styles.recentIcon}>
-                                <MaterialIcons name="work" size={20} color={COLORS.primary} />
-                            </View>
-                            <View style={styles.recentInfo}>
-                                <Text style={styles.recentTitle}>Klima Montajı - A Blok</Text>
-                                <Text style={styles.recentSubtitle}>Ahmet Yılmaz • 2 saat önce</Text>
-                            </View>
-                            <MaterialIcons name="chevron-right" size={20} color={COLORS.slate600} />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.recentItem} onPress={() => navigation.navigate('JobAssignment')}>
-                            <View style={styles.recentIcon}>
-                                <MaterialIcons name="work" size={20} color={COLORS.primary} />
-                            </View>
-                            <View style={styles.recentInfo}>
-                                <Text style={styles.recentTitle}>Arıza Tespit - B Blok</Text>
-                                <Text style={styles.recentSubtitle}>Mehmet Demir • 5 saat önce</Text>
-                            </View>
-                            <MaterialIcons name="chevron-right" size={20} color={COLORS.slate600} />
-                        </TouchableOpacity>
+                        {recentJobs.length === 0 ? (
+                            <Text style={{ color: '#aaa', fontStyle: 'italic', padding: 8 }}>Henüz iş bulunmuyor.</Text>
+                        ) : (
+                            recentJobs.map((job) => (
+                                <TouchableOpacity
+                                    key={job.id}
+                                    style={styles.recentItem}
+                                    onPress={() => navigation.navigate('JobDetail', { jobId: job.id })}
+                                >
+                                    <View style={[styles.recentIcon, { backgroundColor: job.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(204, 255, 4, 0.1)' }]}>
+                                        <MaterialIcons name="work" size={20} color={job.status === 'COMPLETED' ? COLORS.green500 : COLORS.primary} />
+                                    </View>
+                                    <View style={styles.recentInfo}>
+                                        <Text style={styles.recentTitle} numberOfLines={1}>
+                                            {job.customer?.company ? `${job.customer.company} - ` : ''}{job.title}
+                                        </Text>
+                                        <Text style={styles.recentSubtitle}>
+                                            {job.status} • {new Date(job.createdAt).toLocaleDateString('tr-TR')}
+                                        </Text>
+                                    </View>
+                                    <MaterialIcons name="chevron-right" size={20} color={COLORS.slate600} />
+                                </TouchableOpacity>
+                            ))
+                        )}
                     </View>
                 </View>
 
@@ -259,7 +266,7 @@ export default function AdminDashboardScreen({ navigation }) {
                     <MaterialIcons name="group" size={24} color={COLORS.slate400} />
                     <Text style={styles.navText}>Ekip</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('JobAssignment')}>
+                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Jobs')}>
                     <MaterialIcons name="list-alt" size={24} color={COLORS.slate400} />
                     <Text style={styles.navText}>Görevler</Text>
                 </TouchableOpacity>

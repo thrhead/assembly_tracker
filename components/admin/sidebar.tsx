@@ -13,7 +13,8 @@ import {
   MenuIcon,
   XIcon,
   TrendingUpIcon,
-  CalendarIcon
+  CalendarIcon,
+  FileTextIcon
 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -48,6 +49,11 @@ const sidebarItems = [
     title: 'İşler',
     href: '/admin/jobs',
     icon: BriefcaseIcon
+  },
+  {
+    title: 'İş Şablonları',
+    href: '/admin/templates',
+    icon: FileTextIcon
   },
   {
     title: 'Onaylar',

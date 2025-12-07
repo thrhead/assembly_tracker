@@ -11,12 +11,12 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { UploadIcon, FileSpreadsheetIcon, Loader2Icon, DownloadIcon, AlertCircleIcon, CheckCircleIcon } from 'lucide-react'
+import { FileSpreadsheetIcon, Loader2Icon, DownloadIcon, AlertCircleIcon, CheckCircleIcon } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 
-export function BulkUploadDialog() {
+export function TemplateImportDialog() {
     const [open, setOpen] = useState(false)
     const [file, setFile] = useState<File | null>(null)
     const [isLoading, setIsLoading] = useState(false)
@@ -26,38 +26,29 @@ export function BulkUploadDialog() {
     const downloadTemplate = () => {
         const templateData = [
             {
-                "Job Title": "Örnek İş 1",
-                "Description": "İş açıklaması buraya",
-                "Customer Company": "Müşteri Firma Adı",
-                "Priority": "MEDIUM",
-                "Date": "2024-01-01",
+                "Template Name": "Duvar Tipi Klima Montajı",
+                "Description": "Standart duvar tipi klima montaj adımları",
                 "Step Title": "Hazırlık",
-                "SubStep Title": "Malzeme Kontrolü"
+                "SubStep Title": "Montaj yerinin belirlenmesi"
             },
             {
-                "Job Title": "Örnek İş 1",
-                "Description": "İş açıklaması buraya",
-                "Customer Company": "Müşteri Firma Adı",
-                "Priority": "MEDIUM",
-                "Date": "2024-01-01",
+                "Template Name": "Duvar Tipi Klima Montajı",
+                "Description": "Standart duvar tipi klima montaj adımları",
                 "Step Title": "Hazırlık",
-                "SubStep Title": "Ekipman Hazırlığı"
+                "SubStep Title": "Gerekli ekipmanların kontrolü"
             },
             {
-                "Job Title": "Örnek İş 1",
-                "Description": "İş açıklaması buraya",
-                "Customer Company": "Müşteri Firma Adı",
-                "Priority": "MEDIUM",
-                "Date": "2024-01-01",
-                "Step Title": "Montaj",
-                "SubStep Title": "Ana Ünite Montajı"
+                "Template Name": "Duvar Tipi Klima Montajı",
+                "Description": "Standart duvar tipi klima montaj adımları",
+                "Step Title": "İç Ünite Montajı",
+                "SubStep Title": "Montaj sacının sabitlenmesi"
             }
         ]
 
         const worksheet = XLSX.utils.json_to_sheet(templateData)
         const workbook = XLSX.utils.book_new()
         XLSX.utils.book_append_sheet(workbook, worksheet, "Template")
-        XLSX.writeFile(workbook, "Is_Yukleme_Sablonu.xlsx")
+        XLSX.writeFile(workbook, "Sablon_Yukleme_Formati.xlsx")
     }
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +68,7 @@ export function BulkUploadDialog() {
         formData.append("file", file)
 
         try {
-            const res = await fetch("/api/admin/jobs/bulk-import", {
+            const res = await fetch("/api/admin/templates/import", {
                 method: "POST",
                 body: formData,
             })
@@ -90,7 +81,7 @@ export function BulkUploadDialog() {
             setResult(data)
 
             if (data.success && (!data.errors || data.errors.length === 0)) {
-                toast.success(`${data.count} iş başarıyla oluşturuldu`)
+                toast.success(`${data.count} şablon başarıyla oluşturuldu`)
                 setTimeout(() => {
                     setOpen(false)
                     setFile(null)
@@ -98,7 +89,7 @@ export function BulkUploadDialog() {
                     router.refresh()
                 }, 2000)
             } else if (data.success && data.errors?.length > 0) {
-                toast.warning(`${data.count} iş oluşturuldu ancak bazı hatalar var.`)
+                toast.warning(`${data.count} şablon oluşturuldu ancak bazı hatalar var.`)
                 router.refresh()
             }
 
@@ -116,36 +107,34 @@ export function BulkUploadDialog() {
             <DialogTrigger asChild>
                 <Button variant="outline" className="gap-2">
                     <FileSpreadsheetIcon className="h-4 w-4" />
-                    Toplu Yükle
+                    Excel ile Şablon Yükle
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                    <DialogTitle>Excel ile Toplu İş Yükle</DialogTitle>
+                    <DialogTitle>Excel ile İş Şablonu Yükle</DialogTitle>
                 </DialogHeader>
 
                 <div className="space-y-6 py-4">
                     <div className="bg-blue-50 p-4 rounded-lg flex items-start gap-3">
                         <AlertCircleIcon className="h-5 w-5 text-blue-600 mt-0.5" />
                         <div className="text-sm text-blue-800">
-                            <p className="font-medium mb-1">Nasıl kullanılır?</p>
-                            <p>1. Şablonu indirin.</p>
-                            <p>2. İşlerinizi şablona uygun şekilde doldurun.</p>
-                            <p>3. Doldurduğunuz dosyayı buraya yükleyin.</p>
-                            <p className="mt-2 text-xs opacity-80">* Aynı "Job Title"a sahip satırlar tek bir iş olarak gruplanır.</p>
-                            <p className="text-xs opacity-80">* Müşteri ismi sistemde kayıtlı olmalıdır.</p>
+                            <p className="font-medium mb-1">Bilgilendirme</p>
+                            <p>1. Şablon formatını indirin.</p>
+                            <p>2. "Template Name" (Şablon Adı) aynı olan satırlar gruplanır.</p>
+                            <p>3. Aynı şablona ait adımlar ve alt adımlar otomatik oluşturulur.</p>
                         </div>
                     </div>
 
                     <div className="flex flex-col gap-4">
                         <Button variant="outline" onClick={downloadTemplate} className="w-full">
                             <DownloadIcon className="h-4 w-4 mr-2" />
-                            Örnek Şablonu İndir
+                            Formatı İndir
                         </Button>
 
                         <div className="grid w-full max-w-sm items-center gap-1.5">
-                            <Label htmlFor="excel-file">Excel Dosyası</Label>
-                            <Input id="excel-file" type="file" accept=".xlsx, .xls" onChange={handleFileChange} />
+                            <Label htmlFor="template-file">Excel Dosyası</Label>
+                            <Input id="template-file" type="file" accept=".xlsx, .xls" onChange={handleFileChange} />
                         </div>
                     </div>
 
@@ -162,12 +151,11 @@ export function BulkUploadDialog() {
                                 </span>
                             </div>
                             {result.count !== undefined && (
-                                <p className="text-sm text-green-700 mb-2">{result.count} iş başarıyla oluşturuldu.</p>
+                                <p className="text-sm text-green-700 mb-2">{result.count} şablon oluşturuldu.</p>
                             )}
                             {result.errors && result.errors.length > 0 && (
                                 <div className="text-sm text-red-700 max-h-[150px] overflow-y-auto">
-                                    <p className="font-medium">Hatalar:</p>
-                                    <ul className="list-disc pl-5 space-y-1 mt-1">
+                                    <ul className="list-disc pl-5 space-y-1">
                                         {result.errors.map((err, i) => (
                                             <li key={i}>{err}</li>
                                         ))}

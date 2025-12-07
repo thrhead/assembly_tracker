@@ -1,6 +1,6 @@
 # Aktif Bağlam
 
-**Son Güncelleme:** 02 Aralık 2024  
+**Son Güncelleme:** 06 Aralık 2025  
 **Versiyon:** 2.5.0 (Mobile Stable & Real-time Features)
 
 ### Mevcut Durum
@@ -9,7 +9,7 @@
 - **Mobil Uygulama:** Stable (v2.5.0). Worker, Manager ve Admin rolleri için tüm özellikler tamamlandı ve test edildi.
 - **Teknik Stack:** Next.js + PostgreSQL + Prisma + NextAuth.js + React Native (Expo)
 
-### Son Değişiklikler (Aralık 2024)
+### Son Değişiklikler (Aralık 2025)
 
 1.  **Mobil Uygulama Kararlılık Güncellemesi (v2.5.0)**:
     - **Bug Fixes**:

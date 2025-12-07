@@ -1,12 +1,12 @@
-import { auth } from "@/lib/auth";
+import { verifyAuth } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: Request) {
     try {
-        const session = await auth();
+        const session = await verifyAuth(req);
 
-        if (!session || session.user.role !== "ADMIN") {
+        if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 

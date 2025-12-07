@@ -226,6 +226,22 @@ const jobService = {
         }
     },
 
+    rejectJob: async (jobId, reason) => {
+        try {
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/manager/jobs/${jobId}/reject`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ reason })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'İş reddedilemedi');
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
     create: async (jobData) => {
         try {
             const headers = await getHeaders();
@@ -310,6 +326,51 @@ const jobService = {
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Alt adım başlatılamadı');
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    getTemplates: async () => {
+        try {
+            const headers = await getHeaders();
+            const response = await fetch(`${API_BASE_URL}/api/admin/templates`, { headers });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Şablonlar alınamadı');
+            return data;
+        } catch (error) {
+            console.error('Get templates error:', error);
+            throw error;
+        }
+    },
+
+    bulkImportJobs: async (formData) => {
+        try {
+            const headers = await getHeaders(true); // Is FormData
+            const response = await fetch(`${API_BASE_URL}/api/admin/jobs/bulk-import`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Toplu iş yükleme başarısız');
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    importTemplate: async (formData) => {
+        try {
+            const headers = await getHeaders(true); // Is FormData
+            const response = await fetch(`${API_BASE_URL}/api/admin/templates/import`, {
+                method: 'POST',
+                headers,
+                body: formData
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Şablon yükleme başarısız');
             return data;
         } catch (error) {
             throw error;

@@ -26,9 +26,8 @@ const getBaseUrl = () => {
         return 'http://10.0.2.2:3000';
     }
 
-    // For iOS simulator or physical devices
-    // You might want to make this configurable or dynamic
-    return 'http://192.168.1.173:3000';
+    // Default to localhost for iOS simulator or other cases
+    return 'http://localhost:3000';
 };
 
 const API_BASE_URL = __DEV__ ? getBaseUrl() : 'https://your-production-url.com';
