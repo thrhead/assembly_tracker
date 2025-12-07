@@ -27,6 +27,7 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
 
   const handleLogin = async () => {
@@ -172,7 +173,9 @@ export default function LoginScreen({ navigation }) {
           placeholder="Şifre"
           value={password}
           onChangeText={setPassword}
-          secureTextEntry
+          secureTextEntry={!showPassword}
+          rightIcon={showPassword ? 'visibility' : 'visibility-off'}
+          onRightIconPress={() => setShowPassword(!showPassword)}
           editable={!loading}
         />
 

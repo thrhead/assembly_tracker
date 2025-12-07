@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import * as Notifications from 'expo-notifications';
 import notificationService from '../../services/notification.service';
 
 export default function NotificationsScreen({ navigation }) {
@@ -13,6 +14,14 @@ export default function NotificationsScreen({ navigation }) {
             loadNotifications();
         }, [])
     );
+
+    // Listen for incoming notifications while on this screen
+    React.useEffect(() => {
+        const subscription = Notifications.addNotificationReceivedListener(_ => {
+            loadNotifications();
+        });
+        return () => subscription.remove();
+    }, []);
 
     const loadNotifications = async () => {
         try {

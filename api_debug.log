@@ -1,0 +1,31 @@
+2025-12-06T05:03:09.552Z - Users API: GET Request received
+2025-12-06T05:03:12.564Z - Users API: Session: Null, Role: undefined
+2025-12-06T05:03:15.162Z - Users API: Unauthorized access attempt
+2025-12-06T05:06:32.388Z - Users API: GET Request received
+2025-12-06T05:06:32.535Z - Users API: Session: Found, Role: ADMIN
+2025-12-06T05:06:32.538Z - [API] Users Fetch Query: {}
+2025-12-06T05:08:49.529Z - Users API: GET Request received
+2025-12-06T05:08:49.648Z - Users API: Session: Found, Role: ADMIN
+2025-12-06T05:08:49.689Z - [API] Users Fetch Query: {}
+2025-12-06T05:08:50.117Z - Users API: GET Request received
+2025-12-06T05:08:50.376Z - Users API: Session: Null, Role: undefined
+2025-12-06T05:08:50.382Z - Users API: Unauthorized access attempt
+2025-12-06T05:10:25.776Z - Users API: GET Request received
+2025-12-06T05:10:27.189Z - Users API: Session: Null, Role: undefined
+2025-12-06T05:10:27.220Z - Users API: Unauthorized access attempt
+2025-12-06T08:17:32.026Z - Mobile login request received (POST /api/mobile/login)
+2025-12-06T08:17:32.030Z - Login attempt for email: admin@montaj.com
+2025-12-06T08:17:32.403Z - Login success: admin@montaj.com (Role: ADMIN)
+2025-12-06T08:17:46.547Z - Users API: GET Request received
+2025-12-06T08:17:46.563Z - Users API: Session: Found, Role: ADMIN
+2025-12-06T08:17:46.567Z - [API] Users Fetch Query: {}
+2025-12-06T08:19:42.446Z - Users API: GET Request received
+2025-12-06T08:19:42.497Z - Users API: Session: Found, Role: ADMIN
+2025-12-06T08:19:42.535Z - [API] Users Fetch Query: {}
+2025-12-06T08:20:15.003Z - [API] User Create Request Body: {"name":"esra yildiz","email":"esra@montaj.com","role":"TEAM_LEAD","password":"esr123"}
+2025-12-06T08:20:18.648Z - Users API: GET Request received
+2025-12-06T08:20:18.662Z - Users API: Session: Found, Role: ADMIN
+2025-12-06T08:20:18.666Z - [API] Users Fetch Query: {}
+2025-12-06T08:27:26.167Z - Users API: GET Request received
+2025-12-06T08:27:28.346Z - Users API: Session: Found, Role: ADMIN
+2025-12-06T08:27:28.348Z - [API] Users Fetch Query: {}

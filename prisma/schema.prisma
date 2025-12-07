@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -22,6 +22,7 @@ model User {
   phone         String?
   avatarUrl     String?
   isActive      Boolean   @default(true)
+  pushToken     String?   // Expo push token
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

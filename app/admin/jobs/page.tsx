@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/db"
 import { JobDialog } from "@/components/admin/job-dialog"
+import { BulkUploadDialog } from "@/components/admin/bulk-upload-dialog"
 import {
   Table,
   TableBody,
@@ -105,7 +106,10 @@ export default async function JobsPage(props: {
           <h1 className="text-3xl font-bold text-gray-900">İşler</h1>
           <p className="text-gray-500 mt-2">Montaj ve servis işlerini yönetin.</p>
         </div>
-        <JobDialog />
+        <div className="flex items-center gap-2">
+          <BulkUploadDialog />
+          <JobDialog />
+        </div>
       </div>
 
       <div className="bg-white rounded-lg shadow">

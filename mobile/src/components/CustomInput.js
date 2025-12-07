@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TextInput, StyleSheet, Text } from 'react-native';
+import { View, TextInput, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { COLORS } from '../constants/theme';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -9,6 +9,8 @@ const CustomInput = ({
     placeholder,
     secureTextEntry,
     icon,
+    rightIcon,
+    onRightIconPress,
     label,
     error,
     keyboardType,
@@ -39,6 +41,15 @@ const CustomInput = ({
                     autoCapitalize={autoCapitalize}
                     editable={editable}
                 />
+                {rightIcon && (
+                    <TouchableOpacity onPress={onRightIconPress} style={styles.rightIcon}>
+                        <MaterialIcons
+                            name={rightIcon}
+                            size={20}
+                            color={COLORS.slate500}
+                        />
+                    </TouchableOpacity>
+                )}
             </View>
             {error && <Text style={styles.errorText}>{error}</Text>}
         </View>
@@ -69,6 +80,9 @@ const styles = StyleSheet.create({
     },
     icon: {
         marginLeft: 12,
+    },
+    rightIcon: {
+        marginRight: 12,
     },
     input: {
         flex: 1,

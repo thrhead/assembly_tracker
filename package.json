@@ -13,6 +13,10 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/interaction": "^6.1.19",
+    "@fullcalendar/react": "^6.1.19",
+    "@fullcalendar/timegrid": "^6.1.19",
     "@hookform/resolvers": "^5.2.2",
     "@prisma/client": "5.22.0",
     "@radix-ui/react-avatar": "^1.1.11",
@@ -32,6 +36,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
+    "expo-server-sdk": "^4.0.0",
     "jose": "^6.1.2",
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.2",

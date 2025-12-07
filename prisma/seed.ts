@@ -78,6 +78,36 @@ async function main() {
   })
   console.log('✅ Customer Profile:', customer.company)
 
+  // Create Specific Team Lead: Tahir Kahraman
+  const tahirPassword = await hash('thr123', 10)
+  const tahir = await prisma.user.upsert({
+    where: { email: 'tahir@montaj.com' },
+    update: {},
+    create: {
+      email: 'tahir@montaj.com',
+      passwordHash: tahirPassword,
+      name: 'Tahir Kahraman',
+      role: 'TEAM_LEAD',
+      phone: '555-0011',
+    },
+  })
+  console.log('✅ Team Lead:', tahir.email)
+
+  // Create Specific Worker: Ali Gor
+  const aliPassword = await hash('ali123', 10)
+  const ali = await prisma.user.upsert({
+    where: { email: 'ali@montaj.com' },
+    update: {},
+    create: {
+      email: 'ali@montaj.com',
+      passwordHash: aliPassword,
+      name: 'Ali Gor',
+      role: 'WORKER',
+      phone: '555-0012',
+    },
+  })
+  console.log('✅ Worker (Ali):', ali.email)
+
   // Create Sample Job
   const job = await prisma.job.create({
     data: {
@@ -90,9 +120,10 @@ async function main() {
       customerId: customer.id,
       creatorId: manager.id, // Required field
       assignments: {
-        create: {
-          workerId: worker.id,
-        }
+        create: [
+          { workerId: worker.id },
+          { workerId: ali.id }
+        ]
       },
       steps: {
         create: [
@@ -139,6 +170,8 @@ async function main() {
   console.log('Admin: admin@montaj.com / admin123')
   console.log('Manager: manager@montaj.com / manager123')
   console.log('Worker: worker@montaj.com / worker123')
+  console.log('Team Lead (Tahir): tahir@montaj.com / thr123')
+  console.log('Worker (Ali): ali@montaj.com / ali123')
   console.log('Customer: customer@montaj.com / customer123')
 }
 

@@ -52,6 +52,7 @@ export default function AdminDashboardScreen({ navigation }) {
         { id: 'jobs', title: 'İşler', icon: 'work', route: 'JobAssignment', color: COLORS.orange500 },
         { id: 'approvals', title: 'Onaylar', icon: 'fact-check', route: 'Approvals', color: COLORS.teal500 },
         { id: 'costs', title: 'Maliyetler', icon: 'attach-money', route: 'CostManagement', color: COLORS.green500 },
+        { id: 'calendar', title: 'Takvim', icon: 'calendar-today', route: 'Calendar', color: COLORS.purple500 },
     ];
 
     // Real data from API

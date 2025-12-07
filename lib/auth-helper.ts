@@ -2,28 +2,17 @@ import { auth } from "@/lib/auth"
 import { jwtVerify } from "jose"
 
 export async function verifyAuth(req: Request) {
-    // 1. Check NextAuth session (Cookies)
-    // 1. Check NextAuth session (Cookies)
-    try {
-        const session = await auth()
-        if (session) return session
-    } catch (e) {
-        console.error("verifyAuth: NextAuth auth() failed:", e)
-    }
-
-    // 2. Check Authorization header (Mobile)
+    // 1. Check Authorization header (Mobile) first for performance
     const authHeader = req.headers.get("Authorization")
-    console.log("verifyAuth: Auth header:", authHeader)
-    if (!authHeader) console.log("verifyAuth: No auth header found")
+    // console.log("verifyAuth: Auth header present:", !!authHeader)
 
     if (authHeader?.startsWith("Bearer ")) {
         const token = authHeader.split(" ")[1]
         try {
-            const secretKey = process.env.NEXTAUTH_SECRET || "fallback_secret"
-            console.log("verifyAuth: Verifying token with secret length:", secretKey.length)
+            const secretKey = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "fallback_secret"
             const secret = new TextEncoder().encode(secretKey)
             const { payload } = await jwtVerify(token, secret)
-            console.log("verifyAuth: Token verified, role:", payload.role)
+            // console.log("verifyAuth: Token verified, role:", payload.role)
 
             // Return a session-like object
             return {
@@ -38,11 +27,18 @@ export async function verifyAuth(req: Request) {
             }
         } catch (err) {
             console.error("verifyAuth: Token verification failed:", err)
-            // Token invalid or expired
+            // If token is invalid, we don't fall back to cookie auth for security reasons
+            // (if a token is provided, it must be valid)
             return null
         }
-    } else {
-        console.log("verifyAuth: No Bearer token found in header")
+    }
+
+    // 2. Fallback to NextAuth session (Web / Cookies)
+    try {
+        const session = await auth()
+        if (session) return session
+    } catch (e) {
+        console.error("verifyAuth: NextAuth auth() failed:", e)
     }
 
     return null

@@ -5,7 +5,8 @@ import { Platform } from 'react-native';
 // TODO: Update with ngrok URL when using tunnel
 // Get ngrok URL by running: ngrok http 3000
 // Example: https://abc123-def456.ngrok-free.app
-const NGROK_URL = 'https://mounting-split-vic-should.trycloudflare.com';
+// const NGROK_URL = 'https://deadline-searching-execute-formed.trycloudflare.com';
+const NGROK_URL = ''; // Tunnel disabled by user request
 
 // Determine the correct base URL based on platform
 const getBaseUrl = () => {

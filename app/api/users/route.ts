@@ -29,8 +29,8 @@ export async function GET(req: Request) {
 
     if (search) {
       where.OR = [
-        { name: { contains: search } }, // SQLite case-insensitive değil, normalde mode: 'insensitive' olurdu ama SQLite'da default
-        { email: { contains: search } }
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } }
       ]
     }
 

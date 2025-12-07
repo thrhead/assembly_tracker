@@ -12,7 +12,8 @@ import {
   LogOutIcon,
   MenuIcon,
   XIcon,
-  TrendingUpIcon
+  TrendingUpIcon,
+  CalendarIcon
 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -37,6 +38,11 @@ const sidebarItems = [
     title: 'Ekipler',
     href: '/admin/teams',
     icon: BriefcaseIcon
+  },
+  {
+    title: 'Takvim',
+    href: '/admin/calendar',
+    icon: CalendarIcon
   },
   {
     title: 'İşler',

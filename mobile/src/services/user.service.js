@@ -29,7 +29,6 @@ const userService = {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error('Fetch users failed:', response.status, errorText);
                 throw new Error('Kullanıcılar getirilemedi');
             }
 

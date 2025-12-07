@@ -113,6 +113,15 @@ export default function ManagerDashboardScreen({ navigation }) {
                         style={{ flex: 1 }}
                     />
                     <DashboardAction
+                        label="Takvim"
+                        icon={<MaterialIcons name="calendar-today" size={32} color={COLORS.purple500} />}
+                        onPress={() => navigation.navigate('Calendar')}
+                        isActive={true}
+                        style={{ flex: 1 }}
+                    />
+                </View>
+                <View style={[styles.quickActions, { marginTop: 12 }]}>
+                    <DashboardAction
                         label="İş Atama"
                         icon={<MaterialIcons name="assignment" size={32} color={COLORS.orange500} />}
                         onPress={() => navigation.navigate('JobAssignment')}
