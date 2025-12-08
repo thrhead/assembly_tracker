@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, InteractionManager } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -15,10 +15,9 @@ const formatDate = (date) => {
 
 export default function CalendarScreen({ navigation }) {
     const insets = useSafeAreaInsets();
-    const [markedDates, setMarkedDates] = useState({});
+    // Raw events from API
+    const [rawEvents, setRawEvents] = useState([]);
     const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
-    const [eventsForDate, setEventsForDate] = useState([]);
-    const [allEvents, setAllEvents] = useState({});
     const [loading, setLoading] = useState(false);
 
     const fetchCalendarData = useCallback(async () => {
@@ -33,96 +32,95 @@ export default function CalendarScreen({ navigation }) {
 
             console.log('[Calendar] Fetching:', startStr, 'to', endStr);
             const response = await api.get(`/api/calendar/events?start=${encodeURIComponent(startStr)}&end=${encodeURIComponent(endStr)}`);
-            console.log('[Calendar] Response status:', response.status);
-            console.log('[Calendar] Events count:', response.data?.length);
 
-            const events = response.data;
-
-            if (!events || events.length === 0) {
-                console.log('[Calendar] No events returned from API');
-                setMarkedDates({});
-                setAllEvents({});
-                setEventsForDate([]);
-                return;
+            // Just set the raw data, let useMemo handle the heavy lifting
+            if (response.data) {
+                setRawEvents(response.data);
             }
-
-            console.log('[Calendar] Sample event:', events[0]);
-
-            const marked = {};
-            const eventsByDate = {};
-
-            events.forEach(event => {
-                const startDate = new Date(event.start);
-                let endDate = event.end ? new Date(event.end) : new Date(startDate);
-                if (endDate < startDate) endDate = new Date(startDate);
-
-                let currentDate = new Date(startDate);
-                let safetyCounter = 0;
-
-                while (currentDate <= endDate && safetyCounter < 365) {
-                    const dateKey = formatDate(currentDate);
-
-                    if (!marked[dateKey]) {
-                        marked[dateKey] = { dots: [] };
-                    }
-
-                    // Add dot if not already added for this event (prevent duplicates if logic tweaks)
-                    // Limit dots to 3 to prevent UI overflow
-                    if (marked[dateKey].dots.length < 3) {
-                        marked[dateKey].dots.push({
-                            key: event.id,
-                            color: event.color || '#39FF14'
-                        });
-                    }
-
-                    if (!eventsByDate[dateKey]) {
-                        eventsByDate[dateKey] = [];
-                    }
-
-                    eventsByDate[dateKey].push({
-                        id: event.id,
-                        title: event.title,
-                        start: event.start,
-                        end: event.end,
-                        color: event.color,
-                        status: event.extendedProps?.status,
-                        location: event.extendedProps?.location,
-                        assignments: event.extendedProps?.assignments
-                    });
-
-                    currentDate.setDate(currentDate.getDate() + 1);
-                    safetyCounter++;
-                }
-            });
-
-            console.log('[Calendar] Marked dates count:', Object.keys(marked).length);
-
-            setMarkedDates(marked);
-            setAllEvents(eventsByDate);
-            const todayEvents = eventsByDate[selectedDate] || [];
-            setEventsForDate(todayEvents);
-            console.log('[Calendar] Events for today:', selectedDate, todayEvents.length);
         } catch (error) {
             console.error('[Calendar] Error:', error);
-            console.error('[Calendar] Error response:', error.response?.data);
         } finally {
             setLoading(false);
         }
-    }, [selectedDate]);
+    }, []);
 
     useFocusEffect(
         useCallback(() => {
-            fetchCalendarData();
+            // Defer fetching until after transitions
+            const task = InteractionManager.runAfterInteractions(() => {
+                fetchCalendarData();
+            });
+            return () => task.cancel();
         }, [fetchCalendarData])
     );
 
+    // Optimized event processing using useMemo
+    const { markedDates, eventsByDate } = useMemo(() => {
+        const marked = {};
+        const byDate = {};
+
+        // Safety check for empty data
+        if (!rawEvents || rawEvents.length === 0) {
+            return { markedDates: marked, eventsByDate: byDate };
+        }
+
+        console.log('[Calendar] Processing events count:', rawEvents.length);
+
+        rawEvents.forEach(event => {
+            const startDate = new Date(event.start);
+            let endDate = event.end ? new Date(event.end) : new Date(startDate);
+            if (endDate < startDate) endDate = new Date(startDate);
+
+            // Optimization: Limit the loop to reasonable range (e.g. max 60 days per event)
+            // to prevent infinite loops or UI freezing on bad data
+            let currentDate = new Date(startDate);
+            let daysProcessed = 0;
+
+            while (currentDate <= endDate && daysProcessed < 60) {
+                const dateKey = formatDate(currentDate);
+
+                if (!marked[dateKey]) {
+                    marked[dateKey] = { dots: [] };
+                }
+
+                // Add dot if limit not reached
+                if (marked[dateKey].dots.length < 3) {
+                    marked[dateKey].dots.push({
+                        key: event.id,
+                        color: event.color || '#39FF14'
+                    });
+                }
+
+                if (!byDate[dateKey]) {
+                    byDate[dateKey] = [];
+                }
+
+                byDate[dateKey].push({
+                    id: event.id,
+                    title: event.title,
+                    start: event.start,
+                    end: event.end,
+                    color: event.color,
+                    status: event.extendedProps?.status,
+                    location: event.extendedProps?.location,
+                    assignments: event.extendedProps?.assignments
+                });
+
+                currentDate.setDate(currentDate.getDate() + 1);
+                daysProcessed++;
+            }
+        });
+
+        return { markedDates: marked, eventsByDate: byDate };
+    }, [rawEvents]);
+
     const onDayPress = useCallback((day) => {
-        console.log('[Calendar] Day pressed:', day.dateString);
         setSelectedDate(day.dateString);
-        const dayEvents = allEvents[day.dateString] || [];
-        console.log('[Calendar] Events for day:', dayEvents.length);
-        setEventsForDate(dayEvents);
-    }, [allEvents]);
+    }, []);
+
+    const eventsForSelectedDate = useMemo(() => {
+        return eventsByDate[selectedDate] || [];
+    }, [eventsByDate, selectedDate]);
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -185,15 +183,14 @@ export default function CalendarScreen({ navigation }) {
                     })}
                 </Text>
                 <ScrollView style={styles.eventsList}>
-                    {eventsForDate.length === 0 ? (
+                    {eventsForSelectedDate.length === 0 ? (
                         <Text style={styles.noEvents}>Bu tarihte planlanmış iş yok</Text>
                     ) : (
-                        eventsForDate.map((event, index) => (
+                        eventsForSelectedDate.map((event, index) => (
                             <TouchableOpacity
                                 key={`${event.id}-${index}`}
                                 style={[styles.eventCard, { borderLeftColor: event.color || '#39FF14' }]}
                                 onPress={() => {
-                                    console.log('[Calendar] Navigating to JobDetail with ID:', event.id);
                                     navigation.navigate('JobDetail', { jobId: event.id });
                                 }}
                             >
