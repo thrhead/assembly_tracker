@@ -43,13 +43,17 @@ export async function GET(req: Request) {
       }
     }
 
+    // Pagination
+    const page = searchParams.get('page') ? parseInt(searchParams.get('page') as string) : null;
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit') as string) : null;
+
     if (status) {
       where.status = status
     }
 
     logToFile(`Worker Jobs API: Querying DB for user ${session.user.id}`);
 
-    const jobs = await prisma.job.findMany({
+    const queryOptions: any = {
       where,
       orderBy: [
         { priority: 'desc' }, // Acil işler önce
@@ -72,9 +76,31 @@ export async function GET(req: Request) {
           }
         }
       }
-    })
+    };
+
+    if (limit) {
+      queryOptions.take = limit;
+      if (page) {
+        queryOptions.skip = (page - 1) * limit;
+      }
+    }
+
+    const jobs = await prisma.job.findMany(queryOptions);
 
     logToFile(`Worker Jobs API: Found ${jobs.length} jobs`);
+
+    if (page && limit) {
+      const total = await prisma.job.count({ where });
+      return NextResponse.json({
+        data: jobs,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit)
+        }
+      });
+    }
 
     return NextResponse.json(jobs)
   } catch (error) {

@@ -2,10 +2,17 @@ import { API_BASE_URL, getAuthToken } from './api';
 
 const getHeaders = async (isFormData = false) => {
     const token = await getAuthToken();
+    console.log('[JobService] Getting headers. Token present:', !!token, token ? token.substring(0, 10) + '...' : 'none');
+
     const headers = {
         'Accept': 'application/json',
         'Authorization': token ? `Bearer ${token}` : ''
     };
+
+    if (!token) {
+        console.warn('[JobService] WARNING: No auth token found! Request will likely fail or be slow.');
+    }
+
     if (!isFormData) {
         headers['Content-Type'] = 'application/json';
     }
@@ -26,10 +33,16 @@ const jobService = {
         }
     },
 
-    getMyJobs: async () => {
+    getMyJobs: async (filters = {}) => {
         try {
+            const params = new URLSearchParams();
+            if (filters.search) params.append('search', filters.search);
+            if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
+            if (filters.page) params.append('page', filters.page.toString());
+            if (filters.limit) params.append('limit', filters.limit.toString());
+
             const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/worker/jobs`, { headers });
+            const response = await fetch(`${API_BASE_URL}/api/worker/jobs?${params.toString()}`, { headers });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'İşlerim alınamadı');
             return data;

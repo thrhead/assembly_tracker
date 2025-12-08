@@ -67,7 +67,7 @@ export default function WorkerJobsScreen() {
     }, [selectedFilter, searchQuery]);
 
     const getStatusFromFilter = (filter) => {
-        switch(filter) {
+        switch (filter) {
             case 'Devam Eden': return 'IN_PROGRESS';
             case 'Bekleyen': return 'PENDING';
             case 'Tamamlanan': return 'COMPLETED';
@@ -105,9 +105,24 @@ export default function WorkerJobsScreen() {
                     newJobs = response;
                 }
             } else {
-                // For workers: Fetch all and filter client-side (legacy logic)
-                const allJobs = await jobService.getMyJobs();
-                newJobs = filterJobsClientSide(allJobs);
+                // For workers: Fetch paginated with filters
+                const filters = {
+                    page: pageNumber,
+                    limit: ITEMS_PER_PAGE,
+                    status: getStatusFromFilter(selectedFilter),
+                    search: searchQuery
+                };
+
+                const response = await jobService.getMyJobs(filters);
+
+                // Handle response format (paginated vs array)
+                if (response.data && Array.isArray(response.data)) {
+                    newJobs = response.data;
+                    meta = response.meta;
+                } else if (Array.isArray(response)) {
+                    // Fallback for non-paginated API responses (if any)
+                    newJobs = response;
+                }
             }
 
             if (shouldRefresh || pageNumber === 1) {
@@ -116,11 +131,11 @@ export default function WorkerJobsScreen() {
                 setJobs(prev => [...prev, ...newJobs]);
             }
 
-            // Check if we have more pages
-            if (isAdmin && meta) {
+            // Check if we have more pages (Common logic for both)
+            if (meta) {
                 setHasMore(pageNumber < meta.totalPages);
             } else {
-                // If worker (not paginated API yet) or no meta, assume loaded all
+                // If no meta, assume loaded all (or backend doesn't support pagination yet correctly)
                 setHasMore(false);
             }
 
@@ -164,7 +179,7 @@ export default function WorkerJobsScreen() {
     };
 
     const handleLoadMore = () => {
-        if (!isAdmin) return; // Only admin endpoint is paginated for now
+        // if (!isAdmin) return; // Removed: Workers now support pagination
         if (isLoadingMore || !hasMore || refreshing) return;
 
         const nextPage = page + 1;
