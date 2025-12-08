@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import authService from '../services/auth.service';
 import { setAuthToken, clearAuthToken, registerLogoutCallback, getAuthToken } from '../services/api';
@@ -94,13 +94,13 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const value = {
+    const value = useMemo(() => ({
         user,
         login,
         logout,
         loading,
         isAuthenticated: !!user,
-    };
+    }), [user, loading]);
 
     return (
         <AuthContext.Provider value={value}>

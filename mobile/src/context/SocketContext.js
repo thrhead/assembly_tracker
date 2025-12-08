@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useMemo } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 import { API_BASE_URL } from '../services/api';
@@ -171,15 +171,17 @@ export const SocketProvider = ({ children }) => {
         }
     };
 
+    const value = useMemo(() => ({
+        socket,
+        isConnected,
+        unreadCount,
+        notifications,
+        markAsRead,
+        markAllAsRead
+    }), [socket, isConnected, unreadCount, notifications]);
+
     return (
-        <SocketContext.Provider value={{
-            socket,
-            isConnected,
-            unreadCount,
-            notifications,
-            markAsRead,
-            markAllAsRead
-        }}>
+        <SocketContext.Provider value={value}>
             {children}
         </SocketContext.Provider>
     );

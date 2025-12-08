@@ -122,6 +122,8 @@ const jobService = {
             if (filters.search) params.append('search', filters.search);
             if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
             if (filters.priority) params.append('priority', filters.priority);
+            if (filters.page) params.append('page', filters.page.toString());
+            if (filters.limit) params.append('limit', filters.limit.toString());
 
             const headers = await getHeaders();
             const response = await fetch(`${API_BASE_URL}/api/admin/jobs?${params.toString()}`, { headers });

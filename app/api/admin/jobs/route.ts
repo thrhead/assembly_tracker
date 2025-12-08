@@ -36,6 +36,10 @@ export async function GET(req: Request) {
         const teamId = searchParams.get('teamId')
         const customerId = searchParams.get('customerId')
 
+        // Pagination
+        const page = searchParams.get('page') ? parseInt(searchParams.get('page') as string) : null;
+        const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit') as string) : null;
+
         const where: any = {}
 
         if (search) {
@@ -54,7 +58,7 @@ export async function GET(req: Request) {
             where.assignments = { some: { teamId } }
         }
 
-        const jobs = await prisma.job.findMany({
+        const queryOptions: any = {
             where,
             orderBy: { createdAt: 'desc' },
             include: {
@@ -79,10 +83,35 @@ export async function GET(req: Request) {
                     }
                 }
             }
-        })
+        };
+
+        // Apply pagination if provided
+        if (limit) {
+            queryOptions.take = limit;
+            if (page) {
+                queryOptions.skip = (page - 1) * limit;
+            }
+        }
+
+        const jobs = await prisma.job.findMany(queryOptions);
 
         logToFile(`Admin Jobs API: Returning ${jobs.length} jobs`);
 
+        // If page is provided, return paginated structure
+        if (page && limit) {
+            const total = await prisma.job.count({ where });
+            return NextResponse.json({
+                data: jobs,
+                meta: {
+                    total,
+                    page,
+                    limit,
+                    totalPages: Math.ceil(total / limit)
+                }
+            });
+        }
+
+        // Default behavior: return array (also for limit-only requests)
         return NextResponse.json(jobs)
     } catch (error) {
         logToFile(`Admin Jobs API Error: ${error}`);
