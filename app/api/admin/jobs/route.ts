@@ -4,30 +4,17 @@ import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { jobCreationSchema } from '@/lib/validations'
-import * as fs from 'fs';
-import * as path from 'path';
-
-const LOG_FILE = path.join(process.cwd(), 'api_debug.log');
-
-function logToFile(message: string) {
-    const timestamp = new Date().toISOString();
-    try {
-        fs.appendFileSync(LOG_FILE, `${timestamp} - ${message}\n`);
-    } catch (e) {
-        console.error('Failed to write to log file:', e);
-    }
-}
 
 export async function GET(req: Request) {
     try {
-        logToFile('Admin Jobs API: GET Request received');
+        console.log('Admin Jobs API: GET Request received');
         const session = await verifyAuth(req)
         if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
-            logToFile('Admin Jobs API: Unauthorized access attempt');
+            console.log('Admin Jobs API: Unauthorized access attempt');
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        logToFile(`Admin Jobs API: Session Found (User: ${session.user.email})`);
+        console.log(`Admin Jobs API: Session Found (User: ${session.user.email})`);
 
         const { searchParams } = new URL(req.url)
         const search = searchParams.get('search')
@@ -95,7 +82,7 @@ export async function GET(req: Request) {
 
         const jobs = await prisma.job.findMany(queryOptions);
 
-        logToFile(`Admin Jobs API: Returning ${jobs.length} jobs`);
+        console.log(`Admin Jobs API: Returning ${jobs.length} jobs`);
 
         // If page is provided, return paginated structure
         if (page && limit) {
@@ -114,7 +101,7 @@ export async function GET(req: Request) {
         // Default behavior: return array (also for limit-only requests)
         return NextResponse.json(jobs)
     } catch (error) {
-        logToFile(`Admin Jobs API Error: ${error}`);
+        console.error(`Admin Jobs API Error: ${error}`);
         console.error('Jobs fetch error:', error)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }

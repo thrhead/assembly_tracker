@@ -1,30 +1,17 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
-import * as fs from 'fs';
-import * as path from 'path';
-
-const LOG_FILE = path.join(process.cwd(), 'api_debug.log');
-
-function logToFile(message: string) {
-  const timestamp = new Date().toISOString();
-  try {
-    fs.appendFileSync(LOG_FILE, `${timestamp} - ${message}\n`);
-  } catch (e) {
-    console.error('Failed to write to log file:', e);
-  }
-}
 
 export async function GET(req: Request) {
   try {
-    logToFile('Worker Jobs API: GET Request received');
+    console.log('Worker Jobs API: GET Request received');
     const session = await verifyAuth(req)
     if (!session || !['WORKER', 'TEAM_LEAD', 'ADMIN', 'MANAGER'].includes(session.user.role)) {
-      logToFile('Worker Jobs API: Unauthorized access attempt');
+      console.log('Worker Jobs API: Unauthorized access attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    logToFile(`Worker Jobs API: Session Found (User: ${session.user.email}, Role: ${session.user.role})`);
+    console.log(`Worker Jobs API: Session Found (User: ${session.user.email}, Role: ${session.user.role})`);
 
     const { searchParams } = new URL(req.url)
     const status = searchParams.get('status')
@@ -51,7 +38,7 @@ export async function GET(req: Request) {
       where.status = status
     }
 
-    logToFile(`Worker Jobs API: Querying DB for user ${session.user.id}`);
+    console.log(`Worker Jobs API: Querying DB for user ${session.user.id}`);
 
     const queryOptions: any = {
       where,
@@ -87,7 +74,7 @@ export async function GET(req: Request) {
 
     const jobs = await prisma.job.findMany(queryOptions);
 
-    logToFile(`Worker Jobs API: Found ${jobs.length} jobs`);
+    console.log(`Worker Jobs API: Found ${jobs.length} jobs`);
 
     if (page && limit) {
       const total = await prisma.job.count({ where });
@@ -104,7 +91,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(jobs)
   } catch (error) {
-    logToFile(`Worker Jobs API Error: ${error}`);
+    console.error(`Worker Jobs API Error: ${error}`);
     console.error('Worker jobs fetch error:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
