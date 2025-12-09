@@ -29,13 +29,12 @@ export default function AdminDashboardScreen({ navigation }) {
             console.log('[Dashboard] Fetching stats and jobs...');
             const [statsRes, jobsRes] = await Promise.all([
                 api.get('/admin/stats'),
-                api.get('/admin/jobs?limit=5')
+                api.get('/admin/jobs')
             ]);
 
             console.log('[Dashboard] Data received:', statsRes.data, jobsRes.data?.length);
             setStatsData(statsRes.data);
-            // API returns array when only limit is provided (backward compatibility)
-            setRecentJobs(jobsRes.data || []);
+            setRecentJobs(jobsRes.data?.slice(0, 5) || []); // Take first 5 recent jobs
         } catch (error) {
             console.error('Error fetching admin dashboard data:', error);
             // Optionally set empty state on error

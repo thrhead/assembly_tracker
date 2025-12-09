@@ -11,8 +11,7 @@ import {
     StatusBar,
     Modal,
     Alert,
-    Linking,
-    ActivityIndicator
+    Linking
 } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -28,14 +27,8 @@ import CreateJobModal from '../../components/modals/CreateJobModal';
 export default function WorkerJobsScreen() {
     const navigation = useNavigation();
     const { user } = useAuth();
-
-    // Pagination state
     const [jobs, setJobs] = useState([]);
-    const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-
-    // Filtering state
+    const [filteredJobs, setFilteredJobs] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState('Tümü');
     const [searchQuery, setSearchQuery] = useState('');
@@ -46,119 +39,44 @@ export default function WorkerJobsScreen() {
     const [uploadModalVisible, setUploadModalVisible] = useState(false);
 
     const isAdmin = user?.role === 'ADMIN' || user?.role === 'MANAGER';
-    const ITEMS_PER_PAGE = 20;
 
     useFocusEffect(
         useCallback(() => {
-            // Initial fetch on focus
-            setPage(1);
-            fetchJobs(1, true);
+            fetchJobs();
         }, [isAdmin])
     );
 
     useEffect(() => {
-        // When filters change, reset to page 1 and fetch
+        // Debounce search
         const handler = setTimeout(() => {
-            setPage(1);
-            fetchJobs(1, true);
+            filterJobs();
         }, 300);
 
         return () => clearTimeout(handler);
-    }, [selectedFilter, searchQuery]);
+    }, [jobs, selectedFilter, searchQuery]);
 
-    const getStatusFromFilter = (filter) => {
-        switch (filter) {
-            case 'Devam Eden': return 'IN_PROGRESS';
-            case 'Bekleyen': return 'PENDING';
-            case 'Tamamlanan': return 'COMPLETED';
-            default: return 'ALL';
-        }
-    };
-
-    const fetchJobs = async (pageNumber = 1, shouldRefresh = false) => {
+    const fetchJobs = async () => {
         try {
-            if (shouldRefresh) {
-                setRefreshing(true);
-            } else {
-                setIsLoadingMore(true);
-            }
-
-            let newJobs = [];
-            let meta = null;
-
-            if (isAdmin) {
-                // Fetch paginated with filters for admins
-                const filters = {
-                    page: pageNumber,
-                    limit: ITEMS_PER_PAGE,
-                    status: getStatusFromFilter(selectedFilter),
-                    search: searchQuery
-                };
-
-                const response = await jobService.getAllJobs(filters);
-
-                // Handle response format (paginated vs array)
-                if (response.data && Array.isArray(response.data)) {
-                    newJobs = response.data;
-                    meta = response.meta;
-                } else if (Array.isArray(response)) {
-                    newJobs = response;
-                }
-            } else {
-                // For workers: Fetch paginated with filters
-                const filters = {
-                    page: pageNumber,
-                    limit: ITEMS_PER_PAGE,
-                    status: getStatusFromFilter(selectedFilter),
-                    search: searchQuery
-                };
-
-                const response = await jobService.getMyJobs(filters);
-
-                // Handle response format (paginated vs array)
-                if (response.data && Array.isArray(response.data)) {
-                    newJobs = response.data;
-                    meta = response.meta;
-                } else if (Array.isArray(response)) {
-                    // Fallback for non-paginated API responses (if any)
-                    newJobs = response;
-                }
-            }
-
-            if (shouldRefresh || pageNumber === 1) {
-                setJobs(newJobs);
-            } else {
-                setJobs(prev => [...prev, ...newJobs]);
-            }
-
-            // Check if we have more pages (Common logic for both)
-            if (meta) {
-                setHasMore(pageNumber < meta.totalPages);
-            } else {
-                // If no meta, assume loaded all (or backend doesn't support pagination yet correctly)
-                setHasMore(false);
-            }
-
-            if (shouldRefresh) setPage(1);
-            else setPage(pageNumber);
-
+            const data = isAdmin ? await jobService.getAllJobs() : await jobService.getMyJobs();
+            setJobs(data);
         } catch (error) {
             console.error('Error fetching jobs:', error);
-        } finally {
-            setRefreshing(false);
-            setIsLoadingMore(false);
         }
     };
 
-    // Client-side filtering for workers (legacy)
-    const filterJobsClientSide = (allJobs) => {
-        let result = allJobs;
-        const status = getStatusFromFilter(selectedFilter);
+    const filterJobs = () => {
+        let result = jobs;
 
-        if (status !== 'ALL') {
-            result = result.filter(j => j.status === status);
+        // Status Filter
+        if (selectedFilter === 'Devam Eden') {
+            result = result.filter(j => j.status === 'IN_PROGRESS');
+        } else if (selectedFilter === 'Bekleyen') {
+            result = result.filter(j => j.status === 'PENDING');
+        } else if (selectedFilter === 'Tamamlanan') {
+            result = result.filter(j => j.status === 'COMPLETED');
         }
 
+        // Search Filter
         if (searchQuery) {
             const lower = searchQuery.toLowerCase();
             result = result.filter(j =>
@@ -175,19 +93,13 @@ export default function WorkerJobsScreen() {
             return new Date(a.scheduledDate) - new Date(b.scheduledDate);
         });
 
-        return result;
-    };
-
-    const handleLoadMore = () => {
-        // if (!isAdmin) return; // Removed: Workers now support pagination
-        if (isLoadingMore || !hasMore || refreshing) return;
-
-        const nextPage = page + 1;
-        fetchJobs(nextPage, false);
+        setFilteredJobs(result);
     };
 
     const onRefresh = async () => {
-        await fetchJobs(1, true);
+        setRefreshing(true);
+        await fetchJobs();
+        setRefreshing(false);
     };
 
     const handlePickDocument = async (type) => {
@@ -212,15 +124,6 @@ export default function WorkerJobsScreen() {
             onPress={(job) => navigation.navigate('JobDetail', { jobId: job.id })}
         />
     ), [navigation]);
-
-    const renderFooter = () => {
-        if (!isLoadingMore) return <View style={{ height: 20 }} />;
-        return (
-            <View style={{ paddingVertical: 20 }}>
-                <ActivityIndicator size="small" color={COLORS.neonGreen} />
-            </View>
-        );
-    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -266,7 +169,7 @@ export default function WorkerJobsScreen() {
 
             <FlatList
                 style={{ flex: 1 }}
-                data={jobs}
+                data={filteredJobs}
                 renderItem={renderItem}
                 keyExtractor={item => item.id?.toString()}
                 contentContainerStyle={styles.listContent}
@@ -276,9 +179,6 @@ export default function WorkerJobsScreen() {
                 maxToRenderPerBatch={10}
                 removeClippedSubviews={true}
                 ListEmptyComponent={<View style={styles.emptyContainer}><Text style={styles.emptyText}>Görev bulunamadı.</Text></View>}
-                onEndReached={handleLoadMore}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={renderFooter}
             />
 
             {isAdmin && (
