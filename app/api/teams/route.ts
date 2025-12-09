@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
 import { verifyAuth } from '@/lib/auth-helper'
+import { logger } from '@/lib/logger';
 
 // CORS headers
 const corsHeaders = {
@@ -24,7 +25,7 @@ const teamSchema = z.object({
 export async function GET(req: Request) {
   try {
     const session = await verifyAuth(req)
-    console.log('[API] Teams GET Request - Session Role:', session?.user?.role)
+    logger.info(`[API] Teams GET Request - Session Role: ${session?.user?.role}`)
 
     if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'MANAGER')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders })
@@ -73,7 +74,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(teams, { headers: corsHeaders })
   } catch (error) {
-    console.error('Teams fetch error:', error)
+    logger.error(`Teams fetch error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers: corsHeaders })
   }
 }
@@ -135,12 +136,14 @@ export async function POST(req: Request) {
       }
     })
 
+    logger.info(`New team created: ${team.name}`);
+
     return NextResponse.json(team, { status: 201, headers: corsHeaders })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: (error as any).errors }, { status: 400, headers: corsHeaders })
     }
-    console.error('Team create error:', error)
+    logger.error(`Team create error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers: corsHeaders })
   }
 }

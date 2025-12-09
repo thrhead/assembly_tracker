@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { emitToUser } from '@/lib/socket'
+import { logger } from '@/lib/logger';
 
 export async function GET(
   req: Request,
@@ -83,7 +84,7 @@ export async function GET(
 
     return NextResponse.json(job)
   } catch (error) {
-    console.error('Job detail fetch error:', error)
+    logger.error(`Job detail fetch error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
@@ -115,7 +116,7 @@ export async function PATCH(
     let message = ''
     let type = 'info'
 
-    console.log('🔄 Status Update Debug:', { status, jobId: params.id, userId: session.user.id })
+    logger.info(`🔄 Status Update Debug: status=${status}, jobId=${params.id}, userId=${session.user.id}`)
 
     if (status === 'IN_PROGRESS') {
       message = `${job.title} işi tekrar başlatıldı.`
@@ -125,15 +126,15 @@ export async function PATCH(
       type = 'warning'
     }
 
-    console.log('🔔 Notification Message:', message)
+    logger.info(`🔔 Notification Message: ${message}`)
 
     if (message) {
-      console.log('📤 Emitting notification to user:', session.user.id)
+      logger.info(`📤 Emitting notification to user: ${session.user.id}`)
       emitToUser(session.user.id, 'notification:new', {
         id: crypto.randomUUID(),
         title: 'İş Durumu Güncellendi',
         message,
-        type,
+        type: type as 'info' | 'success' | 'warning' | 'error',
         userId: session.user.id
       })
     }
@@ -141,7 +142,8 @@ export async function PATCH(
 
     return NextResponse.json(job)
   } catch (error) {
-    console.error('Job status update error:', error)
+    logger.error(`Job status update error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
+

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { hash } from 'bcryptjs'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
+import { logger } from '@/lib/logger';
 
 // Customer Schema
 const customerSchema = z.object({
@@ -60,7 +61,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(customers)
   } catch (error) {
-    console.error('Customers fetch error:', error)
+    logger.error(`Customers fetch error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
@@ -128,12 +129,14 @@ export async function POST(req: Request) {
       return customer
     })
 
+    logger.info(`New customer created: ${result.user.email} (${result.company})`);
+
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: (error as any).errors }, { status: 400 })
     }
-    console.error('Customer create error:', error)
+    logger.error(`Customer create error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

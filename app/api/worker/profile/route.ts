@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
+import { logger } from '@/lib/logger';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
@@ -28,7 +29,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(user)
   } catch (error) {
-    console.error('Profile fetch error:', error)
+    logger.error(`Profile fetch error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
@@ -57,12 +58,14 @@ export async function PATCH(req: Request) {
       }
     })
 
+    logger.info(`Profile updated for user: ${session.user.id}`);
+
     return NextResponse.json({ success: true, user })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: (error as any).errors }, { status: 400 })
     }
-    console.error('Profile update error:', error)
+    logger.error(`Profile update error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

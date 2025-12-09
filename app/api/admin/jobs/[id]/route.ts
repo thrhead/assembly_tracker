@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
+import { logger } from '@/lib/logger';
 
 const updateJobSchema = z.object({
     startedAt: z.string().optional().nullable(),
@@ -33,7 +34,7 @@ export async function PATCH(
 
         return NextResponse.json({ success: true, job: updatedJob })
     } catch (error) {
-        console.error('Update job error:', error)
+        logger.error(`Update job error: ${error instanceof Error ? error.message : String(error)}`)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
+import { logger } from '@/lib/logger';
 
 export async function POST(
     req: Request,
@@ -73,9 +74,11 @@ export async function POST(
             })
         }
 
+        logger.info(`Step rejected by manager: ${params.stepId}, Reason: ${reason}`);
+
         return NextResponse.json(updatedStep)
     } catch (error) {
-        console.error('Step rejection error:', error)
+        logger.error(`Step rejection error: ${error instanceof Error ? error.message : String(error)}`)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }

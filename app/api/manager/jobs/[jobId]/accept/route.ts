@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
 import { sendJobNotification } from '@/lib/notification-helper';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: Request, { params }: { params: Promise<{ jobId: string }> }) {
     try {
@@ -54,9 +55,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
             `/jobs/${updatedJob.id}`
         );
 
+        logger.info(`Job accepted by manager: ${jobId}`);
+
         return NextResponse.json(updatedJob);
     } catch (error) {
-        console.error('Error accepting job:', error);
+        logger.error(`Error accepting job: ${error instanceof Error ? error.message : String(error)}`);
         return NextResponse.json({
             error: 'Internal Server Error',
             details: error instanceof Error ? error.message : String(error)

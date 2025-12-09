@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
 import { sendJobNotification } from '@/lib/notification-helper';
-import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 export async function POST(request: Request, { params }: { params: Promise<{ substepId: string }> }) {
     try {
@@ -13,9 +13,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
         }
 
         const paramsValue = await params;
-        console.log('Approve Substep Params:', paramsValue);
         const { substepId } = paramsValue;
-        console.log('Substep ID:', substepId);
 
         const substep = await prisma.jobSubStep.update({
             where: { id: substepId },
@@ -42,9 +40,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
             `/jobs/${substep.step.jobId}`
         );
 
+        logger.info(`Substep approved by manager: ${substepId}`);
+
         return NextResponse.json(substep);
     } catch (error) {
-        console.error('Error approving substep:', error);
+        logger.error(`Error approving substep: ${error instanceof Error ? error.message : String(error)}`);
         return NextResponse.json({
             error: 'Internal Server Error',
             details: error instanceof Error ? error.message : String(error)

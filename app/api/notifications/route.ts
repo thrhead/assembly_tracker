@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
+import { logger } from '@/lib/logger';
 
 export async function GET(req: Request) {
   try {
@@ -20,7 +21,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(notifications)
   } catch (error) {
-    console.error('Notifications fetch error:', error)
+    logger.error(`Notifications fetch error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
@@ -57,7 +58,7 @@ export async function PATCH(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Notifications update error:', error)
+    logger.error(`Notifications update error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+import { logger } from '@/lib/logger';
 
 export async function GET(
     request: NextRequest,
@@ -114,7 +115,7 @@ export async function GET(
 
         return NextResponse.json(reportData)
     } catch (error) {
-        console.error('Error fetching job report data:', error)
+        logger.error(`Error fetching job report data: ${error instanceof Error ? error.message : String(error)}`)
         return NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

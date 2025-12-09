@@ -1,44 +1,51 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
+import { logger } from '@/lib/logger';
+
+
+function buildWorkerJobFilter(user: any, searchParams: URLSearchParams) {
+  const status = searchParams.get('status')
+  const where: any = {}
+
+  // If not ADMIN or MANAGER, filter by assignments
+  if (!['ADMIN', 'MANAGER'].includes(user.role)) {
+    where.assignments = {
+      some: {
+        OR: [
+          { workerId: user.id }, // Doğrudan atananlar
+          { team: { members: { some: { userId: user.id } } } } // Ekibine atananlar
+        ]
+      }
+    }
+  }
+
+  if (status) {
+    where.status = status
+  }
+
+  return where
+}
 
 export async function GET(req: Request) {
   try {
-    console.log('Worker Jobs API: GET Request received');
+    logger.info('Worker Jobs API: GET Request received');
     const session = await verifyAuth(req)
     if (!session || !['WORKER', 'TEAM_LEAD', 'ADMIN', 'MANAGER'].includes(session.user.role)) {
-      console.log('Worker Jobs API: Unauthorized access attempt');
+      logger.warn('Worker Jobs API: Unauthorized access attempt');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log(`Worker Jobs API: Session Found (User: ${session.user.email}, Role: ${session.user.role})`);
+    logger.info(`Worker Jobs API: Session Found (User: ${session.user.email}, Role: ${session.user.role})`);
 
     const { searchParams } = new URL(req.url)
-    const status = searchParams.get('status')
-
-    const where: any = {}
-
-    // If not ADMIN or MANAGER, filter by assignments
-    if (!['ADMIN', 'MANAGER'].includes(session.user.role)) {
-      where.assignments = {
-        some: {
-          OR: [
-            { workerId: session.user.id }, // Doğrudan atananlar
-            { team: { members: { some: { userId: session.user.id } } } } // Ekibine atananlar
-          ]
-        }
-      }
-    }
+    const where = buildWorkerJobFilter(session.user, searchParams)
 
     // Pagination
     const page = searchParams.get('page') ? parseInt(searchParams.get('page') as string) : null;
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit') as string) : null;
 
-    if (status) {
-      where.status = status
-    }
-
-    console.log(`Worker Jobs API: Querying DB for user ${session.user.id}`);
+    logger.info(`Worker Jobs API: Querying DB for user ${session.user.id}`);
 
     const queryOptions: any = {
       where,
@@ -74,7 +81,7 @@ export async function GET(req: Request) {
 
     const jobs = await prisma.job.findMany(queryOptions);
 
-    console.log(`Worker Jobs API: Found ${jobs.length} jobs`);
+    logger.info(`Worker Jobs API: Found ${jobs.length} jobs`);
 
     if (page && limit) {
       const total = await prisma.job.count({ where });
@@ -91,8 +98,9 @@ export async function GET(req: Request) {
 
     return NextResponse.json(jobs)
   } catch (error) {
-    console.error(`Worker Jobs API Error: ${error}`);
-    console.error('Worker jobs fetch error:', error)
+    logger.error(`Worker Jobs API Error: ${error}`);
+    logger.error(`Worker jobs fetch error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
+

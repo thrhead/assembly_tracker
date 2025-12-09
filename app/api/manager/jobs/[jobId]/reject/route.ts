@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
 import { sendJobNotification } from '@/lib/notification-helper';
 import { z } from 'zod';
+import { logger } from '@/lib/logger';
 
 const rejectSchema = z.object({
     reason: z.string().min(1, "Red sebebi gereklidir"),
@@ -29,7 +30,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
                 // We keep the main status as COMPLETED or move back to IN_PROGRESS?
                 // If rejected, the worker needs to fix it. So IN_PROGRESS makes sense.
                 status: 'IN_PROGRESS',
-                completedAt: null, // Reset completion
+                completedDate: null, // Reset completion
             },
             include: {
                 assignments: {
@@ -49,9 +50,11 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
             `/jobs/${job.id}`
         );
 
+        logger.info(`Job rejected by manager: ${jobId}, Reason: ${reason}`);
+
         return NextResponse.json(job);
     } catch (error) {
-        console.error('Error rejecting job:', error);
+        logger.error(`Error rejecting job: ${error instanceof Error ? error.message : String(error)}`);
         return NextResponse.json({
             error: 'Internal Server Error',
             details: error instanceof Error ? error.message : String(error)

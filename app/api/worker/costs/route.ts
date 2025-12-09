@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { broadcast, emitToUser } from '@/lib/socket'
 import { CostSubmittedPayload } from '@/lib/socket-events'
 import { sendCostApprovalEmail } from '@/lib/email'
+import { logger } from '@/lib/logger';
 
 const createCostSchema = z.object({
     jobId: z.string().min(1),
@@ -45,16 +46,7 @@ export async function POST(req: Request) {
             data = createCostSchema.parse(body)
         }
 
-        // Log request to file
-        try {
-            const fs = require('fs');
-            const path = require('path');
-            const logPath = path.join(process.cwd(), 'api_debug.log');
-            const logEntry = `${new Date().toISOString()} - [API] Cost Create Request (Multipart: ${contentType.includes('multipart/form-data')}): ${JSON.stringify(data)}\n`;
-            fs.appendFileSync(logPath, logEntry);
-        } catch (e) {
-            console.error('Failed to write to log file:', e);
-        }
+        logger.info(`[API] Cost Create Request (Multipart: ${contentType.includes('multipart/form-data')}): ${JSON.stringify(data)}`);
 
         // Verify job exists
         const job = await prisma.job.findUnique({
@@ -94,7 +86,7 @@ export async function POST(req: Request) {
                 await fs.writeFile(filepath, buffer)
                 receiptUrl = `/uploads/costs/${data.jobId}/${filename}`
             } catch (err) {
-                console.error('File upload error:', err)
+                logger.error(`File upload error: ${err}`)
                 return NextResponse.json({ error: 'Failed to upload receipt image' }, { status: 500 })
             }
         }
@@ -136,21 +128,10 @@ export async function POST(req: Request) {
 
         return NextResponse.json(cost, { status: 201 })
     } catch (error) {
-        console.error('Create cost error:', error)
+        logger.error(`Create cost error: ${error}`)
         if (error instanceof z.ZodError) {
-            console.error('Create Cost Validation Error:', JSON.stringify(error.issues, null, 2))
-
-            // Log error to file
-            try {
-                const fs = require('fs');
-                const path = require('path');
-                const logPath = path.join(process.cwd(), 'api_debug.log');
-                const logEntry = `${new Date().toISOString()} - [API] Cost Create Validation Error: ${JSON.stringify(error.issues)}\n`;
-                fs.appendFileSync(logPath, logEntry);
-            } catch (e) {
-                console.error('Failed to write to log file:', e);
-            }
-
+            const issues = JSON.stringify(error.issues, null, 2);
+            logger.error(`Create Cost Validation Error: ${issues}`)
             return NextResponse.json({ error: 'Invalid data', details: error.issues }, { status: 400 })
         }
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
@@ -182,7 +163,7 @@ export async function GET(req: Request) {
 
         return NextResponse.json(costs)
     } catch (error) {
-        console.error('Fetch costs error:', error)
+        logger.error(`Fetch costs error: ${error instanceof Error ? error.message : String(error)}`)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }

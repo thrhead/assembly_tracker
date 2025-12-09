@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth'
 import { hash, compare } from 'bcryptjs'
 import { z } from 'zod'
+import { logger } from '@/lib/logger';
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1, 'Mevcut şifre gerekli'),
@@ -44,15 +45,17 @@ export async function POST(req: Request) {
       data: { passwordHash: newPasswordHash }
     })
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Şifreniz başarıyla değiştirildi' 
+    logger.info(`Password changed for user: ${session.user.id}`);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Şifreniz başarıyla değiştirildi'
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: (error as any).errors }, { status: 400 })
     }
-    console.error('Password change error:', error)
+    logger.error(`Password change error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

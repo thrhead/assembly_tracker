@@ -4,6 +4,7 @@ import { hash } from 'bcryptjs'
 import { z } from 'zod'
 import { registerSchema } from '@/lib/validations'
 import { auth } from '@/lib/auth'
+import { logger } from '@/lib/logger';
 
 export async function GET(req: Request) {
   try {
@@ -65,7 +66,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(users)
   } catch (error) {
-    console.error('Users fetch error:', error)
+    logger.error(`Users fetch error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
@@ -111,12 +112,14 @@ export async function POST(req: Request) {
       }
     })
 
+    logger.info(`New user created: ${user.email} (${user.role})`);
+
     return NextResponse.json(user, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: (error as any).errors }, { status: 400 })
     }
-    console.error('User create error:', error)
+    logger.error(`User create error: ${error instanceof Error ? error.message : String(error)}`)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
