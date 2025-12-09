@@ -50,6 +50,6 @@ function generateQr(url) {
 // Remove the original rl.question block wrapper
 /*
 rl.question('Paste Cloudflare URL here: ', (url) => {
-    // ...
+
 });
 */

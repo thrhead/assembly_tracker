@@ -21,7 +21,7 @@ async function main() {
     if (!job) {
         console.error('❌ No active jobs found to assign!');
         // Create a job if none exists
-        // ... (omitted for brevity, assuming jobs exist)
+
         return;
     }
 

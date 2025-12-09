@@ -7,12 +7,16 @@ import { logger } from '@/lib/logger';
 
 const ALLOWED_ADMIN_ROLES = ['ADMIN', 'MANAGER'];
 
-function buildJobFilter(searchParams: URLSearchParams) {
-    const search = searchParams.get('search')
-    const status = searchParams.get('status')
-    const priority = searchParams.get('priority')
-    const teamId = searchParams.get('teamId')
-    const customerId = searchParams.get('customerId')
+interface JobFilterParams {
+    search: string | null;
+    status: string | null;
+    priority: string | null;
+    teamId: string | null;
+    customerId: string | null;
+}
+
+function buildJobFilter(params: JobFilterParams) {
+    const { search, status, priority, teamId, customerId } = params;
 
     const where: any = {}
 
@@ -47,7 +51,16 @@ export async function GET(req: Request) {
         logger.info(`Admin Jobs API: Session Found (User: ${session.user.email})`);
 
         const { searchParams } = new URL(req.url)
-        const where = buildJobFilter(searchParams)
+
+        const filterParams: JobFilterParams = {
+            search: searchParams.get('search'),
+            status: searchParams.get('status'),
+            priority: searchParams.get('priority'),
+            teamId: searchParams.get('teamId'),
+            customerId: searchParams.get('customerId')
+        };
+
+        const where = buildJobFilter(filterParams)
 
         // Pagination
         const page = searchParams.get('page') ? parseInt(searchParams.get('page') as string) : null;
@@ -109,8 +122,7 @@ export async function GET(req: Request) {
         // Default behavior: return array (also for limit-only requests)
         return NextResponse.json(jobs)
     } catch (error) {
-        logger.error(`Admin Jobs API Error: ${error}`);
-        logger.error(`Jobs fetch error: ${error instanceof Error ? error.message : String(error)}`)
+        logger.error(`Admin Jobs API Error: ${error instanceof Error ? error.message : String(error)}`);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }

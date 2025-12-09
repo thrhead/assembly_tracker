@@ -4,8 +4,12 @@ import { verifyAuth } from '@/lib/auth-helper'
 import { logger } from '@/lib/logger';
 
 
-function buildWorkerJobFilter(user: any, searchParams: URLSearchParams) {
-  const status = searchParams.get('status')
+interface WorkerJobFilterParams {
+  status: string | null;
+}
+
+function buildWorkerJobFilter(user: any, params: WorkerJobFilterParams) {
+  const { status } = params;
   const where: any = {}
 
   // If not ADMIN or MANAGER, filter by assignments
@@ -39,7 +43,12 @@ export async function GET(req: Request) {
     logger.info(`Worker Jobs API: Session Found (User: ${session.user.email}, Role: ${session.user.role})`);
 
     const { searchParams } = new URL(req.url)
-    const where = buildWorkerJobFilter(session.user, searchParams)
+
+    const filterParams: WorkerJobFilterParams = {
+      status: searchParams.get('status')
+    };
+
+    const where = buildWorkerJobFilter(session.user, filterParams)
 
     // Pagination
     const page = searchParams.get('page') ? parseInt(searchParams.get('page') as string) : null;
@@ -98,8 +107,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(jobs)
   } catch (error) {
-    logger.error(`Worker Jobs API Error: ${error}`);
-    logger.error(`Worker jobs fetch error: ${error instanceof Error ? error.message : String(error)}`)
+    logger.error(`Worker Jobs API Error: ${error instanceof Error ? error.message : String(error)}`);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

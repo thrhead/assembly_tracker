@@ -6,6 +6,34 @@ import { registerSchema } from '@/lib/validations'
 import { auth } from '@/lib/auth'
 import { logger } from '@/lib/logger';
 
+interface UserFilterParams {
+  role: string | null;
+  search: string | null;
+}
+
+function buildUserFilter(params: UserFilterParams) {
+  const { role, search } = params;
+  const where: any = {}
+
+  if (role && role !== 'ALL') {
+    const roles = role.split(',')
+    if (roles.length > 1) {
+      where.role = { in: roles }
+    } else {
+      where.role = role
+    }
+  }
+
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } }
+    ]
+  }
+
+  return where;
+}
+
 export async function GET(req: Request) {
   try {
     const session = await auth()
@@ -14,26 +42,13 @@ export async function GET(req: Request) {
     }
 
     const { searchParams } = new URL(req.url)
-    const role = searchParams.get('role')
-    const search = searchParams.get('search')
 
-    const where: any = {}
+    const filterParams: UserFilterParams = {
+      role: searchParams.get('role'),
+      search: searchParams.get('search')
+    };
 
-    if (role && role !== 'ALL') {
-      const roles = role.split(',')
-      if (roles.length > 1) {
-        where.role = { in: roles }
-      } else {
-        where.role = role
-      }
-    }
-
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } }
-      ]
-    }
+    const where = buildUserFilter(filterParams)
 
     const users = await prisma.user.findMany({
       where,

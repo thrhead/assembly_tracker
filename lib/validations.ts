@@ -1,31 +1,52 @@
 import { z } from 'zod'
 
+// Error Messages
+const ERROR_MESSAGES = {
+  EMAIL_INVALID: 'Geçerli bir e-posta adresi giriniz',
+  PASSWORD_MIN: 'Şifre en az 6 karakter olmalıdır',
+  NAME_MIN: 'İsim en az 2 karakter olmalıdır',
+  TITLE_MIN_3: 'Başlık en az 3 karakter olmalıdır',
+  TITLE_MAX_100: 'Başlık en fazla 100 karakter olabilir',
+  CUSTOMER_REQUIRED: 'Geçerli bir müşteri seçiniz',
+  CUSTOMER_NAME_MIN: 'Müşteri adı en az 2 karakter olmalıdır',
+  TEAM_NAME_MIN: 'Takım adı en az 2 karakter olmalıdır',
+  TEAM_LEAD_REQUIRED: 'Geçerli bir takım lideri seçiniz',
+  TITLE_REQUIRED: 'Başlık gereklidir',
+  SCHEDULED_DATE_REQUIRED: 'Planlanan tarih gereklidir',
+  STEP_TITLE_REQUIRED: 'Adım başlığı gereklidir',
+  SUBSTEP_TITLE_REQUIRED: 'Alt adım başlığı gereklidir',
+  TITLE_MIN_2: 'Başlık en az 2 karakter olmalıdır',
+};
+
 // Auth Schemas
 export const loginSchema = z.object({
-  email: z.string().email('Geçerli bir e-posta adresi giriniz'),
-  password: z.string().min(6, 'Şifre en az 6 karakter olmalıdır'),
+  email: z.string().email(ERROR_MESSAGES.EMAIL_INVALID),
+  password: z.string().min(6, ERROR_MESSAGES.PASSWORD_MIN),
 })
 
 export const registerSchema = z.object({
-  name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
-  email: z.string().email('Geçerli bir e-posta adresi giriniz'),
-  password: z.string().min(6, 'Şifre en az 6 karakter olmalıdır'),
+  name: z.string().min(2, ERROR_MESSAGES.NAME_MIN),
+  email: z.string().email(ERROR_MESSAGES.EMAIL_INVALID),
+  password: z.string().min(6, ERROR_MESSAGES.PASSWORD_MIN),
   phone: z.string().optional(),
   role: z.enum(['ADMIN', 'MANAGER', 'TEAM_LEAD', 'WORKER', 'CUSTOMER']),
 })
 
 // Job Schemas
-export const jobSchema = z.object({
-  title: z.string().min(3, 'Başlık en az 3 karakter olmalıdır').max(100, 'Başlık en fazla 100 karakter olabilir'),
+const baseJobSchema = z.object({
+  title: z.string().min(3, ERROR_MESSAGES.TITLE_MIN_3).max(100, ERROR_MESSAGES.TITLE_MAX_100),
   description: z.string().optional(),
-  customerId: z.string().cuid('Geçerli bir müşteri seçiniz'),
+  customerId: z.string().cuid(ERROR_MESSAGES.CUSTOMER_REQUIRED),
   teamId: z.string().cuid().optional(),
+})
+
+export const jobSchema = baseJobSchema.extend({
   estimatedHours: z.number().int().positive().optional(),
   startDate: z.date().optional(),
 })
 
 export const jobStepSchema = z.object({
-  title: z.string().min(2, 'Başlık en az 2 karakter olmalıdır'),
+  title: z.string().min(2, ERROR_MESSAGES.TITLE_MIN_2),
   description: z.string().optional(),
   stepOrder: z.number().int().positive(),
 })
@@ -44,16 +65,16 @@ export const updateUserSchema = z.object({
 
 // Team Schemas
 export const createTeamSchema = z.object({
-  name: z.string().min(2, 'Takım adı en az 2 karakter olmalıdır'),
-  leadId: z.string().cuid('Geçerli bir takım lideri seçiniz'),
+  name: z.string().min(2, ERROR_MESSAGES.TEAM_NAME_MIN),
+  leadId: z.string().cuid(ERROR_MESSAGES.TEAM_LEAD_REQUIRED),
   description: z.string().optional(),
 })
 
 // Customer Schemas
 export const createCustomerSchema = z.object({
-  name: z.string().min(2, 'Müşteri adı en az 2 karakter olmalıdır'),
-  email: z.string().email('Geçerli bir e-posta adresi giriniz'),
-  password: z.string().min(6, 'Şifre en az 6 karakter olmalıdır'),
+  name: z.string().min(2, ERROR_MESSAGES.CUSTOMER_NAME_MIN),
+  email: z.string().email(ERROR_MESSAGES.EMAIL_INVALID),
+  password: z.string().min(6, ERROR_MESSAGES.PASSWORD_MIN),
   company: z.string().optional(),
   address: z.string().optional(),
   phone: z.string().optional(),
@@ -90,20 +111,16 @@ export const createCostTrackingSchema = z.object({
 })
 
 // Job Creation Schema
-export const jobCreationSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().optional(),
-  customerId: z.string().min(1, 'Customer is required'),
-  teamId: z.string().optional(),
+export const jobCreationSchema = baseJobSchema.extend({
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   location: z.string().optional(),
-  scheduledDate: z.string().min(1, 'Scheduled date is required'),
+  scheduledDate: z.string().min(1, ERROR_MESSAGES.SCHEDULED_DATE_REQUIRED),
   steps: z.array(z.object({
-    title: z.string().min(1, 'Step title is required'),
+    title: z.string().min(1, ERROR_MESSAGES.STEP_TITLE_REQUIRED),
     description: z.string().optional(),
     order: z.number().optional(),
     subSteps: z.array(z.object({
-      title: z.string().min(1, 'Sub-step title is required'),
+      title: z.string().min(1, ERROR_MESSAGES.SUBSTEP_TITLE_REQUIRED),
       description: z.string().optional(),
       order: z.number().optional()
     })).optional()
