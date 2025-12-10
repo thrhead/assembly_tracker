@@ -1,5 +1,6 @@
 import { getInitialRouteName } from './src/utils/navigationHelper';
 import { useNotificationListener } from './src/hooks/useNotificationListener';
+import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
