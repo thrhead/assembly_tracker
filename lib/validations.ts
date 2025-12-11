@@ -118,3 +118,12 @@ export type JobStepInput = z.infer<typeof jobStepSchema>
 export type UpdateJobStepInput = z.infer<typeof updateJobStepSchema>
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>
 export type CreateTeamInput = z.infer<typeof createTeamSchema>
+
+export const createUserAdminSchema = z.object({
+  name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
+  email: z.string().email('Geçerli bir e-posta adresi giriniz'),
+  role: z.enum(['ADMIN', 'MANAGER', 'TEAM_LEAD', 'WORKER', 'CUSTOMER']),
+  password: z.string().optional().transform(val => val || undefined),
+})
+
+export type CreateUserAdminInput = z.infer<typeof createUserAdminSchema>

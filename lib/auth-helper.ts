@@ -51,3 +51,11 @@ export async function verifyAdminOrManager(req: Request) {
     }
     return session
 }
+
+export async function verifyAdmin(req: Request) {
+    const session = await verifyAuth(req)
+    if (!session || session.user.role !== 'ADMIN') {
+        return null
+    }
+    return session
+}

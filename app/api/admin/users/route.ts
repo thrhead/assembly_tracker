@@ -1,38 +1,16 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { verifyAuth } from '@/lib/auth-helper'
+import { verifyAdmin } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { hash } from 'bcryptjs'
-import * as fs from 'fs';
-import * as path from 'path';
-
-const LOG_FILE = path.join(process.cwd(), 'api_debug.log');
-
-function logToFile(message: string) {
-    const timestamp = new Date().toISOString();
-    const logMessage = `${timestamp} - ${message}\n`;
-    try {
-        fs.appendFileSync(LOG_FILE, logMessage);
-    } catch (e) {
-        console.error('Failed to write to log file:', e);
-    }
-}
-
-const createUserSchema = z.object({
-    name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
-    email: z.string().email('Geçerli bir e-posta adresi giriniz'),
-    role: z.enum(['ADMIN', 'MANAGER', 'TEAM_LEAD', 'WORKER', 'CUSTOMER']),
-    password: z.string().optional().transform(val => val || undefined), // Convert empty string to undefined
-})
+import { createUserAdminSchema } from '@/lib/validations'
 
 export async function GET(req: Request) {
-    logToFile("Users API: GET Request received")
     try {
-        const session = await verifyAuth(req)
-        logToFile(`Users API: Session: ${session ? "Found" : "Null"}, Role: ${session?.user?.role}`)
+        const session = await verifyAdmin(req)
 
-        if (!session || session.user.role !== 'ADMIN') {
-            logToFile("Users API: Unauthorized access attempt")
+        if (!session) {
+            console.warn(`Users API: Unauthorized access attempt`)
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
@@ -53,8 +31,6 @@ export async function GET(req: Request) {
             ]
         }
 
-        logToFile(`[API] Users Fetch Query: ${JSON.stringify(where)}`)
-
         const users = await prisma.user.findMany({
             where,
             orderBy: { createdAt: 'desc' },
@@ -65,27 +41,25 @@ export async function GET(req: Request) {
                 role: true,
                 isActive: true,
                 createdAt: true,
-                // Exclude passwordHash
             }
         })
 
         return NextResponse.json(users)
     } catch (error) {
-        logToFile(`Users fetch error: ${error}`)
+        console.error('Users fetch error:', error)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
 
 export async function POST(req: Request) {
     try {
-        const session = await verifyAuth(req)
-        if (!session || session.user.role !== 'ADMIN') {
+        const session = await verifyAdmin(req)
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
         const body = await req.json()
-        logToFile(`[API] User Create Request Body: ${JSON.stringify(body)}`)
-        const data = createUserSchema.parse(body)
+        const data = createUserAdminSchema.parse(body)
 
         // Check if email exists
         const existingUser = await prisma.user.findUnique({
@@ -120,7 +94,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json(newUser, { status: 201 })
     } catch (error) {
-        logToFile(`[API] User Create Error: ${error}`)
+        console.error('User creation error:', error)
         if (error instanceof z.ZodError) {
             const errorMessage = error.issues.map(issue => issue.message).join(', ')
             return NextResponse.json({ error: errorMessage, details: error.issues }, { status: 400 })

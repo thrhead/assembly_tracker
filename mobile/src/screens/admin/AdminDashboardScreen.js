@@ -1,45 +1,26 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Modal, RefreshControl } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
-import StatCard from '../../components/StatCard';
 import DashboardAction from '../../components/DashboardAction';
 import { COLORS } from '../../constants/theme';
-
-import api from '../../services/api';
-
-const { width } = Dimensions.get('window');
+import { useDashboardStats } from '../../hooks/useDashboardStats';
+import CustomDrawer from '../../components/admin/CustomDrawer';
+import DashboardStatsGrid from '../../components/admin/DashboardStatsGrid';
+import RecentJobsList from '../../components/admin/RecentJobsList';
+import DashboardBottomNav from '../../components/admin/DashboardBottomNav';
 
 export default function AdminDashboardScreen({ navigation }) {
     const { user, logout } = useAuth();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const [recentJobs, setRecentJobs] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
-    const [statsData, setStatsData] = useState({
-        totalJobs: 0,
-        activeTeams: 0,
-        completedJobs: 0,
-        pendingJobs: 0
-    });
 
-    const fetchStats = async () => {
-        try {
-            console.log('[Dashboard] Fetching stats and jobs...');
-            const [statsRes, jobsRes] = await Promise.all([
-                api.get('/admin/stats'),
-                api.get('/admin/jobs')
-            ]);
+    const { statsData, recentJobs, fetchStats } = useDashboardStats();
 
-            console.log('[Dashboard] Data received:', statsRes.data, jobsRes.data?.length);
-            setStatsData(statsRes.data);
-            setRecentJobs(jobsRes.data?.slice(0, 5) || []); // Take first 5 recent jobs
-        } catch (error) {
-            console.error('Error fetching admin dashboard data:', error);
-            // Optionally set empty state on error
-        }
-    };
+    useEffect(() => {
+        fetchStats();
+    }, []);
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -58,85 +39,22 @@ export default function AdminDashboardScreen({ navigation }) {
         { id: 'calendar', title: 'Takvim', icon: 'calendar-today', route: 'Calendar', color: COLORS.purple500 },
     ];
 
-    // Real data from API
-    const stats = [
-        {
-            title: 'Toplam İş',
-            value: (statsData?.totalJobs || 0).toString(),
-            icon: 'work',
-            color: COLORS.primary,
-        },
-        {
-            title: 'Aktif Ekipler',
-            value: (statsData?.activeTeams || 0).toString(),
-            icon: 'groups',
-            color: COLORS.blue500,
-        },
-        {
-            title: 'Tamamlanan',
-            value: (statsData?.completedJobs || 0).toString(),
-            icon: 'check-circle',
-            color: COLORS.green500,
-        },
-        {
-            title: 'Bekleyen',
-            value: (statsData?.pendingJobs || 0).toString(),
-            icon: 'access-time',
-            color: COLORS.amber500,
-        }
-    ];
-
     const handleNavPress = (route) => {
         setIsDrawerOpen(false);
         navigation.navigate(route);
     };
 
-    const renderDrawer = () => (
-        <Modal
-            animationType="fade"
-            transparent={true}
-            visible={isDrawerOpen}
-            onRequestClose={() => setIsDrawerOpen(false)}
-        >
-            <TouchableOpacity
-                style={styles.modalOverlay}
-                activeOpacity={1}
-                onPress={() => setIsDrawerOpen(false)}
-            >
-                <View style={styles.drawerContainer}>
-                    <View style={styles.drawerHeader}>
-                        <View style={styles.drawerAvatarContainer}>
-                            <Text style={styles.drawerAvatarText}>
-                                {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
-                            </Text>
-                        </View>
-                        <Text style={styles.drawerName}>{user?.name || 'Admin'}</Text>
-                        <Text style={styles.drawerRole}>Yönetici</Text>
-                    </View>
-                    <View style={styles.drawerItems}>
-                        {navItems.map((item) => (
-                            <TouchableOpacity
-                                key={item.id}
-                                style={styles.drawerItem}
-                                onPress={() => handleNavPress(item.route)}
-                            >
-                                <MaterialIcons name={item.icon} size={24} color={item.color} />
-                                <Text style={styles.drawerItemText}>{item.title}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                    <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-                        <MaterialIcons name="logout" size={24} color={COLORS.red500} />
-                        <Text style={styles.logoutText}>Çıkış Yap</Text>
-                    </TouchableOpacity>
-                </View>
-            </TouchableOpacity>
-        </Modal>
-    );
-
     return (
         <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
-            {renderDrawer()}
+            <CustomDrawer
+                visible={isDrawerOpen}
+                onClose={() => setIsDrawerOpen(false)}
+                user={user}
+                navItems={navItems}
+                onNavigate={handleNavPress}
+                onLogout={logout}
+            />
+
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
@@ -165,21 +83,7 @@ export default function AdminDashboardScreen({ navigation }) {
                 </View>
 
                 {/* Stats Grid */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Genel Durum</Text>
-                    <View style={styles.statsGrid}>
-                        {stats.map((stat, index) => (
-                            <StatCard
-                                key={index}
-                                label={stat.title}
-                                value={stat.value}
-                                icon={stat.icon}
-                                iconColor={stat.color}
-                                style={styles.statCard}
-                            />
-                        ))}
-                    </View>
-                </View>
+                <DashboardStatsGrid statsData={statsData} />
 
                 {/* Navigation Grid */}
                 <View style={styles.section}>
@@ -219,62 +123,15 @@ export default function AdminDashboardScreen({ navigation }) {
                 </View>
 
                 {/* Recent Jobs */}
-                <View style={styles.section}>
-                    <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Son İşler</Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Jobs')}>
-                            <Text style={styles.seeAllText}>Tümünü Gör</Text>
-                        </TouchableOpacity>
-                    </View>
-                    <View style={styles.recentList}>
-                        {recentJobs.length === 0 ? (
-                            <Text style={{ color: '#aaa', fontStyle: 'italic', padding: 8 }}>Henüz iş bulunmuyor.</Text>
-                        ) : (
-                            recentJobs.map((job) => (
-                                <TouchableOpacity
-                                    key={job.id}
-                                    style={styles.recentItem}
-                                    onPress={() => navigation.navigate('JobDetail', { jobId: job.id })}
-                                >
-                                    <View style={[styles.recentIcon, { backgroundColor: job.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(204, 255, 4, 0.1)' }]}>
-                                        <MaterialIcons name="work" size={20} color={job.status === 'COMPLETED' ? COLORS.green500 : COLORS.primary} />
-                                    </View>
-                                    <View style={styles.recentInfo}>
-                                        <Text style={styles.recentTitle} numberOfLines={1}>
-                                            {job.customer?.company ? `${job.customer.company} - ` : ''}{job.title}
-                                        </Text>
-                                        <Text style={styles.recentSubtitle}>
-                                            {job.status} • {new Date(job.createdAt).toLocaleDateString('tr-TR')}
-                                        </Text>
-                                    </View>
-                                    <MaterialIcons name="chevron-right" size={20} color={COLORS.slate600} />
-                                </TouchableOpacity>
-                            ))
-                        )}
-                    </View>
-                </View>
+                <RecentJobsList
+                    jobs={recentJobs}
+                    onJobPress={(id) => navigation.navigate('JobDetail', { jobId: id })}
+                    onViewAll={() => navigation.navigate('Jobs')}
+                />
 
             </ScrollView>
 
-            {/* Bottom Navigation */}
-            <View style={styles.bottomNav}>
-                <TouchableOpacity style={styles.navItem} onPress={() => { }}>
-                    <MaterialIcons name="dashboard" size={24} color={COLORS.primary} />
-                    <Text style={[styles.navText, { color: COLORS.primary }]}>Panel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('TeamList')}>
-                    <MaterialIcons name="group" size={24} color={COLORS.slate400} />
-                    <Text style={styles.navText}>Ekip</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Jobs')}>
-                    <MaterialIcons name="list-alt" size={24} color={COLORS.slate400} />
-                    <Text style={styles.navText}>Görevler</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile')}>
-                    <MaterialIcons name="settings" size={24} color={COLORS.slate400} />
-                    <Text style={styles.navText}>Ayarlar</Text>
-                </TouchableOpacity>
-            </View>
+            <DashboardBottomNav navigation={navigation} />
         </SafeAreaView>
     );
 }
@@ -342,16 +199,6 @@ const styles = StyleSheet.create({
         color: COLORS.textLight,
         marginBottom: 8,
     },
-    statsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        gap: 12,
-    },
-    statCard: {
-        width: '48%',
-        marginBottom: 0,
-    },
     navGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -370,149 +217,5 @@ const styles = StyleSheet.create({
     quickActions: {
         flexDirection: 'row',
         gap: 12,
-    },
-    sectionHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-    },
-    seeAllText: {
-        color: COLORS.primary,
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    recentList: {
-        gap: 8,
-    },
-    recentItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: COLORS.cardDark,
-        padding: 12,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: COLORS.slate800,
-    },
-    recentIcon: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: 'rgba(204, 255, 4, 0.1)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 12,
-    },
-    recentInfo: {
-        flex: 1,
-    },
-    recentTitle: {
-        color: COLORS.textLight,
-        fontSize: 14,
-        fontWeight: '600',
-        marginBottom: 2,
-    },
-    recentSubtitle: {
-        color: COLORS.slate400,
-        fontSize: 12,
-    },
-    bottomNav: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        backgroundColor: 'rgba(1, 1, 0, 0.95)',
-        borderTopWidth: 1,
-        borderTopColor: COLORS.slate800,
-        paddingVertical: 8,
-        paddingBottom: 20,
-    },
-    navItem: {
-        alignItems: 'center',
-        gap: 4,
-        padding: 8,
-    },
-    navText: {
-        fontSize: 10,
-        fontWeight: '500',
-        color: COLORS.slate400,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'flex-start',
-    },
-    drawerContainer: {
-        width: '70%',
-        height: '100%',
-        backgroundColor: COLORS.cardDark,
-        padding: 20,
-        paddingTop: 50,
-        borderRightWidth: 1,
-        borderRightColor: COLORS.slate800,
-    },
-    drawerHeader: {
-        alignItems: 'center',
-        marginBottom: 30,
-        borderBottomWidth: 1,
-        borderBottomColor: COLORS.slate800,
-        paddingBottom: 20,
-    },
-    drawerAvatarContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        backgroundColor: COLORS.slate800,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 12,
-        borderWidth: 2,
-        borderColor: COLORS.primary,
-    },
-    drawerAvatarText: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: COLORS.primary,
-    },
-    drawerName: {
-        color: COLORS.textLight,
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    drawerRole: {
-        color: COLORS.primary,
-        fontSize: 14,
-    },
-    drawerItems: {
-        gap: 8,
-    },
-    drawerItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        borderRadius: 8,
-        gap: 16,
-    },
-    drawerItemText: {
-        color: COLORS.textLight,
-        fontSize: 16,
-        fontWeight: '500',
-    },
-    logoutButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: 12,
-        marginTop: 'auto',
-        gap: 16,
-        borderTopWidth: 1,
-        borderTopColor: COLORS.slate800,
-        paddingTop: 20,
-    },
-    logoutText: {
-        color: COLORS.red500,
-        fontSize: 16,
-        fontWeight: '600',
     },
 });
