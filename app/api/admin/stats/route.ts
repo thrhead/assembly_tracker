@@ -1,18 +1,22 @@
-import { verifyAuth } from "@/lib/auth-helper";
+import { verifyAdminOrManager } from "@/lib/auth-helper";
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
     try {
-        const session = await verifyAuth(req);
+        const session = await verifyAdminOrManager(req);
 
-        if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
+        if (!session) {
             return new NextResponse("Unauthorized", { status: 401 });
         }
 
         const [totalJobs, activeTeams, completedJobs, pendingJobs] = await Promise.all([
             prisma.job.count(),
-            prisma.team.count(), // Assuming all teams are active for now, or filter by isActive if available
+            prisma.team.count({
+                where: {
+                    isActive: true,
+                },
+            }),
             prisma.job.count({
                 where: {
                     status: "COMPLETED",
@@ -32,7 +36,7 @@ export async function GET(req: Request) {
             pendingJobs,
         });
     } catch (error) {
-        console.error("[ADMIN_STATS_GET]", error);
+        console.error("Admin stats fetch error:", error);
         return new NextResponse("Internal Error", { status: 500 });
     }
 }
