@@ -24,6 +24,8 @@ import authService from '../../services/auth.service';
 import SuccessModal from '../../components/SuccessModal';
 import ConfirmationModal from '../../components/ConfirmationModal';
 import { useAuth } from '../../context/AuthContext';
+import JobInfoCard from '../../components/job-detail/JobInfoCard';
+import CostSection from '../../components/job-detail/CostSection';
 
 import { COLORS } from '../../constants/theme';
 
@@ -438,29 +440,7 @@ export default function JobDetailScreen({ route, navigation }) {
 
             <ScrollView style={styles.contentContainer}>
                 {/* Job Info Card */}
-                <View style={styles.card}>
-                    <Text style={styles.jobTitle}>{job.title}</Text>
-                    <View style={styles.infoRow}>
-                        <MaterialIcons name="business" size={16} color={COLORS.textGray} />
-                        <Text style={styles.infoText}>Müşteri: {job.customer?.name || 'Müşteri'}</Text>
-                    </View>
-                    <View style={styles.infoRow}>
-                        <MaterialIcons name="description" size={16} color={COLORS.textGray} />
-                        <Text style={styles.description}>{job.description}</Text>
-                    </View>
-                    {job.startedAt && (
-                        <View style={styles.infoRow}>
-                            <MaterialIcons name="play-circle-outline" size={16} color={COLORS.primary} />
-                            <Text style={styles.infoText}>Başlangıç: {formatDate(job.startedAt)}</Text>
-                        </View>
-                    )}
-                    {job.completedDate && (
-                        <View style={styles.infoRow}>
-                            <MaterialIcons name="check-circle-outline" size={16} color={COLORS.green500} />
-                            <Text style={styles.infoText}>Bitiş: {formatDate(job.completedDate)}</Text>
-                        </View>
-                    )}
-                </View>
+                <JobInfoCard job={job} />
 
 
                 {/* Assignments Section */}
@@ -780,46 +760,11 @@ export default function JobDetailScreen({ route, navigation }) {
                 })}
 
                 {/* Costs Section */}
-                <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionTitle}>Masraflar</Text>
-                    {!['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (
-                        <TouchableOpacity
-                            style={styles.addCostButton}
-                            onPress={() => setCostModalVisible(true)}
-                        >
-                            <MaterialIcons name="add" size={20} color={COLORS.black} />
-                            <Text style={styles.addCostButtonText}>Ekle</Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-
-                {job.costs && job.costs.length > 0 ? (
-                    job.costs.map((cost) => (
-                        <View key={cost.id} style={styles.costCard}>
-                            <View style={styles.costHeader}>
-                                <Text style={styles.costCategory}>{cost.category}</Text>
-                                <Text style={[
-                                    styles.costStatus,
-                                    cost.status === 'APPROVED' ? styles.statusApproved :
-                                        cost.status === 'REJECTED' ? styles.statusRejected : styles.statusPending
-                                ]}>
-                                    {cost.status === 'APPROVED' ? 'Onaylandı' :
-                                        cost.status === 'REJECTED' ? 'Reddedildi' : 'Bekliyor'}
-                                </Text>
-                            </View>
-                            <View style={styles.costRow}>
-                                <Text style={styles.costAmount}>{cost.amount} {cost.currency}</Text>
-                                <Text style={styles.costDate}>{new Date(cost.date).toLocaleDateString()}</Text>
-                            </View>
-                            <Text style={styles.costDescription}>{cost.description}</Text>
-                            {cost.rejectionReason && (
-                                <Text style={styles.rejectionReason}>Red Nedeni: {cost.rejectionReason}</Text>
-                            )}
-                        </View>
-                    ))
-                ) : (
-                    <Text style={styles.emptyText}>Henüz masraf eklenmemiş.</Text>
-                )}
+                <CostSection
+                    job={job}
+                    canAdd={!['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase())}
+                    onAddPress={() => setCostModalVisible(true)}
+                />
 
                 <View style={{ height: 100 }} />
             </ScrollView>

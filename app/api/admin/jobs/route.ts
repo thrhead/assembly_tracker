@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { verifyAuth } from '@/lib/auth-helper'
+import { verifyAdminOrManager } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { jobCreationSchema } from '@/lib/validations'
 
@@ -34,43 +34,47 @@ function buildJobFilter(searchParams: URLSearchParams) {
     return where
 }
 
+async function fetchJobs(where: any) {
+    return prisma.job.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include: {
+            customer: {
+                include: {
+                    user: {
+                        select: { name: true }
+                    }
+                }
+            },
+            assignments: {
+                include: {
+                    team: true,
+                    worker: {
+                        select: { name: true }
+                    }
+                }
+            },
+            _count: {
+                select: {
+                    steps: true
+                }
+            }
+        }
+    })
+}
+
 export async function GET(req: Request) {
     try {
-        const session = await verifyAuth(req)
-        if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
-            console.warn(`Unauthorized access attempt to Jobs API by ${session?.user?.email || 'unknown'}`)
+        const session = await verifyAdminOrManager(req)
+        if (!session) {
+            console.warn(`Unauthorized access attempt to Jobs API`)
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
         const { searchParams } = new URL(req.url)
         const where = buildJobFilter(searchParams)
 
-        const jobs = await prisma.job.findMany({
-            where,
-            orderBy: { createdAt: 'desc' },
-            include: {
-                customer: {
-                    include: {
-                        user: {
-                            select: { name: true }
-                        }
-                    }
-                },
-                assignments: {
-                    include: {
-                        team: true,
-                        worker: {
-                            select: { name: true }
-                        }
-                    }
-                },
-                _count: {
-                    select: {
-                        steps: true
-                    }
-                }
-            }
-        })
+        const jobs = await fetchJobs(where)
 
         return NextResponse.json(jobs)
     } catch (error) {
@@ -81,8 +85,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
     try {
-        const session = await verifyAuth(req)
-        if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
+        const session = await verifyAdminOrManager(req)
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 

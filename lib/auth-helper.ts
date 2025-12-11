@@ -43,3 +43,11 @@ export async function verifyAuth(req: Request) {
 
     return null
 }
+
+export async function verifyAdminOrManager(req: Request) {
+    const session = await verifyAuth(req)
+    if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
+        return null
+    }
+    return session
+}

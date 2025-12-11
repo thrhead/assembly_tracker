@@ -12,370 +12,145 @@ const getHeaders = async (isFormData = false) => {
     return headers;
 };
 
-const jobService = {
-    getAll: async () => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/admin/jobs`, { headers });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'İşler alınamadı');
-            return data;
-        } catch (error) {
-            console.error('Get all jobs error:', error);
-            throw error;
-        }
-    },
+const request = async (endpoint, options = {}) => {
+    try {
+        const isFormData = options.body instanceof FormData;
+        const headers = await getHeaders(isFormData);
 
-    getMyJobs: async () => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/worker/jobs`, { headers });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'İşlerim alınamadı');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    getJobById: async (jobId) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}`, { headers });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'İş detayı alınamadı');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    toggleStep: async (jobId, stepId, isCompleted) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}/steps/${stepId}/toggle`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ isCompleted })
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'İşlem başarısız');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    toggleSubstep: async (jobId, stepId, substepId, isCompleted) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}/steps/${stepId}/substeps/${substepId}/toggle`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ isCompleted })
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'İşlem başarısız');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    uploadPhotos: async (jobId, stepId, formData, subStepId = null) => {
-        try {
-            if (subStepId) {
-                formData.append('subStepId', subStepId);
+        const config = {
+            ...options,
+            headers: {
+                ...headers,
+                ...options.headers
             }
-            const headers = await getHeaders(true); // True for FormData
-            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}/steps/${stepId}/photos`, {
-                method: 'POST',
-                headers, // No Content-Type
-                body: formData
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Fotoğraf yüklenemedi');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
+        };
 
-    completeJob: async (jobId) => {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+
+        let data;
         try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}/complete`, {
-                method: 'POST',
-                headers
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'İş tamamlanamadı');
-            return data;
-        } catch (error) {
-            throw error;
+            data = await response.json();
+        } catch (e) {
+            // If response is not JSON (e.g. 204 No Content), data remains undefined
+            if (!response.ok) throw new Error('Sunucu hatası');
         }
-    },
 
-    getAllJobs: async (filters = {}) => {
-        try {
-            const params = new URLSearchParams();
-            if (filters.search) params.append('search', filters.search);
-            if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
-            if (filters.priority) params.append('priority', filters.priority);
-
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/admin/jobs?${params.toString()}`, { headers });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'İşler alınamadı');
-            return data;
-        } catch (error) {
-            throw error;
+        if (!response.ok) {
+            throw new Error(data?.error || 'İşlem başarısız');
         }
-    },
 
-    assignJob: async (jobId, workerId) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/admin/jobs/${jobId}/assign`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ workerId })
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Atama başarısız');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    approveStep: async (stepId) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/manager/steps/${stepId}/approve`, {
-                method: 'POST',
-                headers
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Onaylama başarısız');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    rejectStep: async (stepId, reason) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/manager/steps/${stepId}/reject`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ reason })
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Reddetme başarısız');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    approveSubstep: async (substepId) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/manager/substeps/${substepId}/approve`, {
-                method: 'POST',
-                headers
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Onaylama başarısız');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    rejectSubstep: async (substepId, reason) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/manager/substeps/${substepId}/reject`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ reason })
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Reddetme başarısız');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    acceptJob: async (jobId) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/manager/jobs/${jobId}/accept`, {
-                method: 'POST',
-                headers
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'İş kabul edilemedi');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    rejectJob: async (jobId, reason) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/manager/jobs/${jobId}/reject`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ reason })
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'İş reddedilemedi');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    create: async (jobData) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/admin/jobs`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify(jobData)
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'İş oluşturulamadı');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    update: async (jobId, jobData) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/admin/jobs/${jobId}`, {
-                method: 'PUT',
-                headers,
-                body: JSON.stringify(jobData)
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Güncelleme başarısız');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    getPendingApprovals: async () => {
-        try {
-            // This endpoint needs to exist on backend, or we filter getAllJobs
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/admin/jobs?status=PENDING_APPROVAL`, { headers });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Onay bekleyen işler alınamadı');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    startJob: async (jobId) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}/start`, {
-                method: 'POST',
-                headers
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'İş başlatılamadı');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    startStep: async (jobId, stepId) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/worker/jobs/${jobId}/steps/${stepId}/start`, {
-                method: 'POST',
-                headers
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Adım başlatılamadı');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    startSubstep: async (jobId, stepId, substepId) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/worker/substeps/${substepId}/start`, {
-                method: 'POST',
-                headers
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Alt adım başlatılamadı');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    getTemplates: async () => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/admin/templates`, { headers });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Şablonlar alınamadı');
-            return data;
-        } catch (error) {
-            console.error('Get templates error:', error);
-            throw error;
-        }
-    },
-
-    bulkImportJobs: async (formData) => {
-        try {
-            const headers = await getHeaders(true); // Is FormData
-            const response = await fetch(`${API_BASE_URL}/api/admin/jobs/bulk-import`, {
-                method: 'POST',
-                headers,
-                body: formData
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Toplu iş yükleme başarısız');
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    },
-
-    importTemplate: async (formData) => {
-        try {
-            const headers = await getHeaders(true); // Is FormData
-            const response = await fetch(`${API_BASE_URL}/api/admin/templates/import`, {
-                method: 'POST',
-                headers,
-                body: formData
-            });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Şablon yükleme başarısız');
-            return data;
-        } catch (error) {
-            throw error;
-        }
+        return data;
+    } catch (error) {
+        console.error(`Request error [${endpoint}]:`, error);
+        throw error;
     }
+};
+
+const jobService = {
+    // Queries
+    getAdminJobs: async () => request('/api/admin/jobs'),
+
+    // Alias for getAdminJobs (Legacy support)
+    getAll: async () => jobService.getAdminJobs(),
+
+    getMyJobs: async () => request('/api/worker/jobs'),
+
+    getJobById: async (jobId) => request(`/api/worker/jobs/${jobId}`),
+
+    searchJobs: async (filters = {}) => {
+        const params = new URLSearchParams();
+        if (filters.search) params.append('search', filters.search);
+        if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
+        if (filters.priority) params.append('priority', filters.priority);
+
+        return request(`/api/admin/jobs?${params.toString()}`);
+    },
+
+    // Alias for searchJobs (Legacy support)
+    getAllJobs: async (filters) => jobService.searchJobs(filters),
+
+    getPendingApprovals: async () => request('/api/admin/jobs?status=PENDING_APPROVAL'),
+
+    getTemplates: async () => request('/api/admin/templates'),
+
+    // Mutations - Job Status & Flow
+    startJob: async (jobId) => request(`/api/worker/jobs/${jobId}/start`, { method: 'POST' }),
+
+    completeJob: async (jobId) => request(`/api/worker/jobs/${jobId}/complete`, { method: 'POST' }),
+
+    acceptJob: async (jobId) => request(`/api/manager/jobs/${jobId}/accept`, { method: 'POST' }),
+
+    rejectJob: async (jobId, reason) => request(`/api/manager/jobs/${jobId}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason })
+    }),
+
+    assignJob: async (jobId, workerId) => request(`/api/admin/jobs/${jobId}/assign`, {
+        method: 'POST',
+        body: JSON.stringify({ workerId })
+    }),
+
+    // Mutations - Steps
+    toggleStep: async (jobId, stepId, isCompleted) => request(`/api/worker/jobs/${jobId}/steps/${stepId}/toggle`, {
+        method: 'POST',
+        body: JSON.stringify({ isCompleted })
+    }),
+
+    startStep: async (jobId, stepId) => request(`/api/worker/jobs/${jobId}/steps/${stepId}/start`, { method: 'POST' }),
+
+    approveStep: async (stepId) => request(`/api/manager/steps/${stepId}/approve`, { method: 'POST' }),
+
+    rejectStep: async (stepId, reason) => request(`/api/manager/steps/${stepId}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason })
+    }),
+
+    // Mutations - Substeps
+    toggleSubstep: async (jobId, stepId, substepId, isCompleted) => request(`/api/worker/jobs/${jobId}/steps/${stepId}/substeps/${substepId}/toggle`, {
+        method: 'POST',
+        body: JSON.stringify({ isCompleted })
+    }),
+
+    startSubstep: async (jobId, stepId, substepId) => request(`/api/worker/substeps/${substepId}/start`, { method: 'POST' }),
+
+    approveSubstep: async (substepId) => request(`/api/manager/substeps/${substepId}/approve`, { method: 'POST' }),
+
+    rejectSubstep: async (substepId, reason) => request(`/api/manager/substeps/${substepId}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason })
+    }),
+
+    // Mutations - Photos & Files
+    uploadPhotos: async (jobId, stepId, formData, subStepId = null) => {
+        if (subStepId) {
+            formData.append('subStepId', subStepId);
+        }
+        return request(`/api/worker/jobs/${jobId}/steps/${stepId}/photos`, {
+            method: 'POST',
+            body: formData
+        });
+    },
+
+    bulkImportJobs: async (formData) => request('/api/admin/jobs/bulk-import', {
+        method: 'POST',
+        body: formData
+    }),
+
+    importTemplate: async (formData) => request('/api/admin/templates/import', {
+        method: 'POST',
+        body: formData
+    }),
+
+    // Admin CRUD
+    create: async (jobData) => request('/api/admin/jobs', {
+        method: 'POST',
+        body: JSON.stringify(jobData)
+    }),
+
+    update: async (jobId, jobData) => request(`/api/admin/jobs/${jobId}`, {
+        method: 'PUT',
+        body: JSON.stringify(jobData)
+    }),
 };
 
 export default jobService;
