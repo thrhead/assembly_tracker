@@ -10,11 +10,6 @@ export async function GET(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // Role check removed for debugging/usage - Allow all authenticated users
-        // if (session.user.role !== 'ADMIN' && session.user.role !== 'TEAM_LEAD') {
-        //    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-        // }
-
         const { searchParams } = new URL(req.url)
         const start = searchParams.get('start')
         const end = searchParams.get('end')
@@ -29,10 +24,7 @@ export async function GET(req: Request) {
         const startDate = new Date(start)
         const endDate = new Date(end)
 
-        const startValid = !isNaN(startDate.getTime())
-        const endValid = !isNaN(endDate.getTime())
-
-        if (!startValid || !endValid) {
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
             return NextResponse.json({
                 error: 'Invalid date format'
             }, { status: 400 })
@@ -88,8 +80,7 @@ export async function GET(req: Request) {
     } catch (error: any) {
         console.error('Calendar events fetch error:', error)
         return NextResponse.json({
-            error: error.message || 'Internal Server Error',
-            details: error.stack
+            error: 'Internal Server Error'
         }, { status: 500 })
     }
 }
