@@ -1,17 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import jobService from '../../services/job.service';
-import teamService from '../../services/team.service';
-import customerService from '../../services/customer.service';
-import StatCard from '../../components/StatCard';
-import CustomButton from '../../components/CustomButton';
 import { COLORS } from '../../constants/theme';
+import StatsSummary from '../../components/manager/StatsSummary';
+import JobReportList from '../../components/manager/JobReportList';
 
 export default function JobAssignmentScreen({ navigation }) {
     const [jobs, setJobs] = useState([]);
-    const [teams, setTeams] = useState([]);
-    const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -22,15 +18,8 @@ export default function JobAssignmentScreen({ navigation }) {
     const loadData = async () => {
         try {
             setLoading(true);
-            const [jobsData, teamsData, customersData] = await Promise.all([
-                jobService.getAll(),
-                teamService.getAll(),
-                customerService.getAll()
-            ]);
-
+            const jobsData = await jobService.getAll();
             setJobs(jobsData);
-            setTeams(teamsData);
-            setCustomers(customersData);
         } catch (error) {
             console.error('Error loading data:', error);
             Alert.alert('Hata', 'Veriler yüklenemedi');
@@ -45,7 +34,7 @@ export default function JobAssignmentScreen({ navigation }) {
         loadData();
     };
 
-    const getStats = () => {
+    const stats = useMemo(() => {
         const total = jobs.length;
         const active = jobs.filter(j => j.status === 'IN_PROGRESS').length;
         const completed = jobs.filter(j => j.status === 'COMPLETED').length;
@@ -56,41 +45,7 @@ export default function JobAssignmentScreen({ navigation }) {
             .reduce((sum, j) => sum + (j.price || 0), 0);
 
         return { total, active, completed, pending, totalRevenue };
-    };
-
-    const getStatusColor = (status) => {
-        const colors = {
-            'PENDING': COLORS.amber500,
-            'IN_PROGRESS': COLORS.blue500,
-            'COMPLETED': COLORS.green500,
-            'ON_HOLD': COLORS.slate600,
-            'CANCELLED': COLORS.red500
-        };
-        return colors[status] || COLORS.slate600;
-    };
-
-    const getStatusLabel = (status) => {
-        const labels = {
-            'PENDING': 'Beklemede',
-            'IN_PROGRESS': 'Devam Ediyor',
-            'COMPLETED': 'Tamamlandı',
-            'ON_HOLD': 'Askıda',
-            'CANCELLED': 'İptal'
-        };
-        return labels[status] || status;
-    };
-
-    const getPriorityColor = (priority) => {
-        const colors = {
-            'URGENT': COLORS.red500,
-            'HIGH': COLORS.amber500,
-            'MEDIUM': COLORS.blue500,
-            'LOW': COLORS.slate600
-        };
-        return colors[priority] || COLORS.slate600;
-    };
-
-    const stats = getStats();
+    }, [jobs]);
 
     if (loading) {
         return (
@@ -118,80 +73,12 @@ export default function JobAssignmentScreen({ navigation }) {
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
                 }
             >
-                {/* Stats Pills - Horizontal Scroll */}
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statsContainer}>
-                    <StatCard
-                        label="Toplam Gelir"
-                        value={`₺${stats.totalRevenue.toLocaleString()}`}
-                        icon="attach-money"
-                        iconColor={COLORS.green500}
-                        style={styles.statCard}
-                    />
-                    <StatCard
-                        label="Aktif İşler"
-                        value={stats.active}
-                        icon="work"
-                        iconColor={COLORS.blue500}
-                        style={styles.statCard}
-                    />
-                    <StatCard
-                        label="Tamamlanan"
-                        value={stats.completed}
-                        icon="check-circle"
-                        iconColor={COLORS.primary}
-                        style={styles.statCard}
-                    />
-                    <StatCard
-                        label="Bekleyen"
-                        value={stats.pending}
-                        icon="pending"
-                        iconColor={COLORS.amber500}
-                        style={styles.statCard}
-                    />
-                </ScrollView>
+                <StatsSummary stats={stats} />
 
-                {/* Jobs List */}
-                <View style={styles.listHeader}>
-                    <Text style={styles.sectionTitle}>Detaylı İşler</Text>
-                    <Text style={styles.jobCount}>{jobs.length} İş</Text>
-                </View>
-
-                {jobs.map((job) => (
-                    <TouchableOpacity
-                        key={job.id}
-                        style={styles.jobCard}
-                        onPress={() => navigation.navigate('JobDetail', { jobId: job.id })}
-                    >
-                        <View style={styles.jobCardContent}>
-                            <View style={styles.jobLeft}>
-                                <Text style={styles.jobTitle}>{job.title}</Text>
-                                <Text style={styles.jobCustomer}>{job.customer?.company || 'Müşteri Bilinmiyor'}</Text>
-                                <View style={styles.jobMeta}>
-                                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(job.status) + '20' }]}>
-                                        <Text style={[styles.statusText, { color: getStatusColor(job.status) }]}>
-                                            {getStatusLabel(job.status)}
-                                        </Text>
-                                    </View>
-                                    {job.priority && (
-                                        <View style={[styles.priorityBadge, { borderColor: getPriorityColor(job.priority) }]}>
-                                            <Text style={[styles.priorityText, { color: getPriorityColor(job.priority) }]}>
-                                                {job.priority}
-                                            </Text>
-                                        </View>
-                                    )}
-                                </View>
-                            </View>
-                            <MaterialIcons name="chevron-right" size={24} color={COLORS.slate500} />
-                        </View>
-                    </TouchableOpacity>
-                ))}
-
-                {jobs.length === 0 && (
-                    <View style={styles.emptyState}>
-                        <MaterialIcons name="work-outline" size={64} color={COLORS.slate600} />
-                        <Text style={styles.emptyText}>Henüz iş eklenmemiş</Text>
-                    </View>
-                )}
+                <JobReportList
+                    jobs={jobs}
+                    onJobPress={(id) => navigation.navigate('JobDetail', { jobId: id })}
+                />
             </ScrollView>
 
             {/* FAB */}
@@ -240,92 +127,6 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
-    },
-    statsContainer: {
-        paddingVertical: 16,
-        paddingHorizontal: 12,
-    },
-    statCard: {
-        minWidth: 140,
-        marginHorizontal: 4,
-    },
-    listHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingTop: 8,
-        paddingBottom: 12,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: COLORS.textLight,
-    },
-    jobCount: {
-        fontSize: 14,
-        color: COLORS.slate400,
-    },
-    jobCard: {
-        backgroundColor: COLORS.cardDark,
-        borderWidth: 1,
-        borderColor: COLORS.slate800,
-        borderRadius: 12,
-        marginHorizontal: 16,
-        marginBottom: 12,
-        padding: 16,
-    },
-    jobCardContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    jobLeft: {
-        flex: 1,
-    },
-    jobTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: COLORS.textLight,
-        marginBottom: 4,
-    },
-    jobCustomer: {
-        fontSize: 14,
-        color: COLORS.slate400,
-        marginBottom: 8,
-    },
-    jobMeta: {
-        flexDirection: 'row',
-        gap: 8,
-    },
-    statusBadge: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    statusText: {
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    priorityBadge: {
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
-        borderWidth: 1,
-    },
-    priorityText: {
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    emptyState: {
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 64,
-    },
-    emptyText: {
-        fontSize: 16,
-        color: COLORS.slate500,
-        marginTop: 16,
     },
     fab: {
         position: 'absolute',

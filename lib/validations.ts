@@ -45,8 +45,10 @@ export const updateUserSchema = z.object({
 // Team Schemas
 export const createTeamSchema = z.object({
   name: z.string().min(2, 'Takım adı en az 2 karakter olmalıdır'),
-  leadId: z.string().cuid('Geçerli bir takım lideri seçiniz'),
-  description: z.string().optional(),
+  leadId: z.string().cuid('Geçerli bir takım lideri seçiniz').optional().nullable(),
+  description: z.string().optional().nullable(),
+  isActive: z.boolean().optional(),
+  memberIds: z.array(z.string()).optional()
 })
 
 // Customer Schemas
