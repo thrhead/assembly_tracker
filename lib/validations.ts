@@ -53,12 +53,11 @@ export const createTeamSchema = z.object({
 
 // Customer Schemas
 export const createCustomerSchema = z.object({
-  name: z.string().min(2, 'Müşteri adı en az 2 karakter olmalıdır'),
+  companyName: z.string().min(2, 'Şirket adı en az 2 karakter olmalıdır'),
+  contactPerson: z.string().min(2, 'Kişi adı en az 2 karakter olmalıdır'),
   email: z.string().email('Geçerli bir e-posta adresi giriniz'),
-  password: z.string().min(6, 'Şifre en az 6 karakter olmalıdır'),
-  company: z.string().optional(),
-  address: z.string().optional(),
   phone: z.string().optional(),
+  address: z.string().optional(),
 })
 
 // Notification Schema

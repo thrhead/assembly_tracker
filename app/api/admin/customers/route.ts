@@ -1,23 +1,15 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { verifyAuth } from '@/lib/auth-helper'
+import { verifyAdmin, verifyAdminOrManager } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { hash } from 'bcryptjs'
-
-const createCustomerSchema = z.object({
-    companyName: z.string().min(2, 'Şirket adı en az 2 karakter olmalıdır'),
-    contactPerson: z.string().min(2, 'Kişi adı en az 2 karakter olmalıdır'),
-    email: z.string().email('Geçerli bir e-posta adresi giriniz'),
-    phone: z.string().optional(),
-    address: z.string().optional(),
-})
+import { createCustomerSchema } from '@/lib/validations'
 
 export async function GET(req: Request) {
     try {
-        const session = await verifyAuth(req)
-        console.log('[API] Customers GET Request - Session Role:', session?.user?.role)
+        const session = await verifyAdminOrManager(req)
 
-        if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
@@ -80,8 +72,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
     try {
-        const session = await verifyAuth(req)
-        if (!session || session.user.role !== 'ADMIN') {
+        const session = await verifyAdmin(req)
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
