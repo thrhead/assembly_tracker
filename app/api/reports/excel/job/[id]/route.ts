@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { verifyAdminOrManager } from '@/lib/auth-helper'
 import { prisma } from '@/lib/db'
 
 export async function GET(
@@ -9,13 +8,9 @@ export async function GET(
 ) {
     const params = await props.params
     try {
-        const session = await getServerSession(authOptions)
-        if (!session?.user) {
+        const session = await verifyAdminOrManager(request)
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
-        if (!['ADMIN', 'MANAGER'].includes(session.user.role)) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
         }
 
         const jobId = params.id
@@ -62,7 +57,6 @@ export async function GET(
             return NextResponse.json({ error: 'Job not found' }, { status: 404 })
         }
 
-        // Format for Excel generator
         const excelData = {
             id: job.id,
             title: job.title,

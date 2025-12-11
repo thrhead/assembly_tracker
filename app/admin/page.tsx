@@ -1,17 +1,13 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { prisma } from "@/lib/db"
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   BriefcaseIcon,
   ReceiptIcon,
-  UsersIcon,
   TrendingUpIcon,
   BellIcon
 } from 'lucide-react'
-import { formatDistanceToNow } from "date-fns"
-import { tr } from "date-fns/locale"
+import { getAdminDashboardData } from "@/lib/data/admin-dashboard"
 
 export default async function AdminDashboard() {
   const session = await auth()
@@ -20,57 +16,12 @@ export default async function AdminDashboard() {
     redirect("/login")
   }
 
-  // Fetch real data for synchronization
-  const [
+  const {
     activeWorkers,
-    todaysCosts,
+    totalCostToday,
+    budgetPercentage,
     pendingApprovalsCount
-  ] = await Promise.all([
-    // Fetch active workers (those with IN_PROGRESS jobs)
-    prisma.user.findMany({
-      where: {
-        role: 'WORKER',
-        isActive: true,
-        assignedJobs: {
-          some: {
-            job: {
-              status: 'IN_PROGRESS'
-            }
-          }
-        }
-      },
-      take: 5,
-      select: {
-        id: true,
-        name: true,
-        avatarUrl: true
-      }
-    }),
-    // Fetch today's costs for "Son Masraflar"
-    prisma.costTracking.findMany({
-      where: {
-        date: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0))
-        }
-      },
-      select: {
-        amount: true
-      }
-    }),
-    // Fetch pending approvals count
-    prisma.approval.count({
-      where: {
-        status: 'PENDING'
-      }
-    })
-  ])
-
-  // Calculate total cost for today
-  const totalCostToday = todaysCosts.reduce((sum, cost) => sum + cost.amount, 0)
-
-  // Mock budget for progress bar (e.g., 2000 TL daily budget)
-  const dailyBudget = 2000
-  const budgetPercentage = Math.min(Math.round((totalCostToday / dailyBudget) * 100), 100)
+  } = await getAdminDashboardData()
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">

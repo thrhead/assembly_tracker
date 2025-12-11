@@ -1,22 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { verifyAdminOrManager } from '@/lib/auth-helper'
 import { prisma } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
     try {
-        const session = await getServerSession(authOptions)
-        if (!session?.user) {
+        const session = await verifyAdminOrManager(request)
+        if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
-        if (!['ADMIN', 'MANAGER'].includes(session.user.role)) {
-            return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
         }
 
         const { searchParams } = new URL(request.url)
 
-        // Build where clause from filters
         const where: any = {}
 
         const status = searchParams.get('status')
@@ -68,7 +62,6 @@ export async function GET(request: NextRequest) {
             },
         })
 
-        // Format for Excel generator
         const excelData = jobs.map((job) => {
             const totalSteps = job.steps.length
             const completedSteps = job.steps.filter((s) => s.isCompleted).length
