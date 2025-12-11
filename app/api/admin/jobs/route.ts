@@ -4,55 +4,46 @@ import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { jobCreationSchema } from '@/lib/validations'
-import * as fs from 'fs';
-import * as path from 'path';
 
-const LOG_FILE = path.join(process.cwd(), 'api_debug.log');
+// Helper function to build where clause for filtering
+function buildJobFilter(searchParams: URLSearchParams) {
+    const search = searchParams.get('search')
+    const status = searchParams.get('status')
+    const priority = searchParams.get('priority')
+    const teamId = searchParams.get('teamId')
+    const customerId = searchParams.get('customerId')
 
-function logToFile(message: string) {
-    const timestamp = new Date().toISOString();
-    try {
-        fs.appendFileSync(LOG_FILE, `${timestamp} - ${message}\n`);
-    } catch (e) {
-        console.error('Failed to write to log file:', e);
+    const where: any = {}
+
+    if (search) {
+        where.OR = [
+            { title: { contains: search, mode: 'insensitive' } },
+            { customer: { company: { contains: search, mode: 'insensitive' } } },
+            { customer: { user: { name: { contains: search, mode: 'insensitive' } } } }
+        ]
     }
+
+    if (status && status !== 'all') where.status = status
+    if (priority && priority !== 'all') where.priority = priority
+    if (customerId && customerId !== 'all') where.customerId = customerId
+
+    if (teamId && teamId !== 'all') {
+        where.assignments = { some: { teamId } }
+    }
+
+    return where
 }
 
 export async function GET(req: Request) {
     try {
-        logToFile('Admin Jobs API: GET Request received');
         const session = await verifyAuth(req)
         if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
-            logToFile('Admin Jobs API: Unauthorized access attempt');
+            console.warn(`Unauthorized access attempt to Jobs API by ${session?.user?.email || 'unknown'}`)
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        logToFile(`Admin Jobs API: Session Found (User: ${session.user.email})`);
-
         const { searchParams } = new URL(req.url)
-        const search = searchParams.get('search')
-        const status = searchParams.get('status')
-        const priority = searchParams.get('priority')
-        const teamId = searchParams.get('teamId')
-        const customerId = searchParams.get('customerId')
-
-        const where: any = {}
-
-        if (search) {
-            where.OR = [
-                { title: { contains: search, mode: 'insensitive' } },
-                { customer: { company: { contains: search, mode: 'insensitive' } } },
-                { customer: { user: { name: { contains: search, mode: 'insensitive' } } } }
-            ]
-        }
-
-        if (status && status !== 'all') where.status = status
-        if (priority && priority !== 'all') where.priority = priority
-        if (customerId && customerId !== 'all') where.customerId = customerId
-
-        if (teamId && teamId !== 'all') {
-            where.assignments = { some: { teamId } }
-        }
+        const where = buildJobFilter(searchParams)
 
         const jobs = await prisma.job.findMany({
             where,
@@ -81,11 +72,8 @@ export async function GET(req: Request) {
             }
         })
 
-        logToFile(`Admin Jobs API: Returning ${jobs.length} jobs`);
-
         return NextResponse.json(jobs)
     } catch (error) {
-        logToFile(`Admin Jobs API Error: ${error}`);
         console.error('Jobs fetch error:', error)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
@@ -169,4 +157,3 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
-

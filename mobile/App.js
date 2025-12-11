@@ -1,8 +1,5 @@
 import * as React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-// import { enableFreeze } from 'react-native-screens';
-
-// enableFreeze(false);
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -25,22 +22,17 @@ import CustomerManagementScreen from './src/screens/admin/CustomerManagementScre
 import ApprovalsScreen from './src/screens/admin/ApprovalsScreen';
 import CreateJobScreen from './src/screens/admin/CreateJobScreen';
 import CalendarScreen from './src/screens/admin/CalendarScreen';
-
-// ...
-
 import CostManagementScreen from './src/screens/manager/CostManagementScreen';
 import NotificationsScreen from './src/screens/worker/NotificationsScreen';
 import notificationService from './src/services/notification.service';
 import * as Notifications from 'expo-notifications';
+import { SocketProvider } from './src/context/SocketContext';
+import ToastNotification from './src/components/ToastNotification';
 
 const Stack = createStackNavigator();
 
 function AppNavigator() {
   const { user, loading } = useAuth();
-
-  console.log('AppNavigator - user:', user, 'loading:', loading, 'CreateJobScreen registered');
-
-
 
   // Determine initial route based on user role
   React.useEffect(() => {
@@ -203,9 +195,6 @@ function AppNavigator() {
   );
 }
 
-import { SocketProvider } from './src/context/SocketContext';
-import ToastNotification from './src/components/ToastNotification';
-
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -235,7 +224,6 @@ class ErrorBoundary extends React.Component {
 }
 
 export default function App() {
-  console.log('App component mounted. Wrapping with Providers...');
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ErrorBoundary>

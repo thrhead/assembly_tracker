@@ -5,6 +5,22 @@ import { setAuthToken, clearAuthToken, registerLogoutCallback, getAuthToken } fr
 
 const AuthContext = createContext(null);
 
+// Utility function for timeout
+const withTimeout = (promise, ms = 5000, errorMessage = 'Operation timed out') => {
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(errorMessage)), ms);
+    });
+
+    return Promise.race([
+        promise.then((res) => {
+            clearTimeout(timeoutId);
+            return res;
+        }),
+        timeoutPromise
+    ]);
+};
+
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -22,24 +38,15 @@ export const AuthProvider = ({ children }) => {
 
     const checkUser = async () => {
         try {
-            // Create a timeout promise
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Auth check timeout')), 5000)
-            );
+            await withTimeout((async () => {
+                const savedUser = await AsyncStorage.getItem('user');
+                // getAuthToken will also set the api header if token exists
+                const token = await getAuthToken();
 
-            // Race between auth check and timeout
-            await Promise.race([
-                (async () => {
-                    const savedUser = await AsyncStorage.getItem('user');
-                    // getAuthToken will also set the api header if token exists
-                    const token = await getAuthToken();
-
-                    if (savedUser && token) {
-                        setUser(JSON.parse(savedUser));
-                    }
-                })(),
-                timeoutPromise
-            ]);
+                if (savedUser && token) {
+                    setUser(JSON.parse(savedUser));
+                }
+            })(), 5000, 'Auth check timeout');
         } catch (error) {
             console.error('Error checking user:', error);
         } finally {
@@ -54,20 +61,18 @@ export const AuthProvider = ({ children }) => {
             // Call real API
             const response = await authService.login(email, password);
 
-            if (response.user && response.token) {
+            if (response.user) {
                 // Save user data and token explicitly
                 await AsyncStorage.setItem('user', JSON.stringify(response.user));
-                await setAuthToken(response.token);
-                setUser(response.user);
 
-                return { success: true };
-            } else if (response.user) {
-                // Fallback if token is not in response root but handled by authService (though we prefer explicit)
-                await AsyncStorage.setItem('user', JSON.stringify(response.user));
+                if (response.token) {
+                    await setAuthToken(response.token);
+                }
+
                 setUser(response.user);
                 return { success: true };
             } else {
-                return { success: false, error: 'Login failed' };
+                throw new Error('Invalid response from server');
             }
         } catch (error) {
             console.error('Login error:', error);

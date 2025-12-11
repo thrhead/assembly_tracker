@@ -9,20 +9,17 @@ import {
     RefreshControl,
     SafeAreaView,
     StatusBar,
-    Modal,
-    Alert,
-    Linking
+    Alert
 } from 'react-native';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
-import * as DocumentPicker from 'expo-document-picker';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import { useAuth } from '../../context/AuthContext';
-import { API_BASE_URL } from '../../services/api';
 import jobService from '../../services/job.service';
 import { COLORS } from '../../constants/theme';
 import JobListItem from '../../components/JobListItem';
 import CreateJobModal from '../../components/modals/CreateJobModal';
+import UploadJobModal from '../../components/modals/UploadJobModal';
 
 export default function WorkerJobsScreen() {
     const navigation = useNavigation();
@@ -47,13 +44,19 @@ export default function WorkerJobsScreen() {
     );
 
     useEffect(() => {
-        // Debounce search
+        // Debounce search only when query changes
         const handler = setTimeout(() => {
             filterJobs();
         }, 300);
 
         return () => clearTimeout(handler);
-    }, [jobs, selectedFilter, searchQuery]);
+    }, [searchQuery]);
+
+    // Re-filter immediately when filter tab or jobs list changes
+    useEffect(() => {
+        filterJobs();
+    }, [jobs, selectedFilter]);
+
 
     const fetchJobs = async () => {
         try {
@@ -100,22 +103,6 @@ export default function WorkerJobsScreen() {
         setRefreshing(true);
         await fetchJobs();
         setRefreshing(false);
-    };
-
-    const handlePickDocument = async (type) => {
-        try {
-            const result = await DocumentPicker.getDocumentAsync({
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                copyToCacheDirectory: true
-            });
-
-            if (result.assets && result.assets.length > 0) {
-                Alert.alert('Bilgi', 'Excel yükleme özelliği backend ile bağlanacak.');
-                setUploadModalVisible(false);
-            }
-        } catch (err) {
-            console.error('Document picker error:', err);
-        }
     };
 
     const renderItem = useCallback(({ item }) => (
@@ -183,7 +170,7 @@ export default function WorkerJobsScreen() {
 
             {isAdmin && (
                 <View style={styles.fabContainer}>
-                    <TouchableOpacity style={[styles.fab, { marginBottom: 16, backgroundColor: '#3b82f6' }]} onPress={() => setUploadModalVisible(true)}>
+                    <TouchableOpacity style={[styles.fab, styles.excelFab]} onPress={() => setUploadModalVisible(true)}>
                         <MaterialCommunityIcons name="file-excel-box" size={28} color={COLORS.white} />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
@@ -192,47 +179,13 @@ export default function WorkerJobsScreen() {
                 </View>
             )}
 
-            {/* Upload Modal */}
-            <Modal
+            {/* Upload Modal (Refactored) */}
+            <UploadJobModal
                 visible={uploadModalVisible}
-                transparent={true}
-                animationType="fade"
-                onRequestClose={() => setUploadModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={[styles.modalContent, { width: '80%' }]}>
-                        <Text style={styles.modalTitle}>Excel Yükleme</Text>
-                        <TouchableOpacity style={[styles.selectorButton, { marginBottom: 12, justifyContent: 'center' }]} onPress={() => handlePickDocument('job')}>
-                            <MaterialIcons name="file-upload" size={24} color={COLORS.neonGreen} style={{ marginRight: 10 }} />
-                            <Text style={styles.selectorButtonText}>Toplu İş Yükle (Excel)</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={[styles.selectorButton, { marginBottom: 12, justifyContent: 'center' }]} onPress={() => handlePickDocument('template')}>
-                            <MaterialIcons name="file-upload" size={24} color={COLORS.blue500} style={{ marginRight: 10 }} />
-                            <Text style={styles.selectorButtonText}>Şablon Yükle (Excel)</Text>
-                        </TouchableOpacity>
+                onClose={() => setUploadModalVisible(false)}
+            />
 
-                        <TouchableOpacity
-                            style={[styles.selectorButton, { justifyContent: 'center', borderColor: COLORS.textGray }]}
-                            onPress={() => {
-                                const url = `${API_BASE_URL}/api/admin/templates/sample`;
-                                Linking.openURL(url).catch(err => {
-                                    console.error("Couldn't load page", err);
-                                    Alert.alert('Hata', 'Şablon indirme linki açılamadı.');
-                                });
-                            }}
-                        >
-                            <MaterialIcons name="file-download" size={24} color={COLORS.textLight} style={{ marginRight: 10 }} />
-                            <Text style={styles.selectorButtonText}>Örnek Şablon İndir</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={[styles.cancelButton, { marginTop: 20 }]} onPress={() => setUploadModalVisible(false)}>
-                            <Text style={styles.cancelButtonText}>İptal</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-
-            {/* Create Job Modal (Refactored) */}
+            {/* Create Job Modal */}
             <CreateJobModal
                 visible={modalVisible}
                 onClose={() => setModalVisible(false)}
@@ -263,15 +216,7 @@ const styles = StyleSheet.create({
     listContent: { padding: 16, paddingTop: 0, paddingBottom: 100 },
     fabContainer: { position: 'absolute', bottom: 24, right: 24, alignItems: 'center' },
     fab: { width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.neonGreen, alignItems: 'center', justifyContent: 'center', shadowColor: COLORS.neonGreen, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 10 },
+    excelFab: { marginBottom: 16, backgroundColor: '#3b82f6' },
     emptyContainer: { padding: 20, alignItems: 'center' },
     emptyText: { color: COLORS.textGray },
-
-    // Modal Styles
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
-    modalContent: { backgroundColor: '#1A1A1A', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#333' },
-    modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#ffffff', marginBottom: 20, textAlign: 'center' },
-    selectorButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#2d3748', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: '#4b5563' },
-    selectorButtonText: { color: '#ffffff' },
-    cancelButton: { padding: 14, borderRadius: 8, backgroundColor: '#334155', alignItems: 'center' },
-    cancelButtonText: { color: '#e2e8f0', fontWeight: '600' },
 });
