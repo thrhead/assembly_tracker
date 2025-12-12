@@ -1,6 +1,5 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { prisma } from "@/lib/db"
 import { UserDialog } from "@/components/admin/user-dialog"
 import {
   Table,
@@ -15,41 +14,22 @@ import { Input } from "@/components/ui/input"
 import { SearchIcon } from "lucide-react"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
-
-async function getUsers(search?: string) {
-  const where: any = {}
-  if (search) {
-    where.OR = [
-      { name: { contains: search } },
-      { email: { contains: search } }
-    ]
-  }
-
-  return await prisma.user.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      phone: true,
-      isActive: true,
-      createdAt: true,
-    }
-  })
-}
+import { getUsers } from "@/lib/data/users"
 
 export default async function UsersPage(props: {
   searchParams: Promise<{ search?: string }>
 }) {
   const searchParams = await props.searchParams
   const session = await auth()
+
   if (!session || session.user.role !== "ADMIN") {
     redirect("/login")
   }
 
-  const users = await getUsers(searchParams.search)
+  const { users } = await getUsers({
+    filter: { search: searchParams.search },
+    limit: 100 // Temporarily fetch more since pagination UI isn't here yet
+  })
 
   const roleColors: Record<string, string> = {
     ADMIN: "bg-red-100 text-red-800",
@@ -109,14 +89,14 @@ export default async function UsersPage(props: {
                 <TableCell className="font-medium">{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>
-                  <Badge variant="secondary" className={roleColors[user.role]}>
+                  <Badge variant="secondary" className={roleColors[user.role] || ""}>
                     {roleLabels[user.role] || user.role}
                   </Badge>
                 </TableCell>
-                <TableCell>{user.phone || '-'}</TableCell>
+                <TableCell>{(user as any).phone || '-'}</TableCell>
                 <TableCell>
-                  <Badge variant={user.isActive ? "default" : "destructive"}>
-                    {user.isActive ? 'Aktif' : 'Pasif'}
+                  <Badge variant={(user as any).isActive ? "default" : "destructive"}>
+                    {(user as any).isActive ? 'Aktif' : 'Pasif'}
                   </Badge>
                 </TableCell>
                 <TableCell>

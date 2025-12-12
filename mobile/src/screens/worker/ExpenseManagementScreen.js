@@ -1,69 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
     StyleSheet,
-    ScrollView,
     TouchableOpacity,
     TextInput,
     StatusBar,
     SafeAreaView,
-    Dimensions,
-    Modal,
-    Alert,
-    Platform
+    ScrollView
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons } from '@expo/vector-icons';
-import { Image } from 'react-native';
-import costService from '../../services/cost.service';
-import jobService from '../../services/job.service';
-
-const { width } = Dimensions.get('window');
-
-// Using the app's existing color palette but adapting for the specific design requested
-// Using the specific colors from the provided HTML
-const COLORS = {
-    primary: "#9fff00", // neon-green from HTML
-    backgroundDark: "#010100", // User requested always #010100
-    cardDark: "#0f172a", // slate-900
-    cardBorder: "#1e293b", // slate-800
-    textLight: "#f1f5f9", // slate-100
-    textGray: "#94a3b8", // slate-400
-    textDark: "#000000",
-    white: "#ffffff",
-    red400: "#f87171",
-    red900: "#7f1d1d",
-    green400: "#4ade80",
-    green900: "#14532d",
-    blue400: "#60a5fa",
-    blue900: "#1e3a8a",
-    orange400: "#fb923c",
-    purple400: "#c084fc",
-    purple900: "#581c87",
-};
+import { useWorkerExpenses } from '../../hooks/useWorkerExpenses';
+import { ProjectFilter, CategoryFilter } from '../../components/worker/expense/ExpenseFilter';
+import { ExpenseList } from '../../components/worker/expense/ExpenseList';
+import { ExpenseSummary } from '../../components/worker/expense/ExpenseSummary';
+import { CreateExpenseModal } from '../../components/worker/expense/CreateExpenseModal';
+import { COLORS } from '../../constants/theme';
 
 export default function ExpenseManagementScreen({ navigation, route }) {
-    const [projects, setProjects] = useState([]);
-    const [expenses, setExpenses] = useState([]);
-    const [selectedProject, setSelectedProject] = useState(null);
-    const [selectedCategory, setSelectedCategory] = useState('Tümü');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [loading, setLoading] = useState(true);
+    const {
+        projects,
+        // expenses, // Not directly used in render, filteredExpenses is used
+        // loading, // Could add a loader
+        selectedProject,
+        selectedCategory,
+        searchQuery,
+        filteredExpenses,
+        groupedExpenses,
+        setSelectedProject,
+        setSelectedCategory,
+        setSearchQuery,
+        loadData,
+        createExpense
+    } = useWorkerExpenses();
 
-    // Create Modal State
     const [modalVisible, setModalVisible] = useState(false);
-    const [formData, setFormData] = useState({
-        title: '',
-        amount: '',
-        category: 'Yemek',
-        description: '',
-        jobId: '',
-        date: new Date()
-    });
-    const [receiptImage, setReceiptImage] = useState(null);
-    const [showDatePicker, setShowDatePicker] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -71,177 +42,9 @@ export default function ExpenseManagementScreen({ navigation, route }) {
             setModalVisible(true);
             navigation.setParams({ openCreate: undefined });
         }
-    }, [route.params]);
+    }, [route.params, loadData, navigation]);
 
-    const loadData = async () => {
-        try {
-            setLoading(true);
-            const myJobs = await jobService.getMyJobs();
-            const myCosts = await costService.getMyCosts();
-
-            setProjects(myJobs || []);
-            setExpenses(myCosts || []);
-
-            if (myJobs && myJobs.length > 0) {
-                setSelectedProject(myJobs[0]);
-                setFormData(prev => ({ ...prev, jobId: myJobs[0].id }));
-            }
-        } catch (error) {
-            console.error('Error loading jobs:', error);
-            Alert.alert('Hata', 'Projeler yüklenirken bir hata oluştu.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleCreateExpense = async () => {
-        if (!formData.title || !formData.amount) {
-            Alert.alert('Hata', 'Lütfen başlık ve tutar giriniz.');
-            return;
-        }
-
-        if (!formData.jobId) {
-            Alert.alert('Hata', 'Lütfen bir proje seçiniz. Eğer projeniz yoksa masraf ekleyemezsiniz.');
-            return;
-        }
-
-        try {
-            // Backend requires 'description' but mobile has 'title' and 'description'.
-            // Combine them or use title as description if description is empty.
-            const finalDescription = formData.description
-                ? `${formData.title} - ${formData.description}`
-                : formData.title;
-
-            const data = new FormData();
-            data.append('jobId', formData.jobId);
-            data.append('amount', parseFloat(formData.amount).toString());
-            data.append('currency', 'TRY');
-            data.append('category', formData.category);
-            data.append('description', finalDescription);
-            data.append('date', formData.date.toISOString());
-
-            if (receiptImage) {
-                const filename = receiptImage.split('/').pop();
-                const match = /\.(\w+)$/.exec(filename);
-                const type = match ? `image/${match[1]}` : 'image/jpeg';
-
-                data.append('receipt', {
-                    uri: receiptImage,
-                    name: filename,
-                    type
-                });
-            }
-
-            await costService.create(data);
-            Alert.alert('Başarılı', 'Masraf başarıyla eklendi.');
-            setModalVisible(false);
-            setFormData({ title: '', amount: '', category: 'Yemek', description: '', jobId: '', date: new Date() });
-            setReceiptImage(null);
-            loadData();
-        } catch (error) {
-            console.error('Create expense error:', error);
-            Alert.alert('Hata', 'Masraf eklenirken bir hata oluştu.');
-        }
-    };
-
-    const handleProjectSelect = (project) => {
-        setSelectedProject(project);
-        setFormData(prev => ({ ...prev, jobId: project.id }));
-    };
-    const categories = [
-        { id: 'Tümü', icon: 'tune', label: 'Tümü' },
-        { id: 'Seyahat', icon: 'directions-car', label: 'Seyahat' },
-        { id: 'Yol', icon: 'commute', label: 'Yol' },
-        { id: 'Yemek', icon: 'restaurant', label: 'Yemek' },
-        { id: 'Malzeme', icon: 'storefront', label: 'Malzeme' },
-        { id: 'Konaklama', icon: 'hotel', label: 'Konaklama' },
-        { id: 'Yakıt', icon: 'local-gas-station', label: 'Yakıt' },
-        { id: 'Diğer', icon: 'more-horiz', label: 'Diğer' },
-    ];
-
-    const filteredExpenses = expenses.filter(expense => {
-        const matchesProject = selectedProject ? expense.jobId === selectedProject.id : true;
-        const matchesCategory = selectedCategory === 'Tümü' ? true : expense.category === selectedCategory;
-        const matchesSearch = searchQuery ? (expense.description?.toLowerCase().includes(searchQuery.toLowerCase()) || expense.category?.toLowerCase().includes(searchQuery.toLowerCase())) : true;
-        return matchesProject && matchesCategory && matchesSearch;
-    });
-
-    const groupExpensesByDate = (expenses) => {
-        const groups = {
-            'Bugün': [],
-            'Dün': [],
-            'Geçen Hafta': [],
-            'Geçen Ay': [],
-            'Daha Eski': []
-        };
-
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const lastWeek = new Date(today);
-        lastWeek.setDate(lastWeek.getDate() - 7);
-        const lastMonth = new Date(today);
-        lastMonth.setMonth(lastMonth.getMonth() - 1);
-
-        expenses.forEach(expense => {
-            const date = new Date(expense.date);
-            const expenseDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-            if (expenseDate.getTime() === today.getTime()) {
-                groups['Bugün'].push(expense);
-            } else if (expenseDate.getTime() === yesterday.getTime()) {
-                groups['Dün'].push(expense);
-            } else if (expenseDate > lastWeek) {
-                groups['Geçen Hafta'].push(expense);
-            } else if (expenseDate > lastMonth) {
-                groups['Geçen Ay'].push(expense);
-            } else {
-                groups['Daha Eski'].push(expense);
-            }
-        });
-
-        return groups;
-    };
-
-    const groupedExpenses = groupExpensesByDate(filteredExpenses);
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'APPROVED': return COLORS.green400;
-            case 'PENDING': return COLORS.orange400;
-            case 'REJECTED': return COLORS.red400;
-            default: return COLORS.textGray;
-        }
-    };
-
-    const getStatusText = (status) => {
-        switch (status) {
-            case 'APPROVED': return 'Onaylandı';
-            case 'PENDING': return 'Bekliyor';
-            case 'REJECTED': return 'Reddedildi';
-            default: return '';
-        }
-    };
-
-    const getIconColor = (colorName) => {
-        switch (colorName) {
-            case 'red': return COLORS.red400;
-            case 'blue': return COLORS.blue400;
-            case 'purple': return COLORS.purple400;
-            default: return COLORS.textGray;
-        }
-    };
-
-    const getIconBgColor = (category) => {
-        // Simple mapping based on category or just random/fixed colors
-        return 'rgba(148, 163, 184, 0.1)';
-    };
-
-    const getCategoryIcon = (category) => {
-        const cat = categories.find(c => c.id === category);
-        return cat ? cat.icon : 'attach-money';
-    };
+    const totalAmount = filteredExpenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -260,39 +63,14 @@ export default function ExpenseManagementScreen({ navigation, route }) {
 
             <ScrollView contentContainerStyle={styles.contentContainer}>
                 {/* Project Filter */}
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.projectFilterContainer}>
-                    {projects.map((project, index) => (
-                        <TouchableOpacity
-                            key={project.id || index}
-                            style={[
-                                styles.projectChip,
-                                selectedProject?.id === project.id ? styles.projectChipSelected : styles.projectChipUnselected
-                            ]}
-                            onPress={() => handleProjectSelect(project)}
-                        >
-                            <Text style={[
-                                styles.projectChipText,
-                                selectedProject?.id === project.id ? styles.projectChipTextSelected : styles.projectChipTextUnselected
-                            ]}>
-                                {project.title}
-                            </Text>
-                            {selectedProject?.id === project.id && (
-                                <MaterialIcons name="expand-more" size={20} color={COLORS.primary} />
-                            )}
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
+                <ProjectFilter
+                    projects={projects}
+                    selectedProject={selectedProject}
+                    onSelect={setSelectedProject}
+                />
 
                 {/* Budget Card */}
-                <View style={styles.budgetCard}>
-                    <View style={styles.budgetHeader}>
-                        <Text style={styles.budgetTitle}>Toplam Harcama</Text>
-                        <Text style={styles.budgetAmount}>
-                            ₺{filteredExpenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </Text>
-                    </View>
-                    {/* Progress bar and remaining budget removed as per request */}
-                </View>
+                <ExpenseSummary totalAmount={totalAmount} />
 
                 {/* Search */}
                 <View style={styles.searchContainer}>
@@ -311,65 +89,16 @@ export default function ExpenseManagementScreen({ navigation, route }) {
                 </View>
 
                 {/* Category Filter */}
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryFilterContainer}>
-                    {categories.map((cat) => (
-                        <TouchableOpacity
-                            key={cat.id}
-                            style={[
-                                styles.categoryChip,
-                                selectedCategory === cat.id ? styles.categoryChipSelected : styles.categoryChipUnselected
-                            ]}
-                            onPress={() => setSelectedCategory(cat.id)}
-                        >
-                            <MaterialIcons
-                                name={cat.icon}
-                                size={20}
-                                color={selectedCategory === cat.id ? COLORS.primary : COLORS.textGray}
-                            />
-                            <Text style={[
-                                styles.categoryChipText,
-                                selectedCategory === cat.id ? styles.categoryChipTextSelected : styles.categoryChipTextUnselected
-                            ]}>
-                                {cat.label}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </ScrollView>
+                <CategoryFilter
+                    selectedCategory={selectedCategory}
+                    onSelect={setSelectedCategory}
+                />
 
                 {/* Expenses List */}
-                <View style={styles.expensesList}>
-                    {Object.entries(groupedExpenses).map(([groupName, groupExpenses]) => (
-                        groupExpenses.length > 0 && (
-                            <View key={groupName}>
-                                <Text style={styles.dateHeader}>{groupName}</Text>
-                                {groupExpenses.map((expense) => (
-                                    <View key={expense.id} style={styles.expenseCard}>
-                                        <View style={[styles.expenseIconCircle, { backgroundColor: getIconBgColor(expense.category) }]}>
-                                            <MaterialIcons name={getCategoryIcon(expense.category)} size={24} color={COLORS.textLight} />
-                                        </View>
-                                        <View style={styles.expenseInfo}>
-                                            <Text style={styles.expenseTitle}>{expense.description || expense.category}</Text>
-                                            <Text style={styles.expenseDate}>{new Date(expense.date).toLocaleDateString('tr-TR')}</Text>
-                                            {expense.job?.title && <Text style={{ fontSize: 12, color: COLORS.textGray }}>{expense.job.title}</Text>}
-                                        </View>
-                                        <View style={styles.expenseAmountContainer}>
-                                            <Text style={styles.expenseAmount}>₺{expense.amount}</Text>
-                                            <View style={styles.statusContainer}>
-                                                <View style={[styles.statusDot, { backgroundColor: getStatusColor(expense.status) }]} />
-                                                <Text style={[styles.statusText, { color: getStatusColor(expense.status) }]}>
-                                                    {getStatusText(expense.status)}
-                                                </Text>
-                                            </View>
-                                        </View>
-                                    </View>
-                                ))}
-                            </View>
-                        )
-                    ))}
-                    {filteredExpenses.length === 0 && (
-                        <Text style={{ color: COLORS.textGray, textAlign: 'center', marginTop: 20 }}>Masraf bulunamadı.</Text>
-                    )}
-                </View>
+                <ExpenseList
+                    groupedExpenses={groupedExpenses}
+                    filteredExpensesCount={filteredExpenses.length}
+                />
 
                 <View style={{ height: 100 }} />
             </ScrollView>
@@ -383,156 +112,13 @@ export default function ExpenseManagementScreen({ navigation, route }) {
             </TouchableOpacity>
 
             {/* Create Expense Modal */}
-            <Modal
+            <CreateExpenseModal
                 visible={modalVisible}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <View style={styles.modalHeader}>
-                            <Text style={styles.modalTitle}>Yeni Masraf Ekle</Text>
-                            <TouchableOpacity onPress={() => setModalVisible(false)}>
-                                <MaterialIcons name="close" size={24} color={COLORS.textGray} />
-                            </TouchableOpacity>
-                        </View>
-
-                        <ScrollView>
-                            <View style={styles.formGroup}>
-                                <Text style={styles.label}>Başlık</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Örn: Öğle Yemeği"
-                                    placeholderTextColor={COLORS.textGray}
-                                    value={formData.title}
-                                    onChangeText={(text) => setFormData({ ...formData, title: text })}
-                                />
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <Text style={styles.label}>Tarih</Text>
-                                <TouchableOpacity
-                                    style={styles.dateSelector}
-                                    onPress={() => setShowDatePicker(true)}
-                                >
-                                    <MaterialIcons name="event" size={24} color={COLORS.textGray} />
-                                    <Text style={styles.dateText}>
-                                        {formData.date.toLocaleDateString('tr-TR')}
-                                    </Text>
-                                </TouchableOpacity>
-                                {showDatePicker && (
-                                    <DateTimePicker
-                                        value={formData.date}
-                                        mode="date"
-                                        display="default"
-                                        onChange={(event, selectedDate) => {
-                                            setShowDatePicker(Platform.OS === 'ios');
-                                            if (selectedDate) {
-                                                setFormData({ ...formData, date: selectedDate });
-                                            }
-                                        }}
-                                    />
-                                )}
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <Text style={styles.label}>Tutar (₺)</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="0.00"
-                                    placeholderTextColor={COLORS.textGray}
-                                    keyboardType="numeric"
-                                    value={formData.amount}
-                                    onChangeText={(text) => setFormData({ ...formData, amount: text })}
-                                />
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <Text style={styles.label}>Kategori</Text>
-                                <View style={styles.categorySelector}>
-                                    {categories.filter(c => c.id !== 'Tümü').map((cat) => (
-                                        <TouchableOpacity
-                                            key={cat.id}
-                                            style={[
-                                                styles.categoryOption,
-                                                formData.category === cat.id && styles.categoryOptionSelected
-                                            ]}
-                                            onPress={() => setFormData({ ...formData, category: cat.id })}
-                                        >
-                                            <MaterialIcons
-                                                name={cat.icon}
-                                                size={20}
-                                                color={formData.category === cat.id ? COLORS.backgroundDark : COLORS.textGray}
-                                            />
-                                            <Text style={[
-                                                styles.categoryOptionText,
-                                                formData.category === cat.id && styles.categoryOptionTextSelected
-                                            ]}>{cat.label}</Text>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <Text style={styles.label}>Açıklama</Text>
-                                <TextInput
-                                    style={[styles.input, styles.textArea]}
-                                    placeholder="Masraf detayı..."
-                                    placeholderTextColor={COLORS.textGray}
-                                    multiline
-                                    numberOfLines={3}
-                                    value={formData.description}
-                                    onChangeText={(text) => setFormData({ ...formData, description: text })}
-                                />
-                            </View>
-
-                            <View style={styles.formGroup}>
-                                <Text style={styles.label}>Fiş/Fatura Fotoğrafı</Text>
-                                <TouchableOpacity
-                                    style={styles.imageUploadButton}
-                                    onPress={async () => {
-                                        const result = await ImagePicker.launchImageLibraryAsync({
-                                            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                                            allowsEditing: true,
-                                            aspect: [4, 3],
-                                            quality: 0.5,
-                                        });
-
-                                        if (!result.canceled) {
-                                            setReceiptImage(result.assets[0].uri);
-                                        }
-                                    }}
-                                >
-                                    {receiptImage ? (
-                                        <Image source={{ uri: receiptImage }} style={styles.previewImage} />
-                                    ) : (
-                                        <View style={styles.uploadPlaceholder}>
-                                            <MaterialIcons name="add-a-photo" size={32} color={COLORS.textGray} />
-                                            <Text style={styles.uploadText}>Fotoğraf Ekle</Text>
-                                        </View>
-                                    )}
-                                </TouchableOpacity>
-                                {receiptImage && (
-                                    <TouchableOpacity
-                                        style={styles.removeImageButton}
-                                        onPress={() => setReceiptImage(null)}
-                                    >
-                                        <Text style={styles.removeImageText}>Fotoğrafı Kaldır</Text>
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-
-                            <TouchableOpacity
-                                style={styles.submitButton}
-                                onPress={handleCreateExpense}
-                            >
-                                <Text style={styles.submitButtonText}>Kaydet</Text>
-                            </TouchableOpacity>
-                        </ScrollView>
-                    </View>
-                </View>
-            </Modal>
+                onClose={() => setModalVisible(false)}
+                onSubmit={createExpense}
+                projects={projects}
+                defaultJobId={selectedProject?.id}
+            />
         </SafeAreaView>
     );
 }
@@ -566,83 +152,6 @@ const styles = StyleSheet.create({
     contentContainer: {
         paddingBottom: 24,
     },
-    projectFilterContainer: {
-        padding: 16,
-        flexDirection: 'row',
-    },
-    projectChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        height: 40,
-        paddingHorizontal: 16,
-        borderRadius: 20,
-        marginRight: 12,
-        borderWidth: 1,
-    },
-    projectChipSelected: {
-        backgroundColor: 'rgba(204, 255, 4, 0.1)', // primary with opacity
-        borderColor: 'rgba(204, 255, 4, 0.4)',
-    },
-    projectChipUnselected: {
-        backgroundColor: COLORS.cardBorder, // slate-800
-        borderColor: COLORS.cardBorder,
-    },
-    projectChipText: {
-        fontSize: 14,
-        fontWeight: '500',
-        marginRight: 4,
-    },
-    projectChipTextSelected: {
-        color: COLORS.primary,
-    },
-    projectChipTextUnselected: {
-        color: COLORS.textGray,
-    },
-    budgetCard: {
-        margin: 16,
-        marginTop: 0,
-        padding: 20,
-        backgroundColor: COLORS.cardDark, // slate-900
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: COLORS.cardBorder,
-    },
-    budgetHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 16,
-    },
-    budgetTitle: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: COLORS.textLight,
-    },
-    budgetAmount: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: COLORS.textLight,
-    },
-    progressBarBg: {
-        height: 8,
-        backgroundColor: COLORS.cardBorder, // slate-700 equivalent
-        borderRadius: 4,
-        marginBottom: 12,
-    },
-    progressBarFill: {
-        height: '100%',
-        backgroundColor: COLORS.primary,
-        borderRadius: 4,
-    },
-    budgetFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    budgetFooterText: {
-        fontSize: 14,
-        color: COLORS.textGray,
-    },
     searchContainer: {
         paddingHorizontal: 16,
         marginBottom: 16,
@@ -650,7 +159,7 @@ const styles = StyleSheet.create({
     searchBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.cardBorder, // slate-800
+        backgroundColor: COLORS.cardBorder,
         borderRadius: 12,
         height: 48,
     },
@@ -663,101 +172,6 @@ const styles = StyleSheet.create({
         color: COLORS.textLight,
         fontSize: 16,
         height: '100%',
-    },
-    categoryFilterContainer: {
-        paddingHorizontal: 16,
-        marginBottom: 16,
-        flexDirection: 'row',
-    },
-    categoryChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        height: 36,
-        paddingHorizontal: 12,
-        borderRadius: 18,
-        marginRight: 12,
-    },
-    categoryChipSelected: {
-        backgroundColor: 'rgba(204, 255, 4, 0.1)',
-        borderWidth: 1,
-        borderColor: 'rgba(204, 255, 4, 0.4)',
-    },
-    categoryChipUnselected: {
-        backgroundColor: COLORS.cardBorder,
-    },
-    categoryChipText: {
-        fontSize: 14,
-        fontWeight: '500',
-        marginLeft: 8,
-    },
-    categoryChipTextSelected: {
-        color: COLORS.primary,
-    },
-    categoryChipTextUnselected: {
-        color: COLORS.textGray,
-    },
-    expensesList: {
-        paddingHorizontal: 16,
-    },
-    dateHeader: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: COLORS.textGray,
-        marginBottom: 12,
-        marginLeft: 4,
-    },
-    expenseCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: COLORS.cardDark,
-        padding: 16,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: COLORS.cardBorder,
-        marginBottom: 12,
-    },
-    expenseIconCircle: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
-    },
-    expenseInfo: {
-        flex: 1,
-    },
-    expenseTitle: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: COLORS.textLight,
-        marginBottom: 4,
-    },
-    expenseDate: {
-        fontSize: 14,
-        color: COLORS.textGray,
-    },
-    expenseAmountContainer: {
-        alignItems: 'flex-end',
-    },
-    expenseAmount: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: COLORS.textLight,
-        marginBottom: 4,
-    },
-    statusContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    statusDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        marginRight: 4,
-    },
-    statusText: {
-        fontSize: 12,
     },
     fab: {
         position: 'absolute',
@@ -774,125 +188,5 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 8,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        justifyContent: 'flex-end',
-    },
-    modalContent: {
-        backgroundColor: COLORS.cardDark,
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        padding: 24,
-        maxHeight: '80%',
-        borderWidth: 1,
-        borderColor: COLORS.cardBorder,
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: COLORS.textLight,
-    },
-    formGroup: {
-        marginBottom: 20,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: COLORS.textGray,
-        marginBottom: 8,
-    },
-    input: {
-        backgroundColor: COLORS.cardBorder,
-        borderRadius: 12,
-        padding: 16,
-        color: COLORS.textLight,
-        fontSize: 16,
-        borderWidth: 1,
-        borderColor: COLORS.cardBorder,
-    },
-    textArea: {
-        height: 100,
-        textAlignVertical: 'top',
-    },
-    categorySelector: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-    },
-    categoryOption: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderRadius: 20,
-        backgroundColor: COLORS.cardBorder,
-        borderWidth: 1,
-        borderColor: COLORS.cardBorder,
-        gap: 8,
-    },
-    categoryOptionSelected: {
-        backgroundColor: COLORS.primary,
-        borderColor: COLORS.primary,
-    },
-    categoryOptionText: {
-        color: COLORS.textGray,
-        fontWeight: '500',
-    },
-    categoryOptionTextSelected: {
-        color: COLORS.backgroundDark,
-        fontWeight: 'bold',
-    },
-    submitButton: {
-        backgroundColor: COLORS.primary,
-        padding: 16,
-        borderRadius: 12,
-        alignItems: 'center',
-        marginTop: 8,
-        marginBottom: 24,
-    },
-    imageUploadButton: {
-        height: 150,
-        backgroundColor: COLORS.cardBorder,
-        borderRadius: 12,
-        overflow: 'hidden',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: COLORS.cardBorder,
-        borderStyle: 'dashed',
-    },
-    previewImage: {
-        width: '100%',
-        height: '100%',
-        resizeMode: 'cover',
-    },
-    uploadPlaceholder: {
-        alignItems: 'center',
-    },
-    uploadText: {
-        color: COLORS.textGray,
-        marginTop: 8,
-        fontSize: 14,
-    },
-    removeImageButton: {
-        marginTop: 8,
-        alignItems: 'center',
-    },
-    removeImageText: {
-        color: COLORS.red400,
-        fontSize: 14,
-    },
-    submitButtonText: {
-        color: COLORS.backgroundDark,
-        fontSize: 16,
-        fontWeight: 'bold',
     },
 });
