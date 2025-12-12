@@ -1,100 +1,62 @@
-'use client'
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
+import Link from "next/link"
+import { ArrowLeft, Users, Briefcase } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { getTeam, getTeamPerformanceStats } from "@/lib/data/teams"
+import { TeamStats } from "@/components/admin/team-stats"
+import { format } from "date-fns"
+import { tr } from "date-fns/locale"
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, Users } from 'lucide-react'
-import { TeamStats } from '@/components/admin/team-stats'
-import { TeamStatsSkeleton } from '@/components/skeletons/team-stats-skeleton'
-import { ErrorBoundary } from '@/components/error-boundary'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { format } from 'date-fns'
-import { tr } from 'date-fns/locale'
+export default async function TeamDetailPage(props: {
+    params: Promise<{ id: string }>
+}) {
+    const params = await props.params
+    const session = await auth()
 
-interface TeamDetail {
-    id: string
-    name: string
-    description: string
-    members: Array<{
-        user: {
-            name: string
-            email: string
-        }
-        joinedAt: string
-        role: string
-    }>
-}
+    if (!session || session.user.role !== "ADMIN") {
+        redirect("/login")
+    }
 
-export default function TeamDetailPage() {
-    const params = useParams()
-    const router = useRouter()
-    const [team, setTeam] = useState<TeamDetail | null>(null)
-    const [stats, setStats] = useState<any>(null)
-    const [loading, setLoading] = useState(true)
+    const [team, stats] = await Promise.all([
+        getTeam(params.id),
+        getTeamPerformanceStats(params.id)
+    ])
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // Fetch team details (we can reuse the existing GET endpoint or create a specific one)
-                // For now, let's assume we need to fetch basic info + stats
-                // We might need to update the GET endpoint to return members with joinedAt
-
-                // 1. Fetch Stats
-                const statsRes = await fetch(`/api/admin/teams/${params.id}/stats`)
-                if (statsRes.ok) {
-                    const statsData = await statsRes.json()
-                    setStats(statsData)
-                }
-
-                // 2. Fetch Team Details (using existing list endpoint logic but for single team)
-                // Since we don't have a specific GET /api/admin/teams/[id] that returns full details including members
-                // We should probably update that endpoint or fetch from a new one.
-                // Let's try to fetch from the existing endpoint if it supports GET
-
-                // Actually, let's create a specific fetch here or update the API.
-                // For now, I'll fetch the list and find the team (inefficient but works for MVP)
-                // OR better: Update the GET /api/admin/teams/[id] to return details.
-                // Wait, I see I only implemented DELETE and PATCH in [id]/route.ts.
-                // I should add GET to [id]/route.ts first.
-
-                const teamRes = await fetch(`/api/admin/teams/${params.id}`)
-                if (teamRes.ok) {
-                    const teamData = await teamRes.json()
-                    setTeam(teamData)
-                }
-
-            } catch (error) {
-                console.error('Failed to fetch team details:', error)
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        if (params.id) {
-            fetchData()
-        }
-    }, [params.id])
-
-    if (loading) {
+    if (!team) {
         return (
-            <div className="space-y-6 p-8">
-                <TeamStatsSkeleton />
+            <div className="p-8 text-center">
+                <h1 className="text-2xl font-bold text-gray-900">Ekip Bulunamadı</h1>
+                <Link href="/admin/teams" className="text-blue-600 hover:underline mt-4 inline-block">
+                    Ekip Listesine Dön
+                </Link>
             </div>
         )
     }
 
-    if (!team) {
-        return <div className="p-8">Ekip bulunamadı</div>
+    // Mapping stats to match TeamStats component expected format
+    const teamStats = {
+        overview: {
+            total: stats.totalJobs,
+            completed: stats.completedJobs,
+            active: stats.inProgressJobs
+        },
+        chartData: [
+            { name: 'Tamamlanan', value: stats.completedJobs },
+            { name: 'Devam Eden', value: stats.inProgressJobs },
+        ]
     }
 
     return (
         <div className="space-y-6 p-8">
             <div className="flex items-center gap-4">
-                <Button variant="ghost" onClick={() => router.back()}>
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Geri Dön
-                </Button>
+                 <Link href="/admin/teams">
+                    <Button variant="ghost" size="icon">
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+                </Link>
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">{team.name}</h1>
                     <p className="text-muted-foreground">{team.description || 'Açıklama yok'}</p>
@@ -102,45 +64,74 @@ export default function TeamDetailPage() {
             </div>
 
             {/* Stats Section */}
-            <ErrorBoundary>
-                {stats && <TeamStats stats={stats} />}
-            </ErrorBoundary>
+            <TeamStats stats={teamStats} />
 
-            {/* Members Section */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Users className="h-5 w-5" />
-                        Ekip Üyeleri
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        {team.members?.map((member: any, idx: number) => (
-                            <div key={idx} className="flex items-center justify-between p-4 border rounded-lg">
-                                <div className="flex items-center gap-4">
-                                    <Avatar>
-                                        <AvatarFallback>{member.user.name.substring(0, 2).toUpperCase()}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <p className="font-medium">{member.user.name}</p>
-                                        <p className="text-sm text-muted-foreground">{member.user.email}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Members Section */}
+                <Card className="md:col-span-2">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Users className="h-5 w-5" />
+                            Ekip Üyeleri
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-4">
+                            {team.members.map((member) => (
+                                <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
+                                    <div className="flex items-center gap-4">
+                                        <Avatar>
+                                            <AvatarFallback>{member.user.name?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-medium">{member.user.name}</p>
+                                            <p className="text-sm text-muted-foreground">{member.user.email}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm font-medium">
+                                            {team.leadId === member.userId ? 'Takım Lideri' : 'Üye'}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            Katılma: {format(new Date(member.joinedAt), 'd MMM yyyy', { locale: tr })}
+                                        </p>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-sm font-medium">{member.role || 'Üye'}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                        Katılma: {format(new Date(member.joinedAt), 'd MMMM yyyy', { locale: tr })}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                        {(!team.members || team.members.length === 0) && (
-                            <p className="text-muted-foreground text-center py-4">Henüz üye yok</p>
-                        )}
-                    </div>
-                </CardContent>
-            </Card>
+                            ))}
+                            {team.members.length === 0 && (
+                                <p className="text-muted-foreground text-center py-4">Henüz üye yok</p>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Team Info Side Card */}
+                <Card>
+                     <CardHeader>
+                        <CardTitle>Ekip Özeti</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Durum</span>
+                            <span className={team.isActive ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
+                                {team.isActive ? "Aktif" : "Pasif"}
+                            </span>
+                        </div>
+                         <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Oluşturulma</span>
+                            <span className="text-sm">
+                                {format(new Date(team.createdAt), 'd MMM yyyy', { locale: tr })}
+                            </span>
+                        </div>
+                         <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Lider</span>
+                            <span className="text-sm font-medium">
+                                {team.lead?.name || "Atanmamış"}
+                            </span>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     )
 }

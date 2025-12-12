@@ -117,3 +117,87 @@ export async function getJobStats() {
 
     return { total, pending, inProgress, completed };
 }
+
+export async function getJob(id: string) {
+    return await prisma.job.findUnique({
+        where: { id },
+        include: {
+            customer: {
+                include: {
+                    user: true
+                }
+            },
+            assignments: {
+                include: {
+                    team: {
+                        include: {
+                            members: {
+                                include: {
+                                    user: true
+                                }
+                            }
+                        }
+                    },
+                    worker: true
+                }
+            },
+            approvals: {
+                where: {
+                    status: 'PENDING'
+                },
+                include: {
+                    requester: {
+                        select: {
+                            name: true,
+                            email: true
+                        }
+                    }
+                }
+            },
+            steps: {
+                orderBy: {
+                    order: 'asc'
+                },
+                include: {
+                    completedBy: {
+                        select: {
+                            name: true
+                        }
+                    },
+                    subSteps: {
+                        orderBy: {
+                            order: 'asc'
+                        },
+                        include: {
+                            photos: true
+                        }
+                    },
+                    photos: {
+                        orderBy: {
+                            uploadedAt: 'desc'
+                        },
+                        include: {
+                            uploadedBy: {
+                                select: {
+                                    name: true
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            costs: {
+                orderBy: {
+                    date: 'desc'
+                },
+                include: {
+                    createdBy: {
+                        select: {
+                            name: true
+                        }
+                    }
+                }
+            }
+        }
+    });
+}

@@ -5,94 +5,10 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { AdminJobDetailsTabs } from "@/components/admin/job-details-tabs"
-
 import { ApprovalActionCard } from "@/components/admin/approval-action-card"
+import { getJob } from "@/lib/data/jobs"
 
 export const dynamic = 'force-dynamic'
-
-async function getJob(id: string) {
-    return await prisma.job.findUnique({
-        where: { id },
-        include: {
-            customer: {
-                include: {
-                    user: true
-                }
-            },
-            assignments: {
-                include: {
-                    team: {
-                        include: {
-                            members: {
-                                include: {
-                                    user: true
-                                }
-                            }
-                        }
-                    },
-                    worker: true
-                }
-            },
-            approvals: {
-                where: {
-                    status: 'PENDING'
-                },
-                include: {
-                    requester: {
-                        select: {
-                            name: true,
-                            email: true
-                        }
-                    }
-                }
-            },
-            steps: {
-                orderBy: {
-                    order: 'asc'
-                },
-                include: {
-                    completedBy: {
-                        select: {
-                            name: true
-                        }
-                    },
-                    subSteps: {
-                        orderBy: {
-                            order: 'asc'
-                        },
-                        include: {
-                            photos: true
-                        }
-                    },
-                    photos: {
-                        orderBy: {
-                            uploadedAt: 'desc'
-                        },
-                        include: {
-                            uploadedBy: {
-                                select: {
-                                    name: true
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            costs: {
-                orderBy: {
-                    date: 'desc'
-                },
-                include: {
-                    createdBy: {
-                        select: {
-                            name: true
-                        }
-                    }
-                }
-            }
-        }
-    })
-}
 
 export default async function AdminJobDetailsPage(props: {
     params: Promise<{ id: string }>
@@ -103,6 +19,9 @@ export default async function AdminJobDetailsPage(props: {
         redirect("/login")
     }
 
+    // We fetch workers and teams here for the assignment dialogs that might be inside tabs
+    // Ideally these should be fetched by the components that need them or inside a data layer
+    // For now, keeping the pattern but using cleaner fetch
     const [job, workers, teams] = await Promise.all([
         getJob(params.id),
         prisma.user.findMany({
@@ -114,10 +33,6 @@ export default async function AdminJobDetailsPage(props: {
             select: { id: true, name: true }
         })
     ])
-
-    console.log('Fetched workers:', workers)
-    console.log('Fetched teams:', teams)
-    console.log('Job Assignments:', JSON.stringify(job?.assignments, null, 2))
 
     if (!job) {
         return (

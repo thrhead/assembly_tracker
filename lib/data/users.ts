@@ -72,3 +72,28 @@ export async function getUserStats() {
 
     return { total, active, newUsers };
 }
+
+export async function getUser(id: string) {
+    return await prisma.user.findUnique({
+        where: { id },
+        include: {
+            assignedJobs: {
+                take: 5,
+                orderBy: { assignedAt: 'desc' },
+                include: {
+                    job: true
+                }
+            },
+            managedTeams: true,
+            teamMember: {
+                include: {
+                    team: true
+                }
+            },
+            createdJobs: {
+                take: 5,
+                orderBy: { createdAt: 'desc' }
+            }
+        }
+    });
+}

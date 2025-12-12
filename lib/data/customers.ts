@@ -79,3 +79,37 @@ export async function getCustomerStats() {
 
     return { total, active };
 }
+
+export async function getCustomer(id: string) {
+    return await prisma.customer.findUnique({
+        where: { id },
+        include: {
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    phone: true,
+                    isActive: true,
+                    createdAt: true
+                }
+            },
+            jobs: {
+                take: 10,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    assignments: {
+                        include: {
+                            team: true
+                        }
+                    }
+                }
+            },
+            _count: {
+                select: {
+                    jobs: true
+                }
+            }
+        }
+    });
+}
