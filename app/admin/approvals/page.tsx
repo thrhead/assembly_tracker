@@ -1,6 +1,5 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { prisma } from '@/lib/db'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -8,34 +7,11 @@ import { formatDistanceToNow } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { ApprovalDialog } from '@/components/approvals/approval-dialog'
 import Link from 'next/link'
-
-async function getApprovals() {
-  return await prisma.approval.findMany({
-    where: {
-      status: 'PENDING'
-    },
-    include: {
-      job: {
-        include: {
-          customer: true
-        }
-      },
-      requester: {
-        select: {
-          id: true,
-          name: true,
-          email: true
-        }
-      }
-    },
-    orderBy: {
-      createdAt: 'desc'
-    }
-  })
-}
+import { getApprovals } from '@/lib/data/approvals'
 
 export default async function ApprovalsPage() {
   const session = await auth()
+
   if (!session || !['ADMIN', 'MANAGER', 'TEAM_LEAD'].includes(session.user.role)) {
     redirect('/login')
   }

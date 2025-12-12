@@ -1,145 +1,27 @@
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { prisma } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft } from 'lucide-react'
-import { JobsListClient } from '@/components/jobs-list-client'
-import { ExcelDownloadButton } from '@/components/excel-download-button'
+import { Badge } from '@/components/ui/badge'
+import { getJobsForReport, getReportStats } from "@/lib/data/reports"
 
 export default async function AdminReportsPage() {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
     if (session?.user?.role !== "ADMIN") {
         redirect("/")
     }
 
-    const [jobsByStatus, allJobs, teams, customers] = await Promise.all([
-        prisma.job.groupBy({ by: ['status'], _count: true }),
-        prisma.job.findMany({
-            include: {
-                assignments: { include: { team: true }, take: 1 },
-                customer: true,
-                steps: { select: { id: true, isCompleted: true } }
-            },
-            orderBy: { createdAt: 'desc' }
-        }),
-        prisma.team.findMany({ select: { id: true, name: true } }),
-        prisma.customer.findMany({ select: { id: true, company: true } })
+    const [stats, allJobs] = await Promise.all([
+        getReportStats(),
+        getJobsForReport()
     ])
 
-    const totalJobs = allJobs.length
-    const pendingJobs = jobsByStatus.find(g => g.status === 'PENDING')?._count || 0
-    const inProgressJobs = jobsByStatus.find(g => g.status === 'IN_PROGRESS')?._count || 0
-    const completedJobs = jobsByStatus.find(g => g.status === 'COMPLETED')?._count || 0
-
-    return (
-        <div className="bg-background-light dark:bg-background-dark min-h-screen">
-            <div className="max-w-4xl mx-auto p-6 space-y-6">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link href="/admin" className="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800">
-                            <ArrowLeft className="w-5 h-5" />
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl font-bold">İş Raporları</h1>
-                            <p className="text-sm text-slate-500">Tüm işlerin durum ve aşama bilgileri</p>
-                        </div>
-                    </div>
-                    <ExcelDownloadButton type="jobs" variant="default" />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-medium text-slate-500">Toplam İş</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold">{totalJobs}</div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-medium text-slate-500">Beklemede</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-yellow-600">{pendingJobs}</div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-medium text-slate-500">Devam Eden</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-blue-600">{inProgressJobs}</div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-medium text-slate-500">Tamamlanan</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold text-green-600">{completedJobs}</div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <JobsListClient initialJobs={allJobs} teams={teams} customers={customers} />
-            </div>
-        </div>
-    )
-}
-
-export default async function AdminReportsPage() {
-    const session = await getServerSession(authOptions)
-
-    if (session?.user?.role !== "ADMIN") {
-        redirect("/")
-    }
-
-    // Fetch all jobs with their status and progress
-    const [
-        jobsByStatus,
-        allJobs
-    ] = await Promise.all([
-        // Group jobs by status
-        prisma.job.groupBy({
-            by: ['status'],
-            _count: true
-        }),
-        // Get all jobs with details
-        prisma.job.findMany({
-            include: {
-                assignments: {
-                    include: {
-                        team: true
-                    },
-                    take: 1
-                },
-                customer: true,
-                steps: {
-                    select: {
-                        id: true,
-                        isCompleted: true
-                    }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        })
-    ])
-
-    // Calculate statistics
-    const totalJobs = allJobs.length
-    const pendingJobs = jobsByStatus.find(g => g.status === 'PENDING')?._count || 0
-    const inProgressJobs = jobsByStatus.find(g => g.status === 'IN_PROGRESS')?._count || 0
-    const completedJobs = jobsByStatus.find(g => g.status === 'COMPLETED')?._count || 0
+    const { totalJobs, pendingJobs, inProgressJobs, completedJobs } = stats
 
     // Status translations and colors
-    const statusConfig = {
+    const statusConfig: any = {
         'PENDING': { label: 'Beklemede', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200' },
         'IN_PROGRESS': { label: 'Devam Ediyor', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-200' },
         'COMPLETED': { label: 'Tamamlandı', color: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200' },
@@ -236,7 +118,7 @@ export default async function AdminReportsPage() {
                                 const completedSteps = job.steps.filter(s => s.isCompleted).length
                                 const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0
                                 const teamName = job.assignments[0]?.team?.name || 'Ekip Atanmamış'
-                                const statusInfo = statusConfig[job.status as keyof typeof statusConfig] || statusConfig.PENDING
+                                const statusInfo = statusConfig[job.status] || statusConfig.PENDING
 
                                 return (
                                     <div

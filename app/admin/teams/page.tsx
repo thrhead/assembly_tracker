@@ -1,9 +1,6 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { auth } from "@/lib/auth"
+import { redirect } from "next/navigation"
 import Link from 'next/link'
-import { toast } from 'sonner'
 import { TeamDialog } from '@/components/admin/team-dialog'
 import {
   Table,
@@ -19,57 +16,23 @@ import { Input } from '@/components/ui/input'
 import { SearchIcon, BriefcaseIcon, UsersIcon, Edit, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
+import { getTeams, getTeamStats } from "@/lib/data/teams"
+import { DeleteTeamButton } from "@/components/admin/delete-team-button"
 
-export default function TeamsPage() {
-  const router = useRouter()
-  const [teams, setTeams] = useState<any[]>([])
-  const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(true)
+export default async function TeamsPage(props: {
+  searchParams: Promise<{ search?: string }>
+}) {
+  const searchParams = await props.searchParams
+  const session = await auth()
 
-  useEffect(() => {
-    fetchTeams()
-  }, [])
-
-  const fetchTeams = async () => {
-    try {
-      const res = await fetch('/api/admin/teams/list')
-      if (res.ok) {
-        const data = await res.json()
-        setTeams(data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch teams:', error)
-    } finally {
-      setLoading(false)
-    }
+  if (!session || session.user.role !== "ADMIN") {
+    redirect("/login")
   }
 
-  const handleDelete = async (teamId: string, teamName: string) => {
-    if (confirm(`"${teamName}" ekibini silmek istediğinizden emin misiniz?`)) {
-      const res = await fetch(`/api/admin/teams/${teamId}`, {
-        method: 'DELETE'
-      })
-      if (res.ok) {
-        fetchTeams()
-      } else {
-        toast.error('Ekip silinemedi')
-      }
-    }
-  }
-
-  const filteredTeams = search
-    ? teams.filter(team => team.name.toLowerCase().includes(search.toLowerCase()))
-    : teams
-
-  const stats = {
-    total: teams.length,
-    active: teams.filter(t => t.isActive).length,
-    members: teams.reduce((sum, t) => sum + (t._count?.members || 0), 0)
-  }
-
-  if (loading) {
-    return <div className="p-8">Yükleniyor...</div>
-  }
+  const [teams, stats] = await Promise.all([
+    getTeams({ search: searchParams.search }),
+    getTeamStats()
+  ])
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
@@ -105,12 +68,14 @@ export default function TeamsPage() {
       <div className="flex items-center gap-4">
         <div className="relative flex-1">
           <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Ekip ara..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+          <form>
+             <Input
+                name="search"
+                placeholder="Ekip ara..."
+                defaultValue={searchParams.search}
+                className="pl-9"
+            />
+          </form>
         </div>
       </div>
 
@@ -127,14 +92,14 @@ export default function TeamsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredTeams.length === 0 ? (
+            {teams.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground">
                   Ekip bulunamadı
                 </TableCell>
               </TableRow>
             ) : (
-              filteredTeams.map((team) => (
+              teams.map((team) => (
                 <TableRow key={team.id}>
                   <TableCell className="font-medium">
                     <Link href={`/admin/teams/${team.id}`} className="hover:underline text-blue-600">
@@ -169,13 +134,7 @@ export default function TeamsPage() {
                           </Button>
                         }
                       />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(team.id, team.name)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600" />
-                      </Button>
+                      <DeleteTeamButton teamId={team.id} teamName={team.name} />
                     </div>
                   </TableCell>
                 </TableRow>
