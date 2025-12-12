@@ -1,6 +1,5 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { prisma } from "@/lib/db"
 import { CustomerDialog } from "@/components/admin/customer-dialog"
 import {
   Table,
@@ -15,50 +14,22 @@ import { Input } from "@/components/ui/input"
 import { SearchIcon, Building2Icon, PhoneIcon, MailIcon } from "lucide-react"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
-
-async function getCustomers(search?: string) {
-  const where: any = {}
-  if (search) {
-    where.OR = [
-      { company: { contains: search } },
-      { user: { name: { contains: search } } },
-      { user: { email: { contains: search } } }
-    ]
-  }
-
-  return await prisma.customer.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          isActive: true,
-          createdAt: true
-        }
-      },
-      _count: {
-        select: {
-          jobs: true
-        }
-      }
-    }
-  })
-}
+import { getCustomers } from "@/lib/data/customers"
 
 export default async function CustomersPage(props: {
   searchParams: Promise<{ search?: string }>
 }) {
   const searchParams = await props.searchParams
   const session = await auth()
+
   if (!session || session.user.role !== "ADMIN") {
     redirect("/login")
   }
 
-  const customers = await getCustomers(searchParams.search)
+  const { customers } = await getCustomers({
+    filter: { search: searchParams.search },
+    limit: 50
+  })
 
   return (
     <div className="space-y-6">

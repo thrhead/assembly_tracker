@@ -1,6 +1,5 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { prisma } from "@/lib/db"
 import { JobDialog } from "@/components/admin/job-dialog"
 import { BulkUploadDialog } from "@/components/admin/bulk-upload-dialog"
 import {
@@ -16,55 +15,7 @@ import { Input } from "@/components/ui/input"
 import { SearchIcon, CalendarIcon, MapPinIcon, BriefcaseIcon } from "lucide-react"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
-
-async function getJobs(search?: string) {
-  const where: any = {}
-  if (search) {
-    where.OR = [
-      { title: { contains: search } },
-      { customer: { company: { contains: search } } },
-      { customer: { user: { name: { contains: search } } } }
-    ]
-  }
-
-  return await prisma.job.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      customer: {
-        include: {
-          user: {
-            select: { name: true }
-          }
-        }
-      },
-      assignments: {
-        include: {
-          team: true
-        }
-      },
-      steps: {
-        where: {
-          subSteps: {
-            some: {
-              approvalStatus: 'PENDING'
-            }
-          }
-        },
-        select: { id: true }
-      },
-      costs: {
-        where: { status: 'PENDING' },
-        select: { id: true }
-      },
-      _count: {
-        select: {
-          steps: true
-        }
-      }
-    }
-  })
-}
+import { getJobs } from "@/lib/data/jobs"
 
 const priorityColors: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   LOW: "secondary",
@@ -93,11 +44,15 @@ export default async function JobsPage(props: {
 }) {
   const searchParams = await props.searchParams
   const session = await auth()
+
   if (!session || session.user.role !== "ADMIN") {
     redirect("/login")
   }
 
-  const jobs = await getJobs(searchParams.search)
+  const { jobs } = await getJobs({
+    filter: { search: searchParams.search },
+    limit: 50 // Fetch more rows for now as pagination UI is not yet implemented
+  })
 
   return (
     <div className="space-y-6">
@@ -178,12 +133,12 @@ export default async function JobsPage(props: {
                   )}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={priorityColors[job.priority]}>
+                  <Badge variant={priorityColors[job.priority] || "default"}>
                     {job.priority}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={statusColors[job.status]}>
+                  <Badge variant={statusColors[job.status] || "default"}>
                     {statusLabels[job.status] || job.status}
                   </Badge>
                 </TableCell>
