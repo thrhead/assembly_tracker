@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import authService from '../services/auth.service';
+import RoleBadge from '../components/RoleBadge';
 
 export default function ProfileScreen({ navigation }) {
     const { user, logout } = useAuth();
@@ -9,24 +10,6 @@ export default function ProfileScreen({ navigation }) {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-
-    const getRoleBadgeColor = (role) => {
-        switch (role) {
-            case 'admin': return '#EF4444';
-            case 'manager': return '#F59E0B';
-            case 'worker': return '#3B82F6';
-            default: return '#6B7280';
-        }
-    };
-
-    const getRoleText = (role) => {
-        switch (role) {
-            case 'admin': return 'Admin';
-            case 'manager': return 'Yönetici';
-            case 'worker': return 'Çalışan';
-            default: return 'Kullanıcı';
-        }
-    };
 
     const handlePasswordChange = async () => {
         if (newPassword !== confirmPassword) {
@@ -79,9 +62,7 @@ export default function ProfileScreen({ navigation }) {
                     <View style={styles.userInfo}>
                         <Text style={styles.userName}>{user?.name || 'Kullanıcı'}</Text>
                         <Text style={styles.userEmail}>{user?.email}</Text>
-                        <View style={[styles.roleBadge, { backgroundColor: getRoleBadgeColor(user?.role) }]}>
-                            <Text style={styles.roleText}>{getRoleText(user?.role)}</Text>
-                        </View>
+                        <RoleBadge role={user?.role} />
                     </View>
                 </View>
             </View>
@@ -228,17 +209,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#94a3b8',
         marginBottom: 8,
-    },
-    roleBadge: {
-        alignSelf: 'flex-start',
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    roleText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: '600',
     },
     card: {
         backgroundColor: '#1A1A1A',
