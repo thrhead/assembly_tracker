@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { prisma } from "@/lib/db"
 import { JobDialog } from "@/components/admin/job-dialog"
 import { BulkUploadDialog } from "@/components/admin/bulk-upload-dialog"
 import {
@@ -49,10 +50,41 @@ export default async function JobsPage(props: {
     redirect("/login")
   }
 
-  const { jobs } = await getJobs({
-    filter: { search: searchParams.search },
-    limit: 50 // Fetch more rows for now as pagination UI is not yet implemented
-  })
+  // Parallel data fetching for jobs list and dialog dependencies
+  const [jobsData, customers, teams, templates] = await Promise.all([
+    getJobs({
+      filter: { search: searchParams.search },
+      limit: 50
+    }),
+    prisma.customer.findMany({
+      include: { user: { select: { name: true } } }
+    }),
+    prisma.team.findMany({
+      where: { isActive: true }
+    }),
+    prisma.jobTemplate.findMany({
+      include: { steps: { include: { subSteps: true } } }
+    })
+  ])
+
+  const { jobs } = jobsData
+
+  // Map templates to the expected interface in JobDialog
+  const mappedTemplates = templates.map(t => ({
+    id: t.id,
+    name: t.name,
+    steps: t.steps.map(s => ({
+      title: s.title,
+      description: '', // TemplateStep doesn't have description in prisma schema provided? If it does, add it.
+      subSteps: s.subSteps.map(ss => ({ title: ss.title }))
+    }))
+  }))
+
+  const mappedCustomers = customers.map(c => ({
+    id: c.id,
+    company: c.company,
+    user: { name: c.user.name || '' } // Handle null name
+  }))
 
   return (
     <div className="space-y-6">
@@ -63,7 +95,11 @@ export default async function JobsPage(props: {
         </div>
         <div className="flex items-center gap-2">
           <BulkUploadDialog />
-          <JobDialog />
+          <JobDialog
+            customers={mappedCustomers}
+            teams={teams}
+            templates={mappedTemplates}
+          />
         </div>
       </div>
 

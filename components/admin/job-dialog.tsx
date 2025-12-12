@@ -1,11 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { format } from 'date-fns'
-import { tr } from 'date-fns/locale'
 import { toast } from 'sonner'
 import {
   Dialog,
@@ -27,12 +25,13 @@ import {
 } from '@/components/ui/select'
 import { PlusIcon, Loader2Icon, XIcon, ChevronUpIcon, ChevronDownIcon, CornerDownRightIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { createJobAction } from '@/lib/actions/jobs'
 
 const jobSchema = z.object({
   title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
   description: z.string().optional(),
   customerId: z.string().min(1, 'Müşteri seçilmelidir'),
-  teamId: z.string().optional(),
+  teamId: z.string().optional().nullable(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   location: z.string().optional(),
   scheduledDate: z.string().optional(),
@@ -64,12 +63,15 @@ interface Template {
   steps: ChecklistStep[]
 }
 
-export function JobDialog() {
+interface JobDialogProps {
+    customers: Customer[]
+    teams: Team[]
+    templates: Template[]
+}
+
+export function JobDialog({ customers, teams, templates }: JobDialogProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [customers, setCustomers] = useState<Customer[]>([])
-  const [teams, setTeams] = useState<Team[]>([])
-  const [templates, setTemplates] = useState<Template[]>([])
   const [steps, setSteps] = useState<ChecklistStep[]>([])
   const router = useRouter()
 
@@ -85,20 +87,6 @@ export function JobDialog() {
       priority: 'MEDIUM'
     }
   })
-
-  useEffect(() => {
-    if (open) {
-      Promise.all([
-        fetch('/api/customers').then(res => res.json()),
-        fetch('/api/teams').then(res => res.json()),
-        fetch('/api/admin/templates').then(res => res.json())
-      ]).then(([customersData, teamsData, templatesData]) => {
-        if (Array.isArray(customersData)) setCustomers(customersData)
-        if (Array.isArray(teamsData)) setTeams(teamsData)
-        if (Array.isArray(templatesData)) setTemplates(templatesData)
-      }).catch(err => console.error('Failed to fetch data:', err))
-    }
-  }, [open])
 
   const addStep = () => {
     setSteps([...steps, { title: '', description: '', subSteps: [] }])
@@ -169,27 +157,19 @@ export function JobDialog() {
           subSteps: step.subSteps?.filter(sub => sub.title.trim() !== '')
         }))
 
-      const res = await fetch('/api/admin/jobs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      await createJobAction({
           ...data,
           steps: validSteps.length > 0 ? validSteps : null
-        }),
       })
 
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Bir hata oluştu')
-      }
-
+      toast.success('İş başarıyla oluşturuldu')
       setOpen(false)
       reset()
       setSteps([])
       router.refresh()
-    } catch (error) {
+    } catch (error: any) {
       console.error(error)
-      toast.error('İş oluşturulurken bir hata oluştu')
+      toast.error(error.message || 'İş oluşturulurken bir hata oluştu')
     } finally {
       setIsLoading(false)
     }
@@ -238,7 +218,7 @@ export function JobDialog() {
 
             <div className="space-y-2">
               <Label htmlFor="teamId">Atanacak Ekip</Label>
-              <Select onValueChange={(val) => setValue('teamId', val === 'none' ? undefined : val)}>
+              <Select onValueChange={(val) => setValue('teamId', val === 'none' ? null : val)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Ekip seçiniz (Opsiyonel)" />
                 </SelectTrigger>
