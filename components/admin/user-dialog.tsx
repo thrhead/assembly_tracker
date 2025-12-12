@@ -25,6 +25,7 @@ import {
 import { PlusIcon, Loader2Icon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { createUserAction } from '@/lib/actions/users'
 
 type FormData = z.infer<typeof registerSchema>
 
@@ -49,23 +50,15 @@ export function UserDialog() {
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
     try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
+      await createUserAction(data)
 
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Bir hata oluştu')
-      }
-
+      toast.success('Kullanıcı başarıyla oluşturuldu')
       setOpen(false)
       reset()
       router.refresh()
-    } catch (error) {
+    } catch (error: any) {
       console.error(error)
-      toast.error('Kullanıcı oluşturulurken bir hata oluştu')
+      toast.error(error.message || 'Kullanıcı oluşturulurken bir hata oluştu')
     } finally {
       setIsLoading(false)
     }
@@ -118,7 +111,7 @@ export function UserDialog() {
 
           <div className="space-y-2">
             <Label htmlFor="role">Rol</Label>
-            <Select onValueChange={(val) => setValue('role', val as any)}>
+            <Select onValueChange={(val) => setValue('role', val as any)} defaultValue="WORKER">
               <SelectTrigger>
                 <SelectValue placeholder="Rol seçiniz" />
               </SelectTrigger>
