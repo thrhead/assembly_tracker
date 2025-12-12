@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { prisma } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
     BriefcaseIcon,
@@ -12,6 +11,7 @@ import {
 } from 'lucide-react'
 import { formatDistanceToNow } from "date-fns"
 import { tr } from "date-fns/locale"
+import { getManagerDashboardData } from "@/lib/data/manager-dashboard"
 
 export default async function ManagerDashboard() {
     const session = await auth()
@@ -20,35 +20,13 @@ export default async function ManagerDashboard() {
         redirect("/login")
     }
 
-    // Fetch real data
-    // Managers see all jobs for now, or we could filter by their department if that existed
-    const [
+    const {
         totalJobs,
         activeTeams,
         completedJobsThisMonth,
         pendingApprovals,
         recentJobs
-    ] = await Promise.all([
-        prisma.job.count(),
-        prisma.team.count({ where: { isActive: true } }),
-        prisma.job.count({
-            where: {
-                status: 'COMPLETED',
-                completedDate: {
-                    gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-                }
-            }
-        }),
-        prisma.approval.count({ where: { status: 'PENDING' } }),
-        prisma.job.findMany({
-            take: 5,
-            orderBy: { createdAt: 'desc' },
-            include: {
-                creator: true,
-                customer: true
-            }
-        })
-    ])
+    } = await getManagerDashboardData()
 
     const stats = [
         {

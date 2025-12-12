@@ -1,57 +1,19 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import { prisma } from "@/lib/db"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   CalendarIcon,
   MapPinIcon,
-  ClockIcon,
   ChevronRightIcon,
   Building2Icon,
-  CheckCircle2Icon,
-  BriefcaseIcon,
-  AlertCircleIcon
+  BriefcaseIcon
 } from 'lucide-react'
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 import Link from "next/link"
-
-async function getWorkerJobs(userId: string) {
-  return await prisma.job.findMany({
-    where: {
-      assignments: {
-        some: {
-          OR: [
-            { workerId: userId },
-            { team: { members: { some: { userId: userId } } } }
-          ]
-        }
-      },
-      status: {
-        in: ['PENDING', 'IN_PROGRESS']
-      }
-    },
-    orderBy: [
-      { priority: 'desc' },
-      { scheduledDate: 'asc' }
-    ],
-    include: {
-      customer: {
-        select: {
-          company: true,
-          address: true
-        }
-      },
-      _count: {
-        select: {
-          steps: true
-        }
-      }
-    }
-  })
-}
+import { getWorkerJobs } from "@/lib/data/worker-dashboard"
 
 const priorityColors: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   LOW: "secondary",
