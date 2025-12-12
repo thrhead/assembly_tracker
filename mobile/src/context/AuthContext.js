@@ -2,34 +2,17 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import authService from '../services/auth.service';
 import { setAuthToken, clearAuthToken, registerLogoutCallback, getAuthToken } from '../services/api';
+import { withTimeout } from '../utils/async-helper';
 
 const AuthContext = createContext(null);
-
-// Utility function for timeout
-const withTimeout = (promise, ms = 5000, errorMessage = 'Operation timed out') => {
-    let timeoutId;
-    const timeoutPromise = new Promise((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error(errorMessage)), ms);
-    });
-
-    return Promise.race([
-        promise.then((res) => {
-            clearTimeout(timeoutId);
-            return res;
-        }),
-        timeoutPromise
-    ]);
-};
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Check for saved user on app start
     useEffect(() => {
         checkUser();
 
-        // Register logout callback for 401 errors
         registerLogoutCallback(() => {
             console.log('401 Unauthorized - Logging out');
             setUser(null);
@@ -40,7 +23,6 @@ export const AuthProvider = ({ children }) => {
         try {
             await withTimeout((async () => {
                 const savedUser = await AsyncStorage.getItem('user');
-                // getAuthToken will also set the api header if token exists
                 const token = await getAuthToken();
 
                 if (savedUser && token) {
@@ -57,18 +39,11 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         try {
             setLoading(true);
-
-            // Call real API
             const response = await authService.login(email, password);
 
-            if (response.user) {
-                // Save user data and token explicitly
+            if (response.user && response.token) {
                 await AsyncStorage.setItem('user', JSON.stringify(response.user));
-
-                if (response.token) {
-                    await setAuthToken(response.token);
-                }
-
+                await setAuthToken(response.token);
                 setUser(response.user);
                 return { success: true };
             } else {
@@ -78,7 +53,7 @@ export const AuthProvider = ({ children }) => {
             console.error('Login error:', error);
             return {
                 success: false,
-                error: error.message || 'Giriş yapılamadı. Lütfen bilgilerinizi kontrol edin.'
+                error: error.message || 'Giriş yapılamadı.'
             };
         } finally {
             setLoading(false);
@@ -87,12 +62,10 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            // Call logout API
             await authService.logout();
         } catch (error) {
             console.error('Logout error:', error);
         } finally {
-            // Clear local data regardless of API call result
             await AsyncStorage.removeItem('user');
             await clearAuthToken();
             setUser(null);
