@@ -13,8 +13,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
-import { Loader2Icon, CheckCircle2Icon, XCircleIcon } from 'lucide-react'
+import { Loader2Icon, CheckCircle2Icon, XCircleIcon, CheckIcon, XIcon } from 'lucide-react'
 import { toast } from 'sonner'
+import { processApprovalAction } from '@/lib/actions/approvals'
 
 interface ApprovalDialogProps {
   approval: any
@@ -32,24 +33,17 @@ export function ApprovalDialog({ approval }: ApprovalDialogProps) {
 
     setLoading(true)
     try {
-      const response = await fetch(`/api/approvals/${approval.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      await processApprovalAction({
+          approvalId: approval.id,
           status: action,
           notes: notes || undefined
-        })
       })
 
-      if (response.ok) {
-        setOpen(false)
-        router.refresh()
-      } else {
-        const data = await response.json()
-        toast.error(data.error || 'İşlem başarısız oldu')
-      }
-    } catch (error) {
-      toast.error('Bir hata oluştu')
+      toast.success(action === 'APPROVED' ? 'İş onaylandı' : 'İş reddedildi')
+      setOpen(false)
+      router.refresh()
+    } catch (error: any) {
+      toast.error(error.message || 'Bir hata oluştu')
     } finally {
       setLoading(false)
     }

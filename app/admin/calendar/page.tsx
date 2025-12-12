@@ -6,7 +6,7 @@ export default async function CalendarPage() {
     const session = await auth()
 
     if (!session || (session.user.role !== 'ADMIN' && session.user.role !== 'TEAM_LEAD')) {
-        redirect('/auth/login')
+        redirect('/login')
     }
 
     return (

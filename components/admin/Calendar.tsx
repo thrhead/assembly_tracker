@@ -4,28 +4,29 @@ import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useRouter } from 'next/navigation'
+import { getCalendarEventsAction } from '@/lib/actions/calendar'
 
 export default function Calendar() {
     const router = useRouter()
-    const [events, setEvents] = useState([])
+    const [events, setEvents] = useState<any[]>([])
     const [view, setView] = useState('dayGridMonth')
 
     const fetchEvents = async (info: any) => {
         try {
-            const start = info.startStr
-            const end = info.endStr
-            // Encode dates to prevent + from becoming space in URL
-            const url = `/api/calendar/events?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`;
+            // Using Server Action instead of API fetch
+            // But FullCalendar fetchEvents expects a promise or array.
+            // Since we can't export server action from this file (it's 'use client'),
+            // we need to import it.
+            // Note: Server actions are async functions.
 
-            const res = await fetch(url)
+            const start = new Date(info.startStr)
+            const end = new Date(info.endStr)
 
-            if (res.ok) {
-                const data = await res.json()
-                setEvents(data)
-            }
+            const data = await getCalendarEventsAction(start, end)
+            setEvents(data)
         } catch (error: any) {
             console.error('Failed to fetch calendar events:', error)
         }
