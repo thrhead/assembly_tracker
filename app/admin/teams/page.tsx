@@ -18,6 +18,7 @@ import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { getTeams, getTeamStats } from "@/lib/data/teams"
 import { DeleteTeamButton } from "@/components/admin/delete-team-button"
+import { prisma } from "@/lib/db"
 
 export default async function TeamsPage(props: {
   searchParams: Promise<{ search?: string }>
@@ -29,16 +30,46 @@ export default async function TeamsPage(props: {
     redirect("/login")
   }
 
-  const [teams, stats] = await Promise.all([
+  // Fetch teams, stats, and users for the dialog
+  const [teams, stats, users] = await Promise.all([
     getTeams({ search: searchParams.search }),
-    getTeamStats()
+    getTeamStats(),
+    prisma.user.findMany({
+        where: {
+            role: { in: ['TEAM_LEAD', 'WORKER'] },
+            isActive: true
+        },
+        select: { id: true, name: true, role: true }
+    })
   ])
+
+  // Helper to fetch members for a specific team (since we can't easily fetch nested relation IDs in the main query efficiently for all rows without overfetching, but actually we included members count. For the dialog we need member IDs.
+  // Ideally, we should fetch member IDs when opening the dialog, but since we are doing SSG/SSR, we can pass them if the list is small, or better: Fetch them on demand?
+  // Wait, the Dialog is rendered for EACH row. If we fetch all data for all rows it might be heavy.
+  // But wait, the `TeamDialog` is used in two places:
+  // 1. "New Team" button at top -> needs `users` list.
+  // 2. "Edit" button in row -> needs `users` list AND `currentMembers`.
+
+  // To optimize, let's fetch members for all displayed teams.
+  const teamsWithMembers = await prisma.team.findMany({
+      where: {
+          id: { in: teams.map(t => t.id) }
+      },
+      select: {
+          id: true,
+          members: {
+              select: { userId: true }
+          }
+      }
+  })
+
+  const membersMap = new Map(teamsWithMembers.map(t => [t.id, t.members.map(m => m.userId)]))
 
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Ekipler</h2>
-        <TeamDialog />
+        <TeamDialog users={users} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -128,6 +159,8 @@ export default async function TeamsPage(props: {
                           leadId: team.leadId,
                           isActive: team.isActive
                         }}
+                        users={users}
+                        currentMembers={membersMap.get(team.id)}
                         trigger={
                           <Button variant="ghost" size="sm">
                             <Edit className="h-4 w-4" />

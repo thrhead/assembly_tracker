@@ -1,17 +1,35 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Loader2Icon, CheckIcon, PlusIcon, Edit } from 'lucide-react'
+import { Loader2Icon, PlusIcon, Edit } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { format } from 'date-fns'
-import { tr } from 'date-fns/locale'
+import { createTeamAction, updateTeamAction } from '@/lib/actions/teams'
+
+const teamSchema = z.object({
+  name: z.string().min(2, 'Ekip adı en az 2 karakter olmalıdır'),
+  description: z.string().optional(),
+  leadId: z.string().optional().nullable(),
+  isActive: z.boolean().default(true),
+  memberIds: z.array(z.string()).optional()
+})
+
+type TeamFormData = z.infer<typeof teamSchema>
+
+interface User {
+    id: string
+    name: string | null
+    role: string
+}
 
 interface TeamDialogProps {
   team?: {
@@ -21,110 +39,75 @@ interface TeamDialogProps {
     leadId: string | null
     isActive: boolean
   }
+  users: User[]
+  currentMembers?: string[] // IDs of current members if editing
   trigger?: React.ReactNode
 }
 
-export function TeamDialog({ team, trigger }: TeamDialogProps) {
+export function TeamDialog({ team, users, currentMembers = [], trigger }: TeamDialogProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [name, setName] = useState(team?.name || '')
-  const [description, setDescription] = useState(team?.description || '')
-  const [leadId, setLeadId] = useState(team?.leadId || '')
-  const [isActive, setIsActive] = useState(team?.isActive ?? true)
-  const [users, setUsers] = useState<any[]>([])
-  const [teamMembers, setTeamMembers] = useState<any[]>([])
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([])
   const router = useRouter()
 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+    watch
+  } = useForm<TeamFormData>({
+    resolver: zodResolver(teamSchema),
+    defaultValues: {
+        name: team?.name || '',
+        description: team?.description || '',
+        leadId: team?.leadId || 'none',
+        isActive: team?.isActive ?? true,
+        memberIds: currentMembers
+    }
+  })
+
+  // Update form when team prop changes (e.g., in a list where the same dialog instance might be reused or remounted)
   useEffect(() => {
-    if (open) {
-      fetchUsers()
-      if (team?.id) {
-        fetchTeamMembers()
+      if (team) {
+          setValue('name', team.name)
+          setValue('description', team.description || '')
+          setValue('leadId', team.leadId || 'none')
+          setValue('isActive', team.isActive)
+          setValue('memberIds', currentMembers)
       }
-    }
-  }, [open, team?.id])
+  }, [team, currentMembers, setValue])
 
-  useEffect(() => {
-    if (team) {
-      setName(team.name)
-      setDescription(team.description || '')
-      setLeadId(team.leadId || '')
-      setIsActive(team.isActive)
-    }
-  }, [team])
-
-  const fetchUsers = async () => {
-    const res = await fetch('/api/users?role=TEAM_LEAD,WORKER')
-    if (res.ok) {
-      const data = await res.json()
-      setUsers(data)
-    }
-  }
-
-  const fetchTeamMembers = async () => {
-    if (!team?.id) return
-    const res = await fetch(`/api/admin/teams/${team.id}/members`)
-    if (res.ok) {
-      const data = await res.json()
-      setTeamMembers(data)
-      setSelectedMembers(data.map((m: any) => m.userId))
-    }
-  }
+  const selectedMembers = watch('memberIds') || []
 
   const toggleMember = (userId: string) => {
-    setSelectedMembers(prev =>
-      prev.includes(userId)
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
-    )
+    const current = selectedMembers
+    const updated = current.includes(userId)
+        ? current.filter(id => id !== userId)
+        : [...current, userId]
+    setValue('memberIds', updated)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const onSubmit = async (data: TeamFormData) => {
     setLoading(true)
-
     try {
-      const url = team ? `/api/admin/teams/${team.id}` : '/api/admin/teams'
-      const method = team ? 'PATCH' : 'POST'
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          description: description || null,
-          leadId: leadId || null,
-          isActive,
-          memberIds: selectedMembers
-        })
-      })
-
-      if (res.ok) {
-        setOpen(false)
-        if (!team) {
-          setName('')
-          setDescription('')
-          setLeadId('')
-          setIsActive(true)
-          setSelectedMembers([])
-        }
-        router.refresh()
+      if (team) {
+          await updateTeamAction(team.id, data)
+          toast.success('Ekip güncellendi')
       } else {
-        const data = await res.json()
-        toast.error(data.error || 'İşlem başarısız')
+          await createTeamAction(data)
+          toast.success('Ekip oluşturuldu')
       }
-    } catch (error) {
+
+      setOpen(false)
+      if (!team) reset()
+      router.refresh()
+    } catch (error: any) {
       console.error(error)
-      toast.error('Bir hata oluştu')
+      toast.error(error.message || 'İşlem başarısız')
     } finally {
       setLoading(false)
     }
-  }
-
-  const getMemberJoinDate = (userId: string) => {
-    const member = teamMembers.find(m => m.userId === userId)
-    return member?.joinedAt ? format(new Date(member.joinedAt), 'd MMM yyyy', { locale: tr }) : null
   }
 
   return (
@@ -141,24 +124,22 @@ export function TeamDialog({ team, trigger }: TeamDialogProps) {
         <DialogHeader>
           <DialogTitle>{team ? 'Ekip Düzenle' : 'Yeni Ekip Ekle'}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Ekip Adı *</Label>
             <Input
               id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              {...register('name')}
               placeholder="Örn: Montaj Ekibi 1"
-              required
             />
+            {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="description">Açıklama</Label>
             <Textarea
               id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              {...register('description')}
               placeholder="Ekip hakkında kısa açıklama..."
               rows={3}
             />
@@ -166,7 +147,10 @@ export function TeamDialog({ team, trigger }: TeamDialogProps) {
 
           <div className="space-y-2">
             <Label htmlFor="leadId">Ekip Lideri</Label>
-            <Select value={leadId || 'none'} onValueChange={(v) => setLeadId(v === 'none' ? '' : v)}>
+            <Select
+                onValueChange={(v) => setValue('leadId', v)}
+                defaultValue={team?.leadId || 'none'}
+            >
               <SelectTrigger id="leadId">
                 <SelectValue placeholder="Lider seçin (opsiyonel)" />
               </SelectTrigger>
@@ -188,7 +172,6 @@ export function TeamDialog({ team, trigger }: TeamDialogProps) {
                 <p className="text-sm text-gray-500 text-center py-2">Uygun çalışan bulunamadı.</p>
               ) : (
                 users.filter(u => u.role === 'WORKER' || u.role === 'TEAM_LEAD').map((user) => {
-                  const joinDate = getMemberJoinDate(user.id)
                   const isSelected = selectedMembers.includes(user.id)
 
                   return (
@@ -211,24 +194,22 @@ export function TeamDialog({ team, trigger }: TeamDialogProps) {
                           )}
                         </label>
                       </div>
-                      {isSelected && joinDate && (
-                        <span className="text-xs text-gray-500">
-                          Katılma: {joinDate}
-                        </span>
-                      )}
                     </div>
                   )
                 })
               )}
             </div>
             <p className="text-xs text-gray-500">
-              Listeden ekip üyelerini seçin. {team ? 'Katılma tarihleri gösteriliyor.' : 'Yeni üyeler bugün eklenmiş olarak kaydedilecek.'}
+              Listeden ekip üyelerini seçin.
             </p>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="isActive">Durum</Label>
-            <Select value={isActive.toString()} onValueChange={(v) => setIsActive(v === 'true')}>
+            <Select
+                onValueChange={(v) => setValue('isActive', v === 'true')}
+                defaultValue={String(team?.isActive ?? true)}
+            >
               <SelectTrigger id="isActive">
                 <SelectValue />
               </SelectTrigger>
