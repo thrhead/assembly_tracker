@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { PlusIcon, Loader2Icon } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { createCustomerAction } from '@/lib/actions/customers'
 
 const customerSchema = z.object({
   name: z.string().min(2, 'İsim en az 2 karakter olmalıdır'),
@@ -49,23 +50,15 @@ export function CustomerDialog() {
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
     try {
-      const res = await fetch('/api/customers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
+      await createCustomerAction(data)
 
-      if (!res.ok) {
-        const error = await res.json()
-        throw new Error(error.error || 'Bir hata oluştu')
-      }
-
+      toast.success('Müşteri başarıyla oluşturuldu')
       setOpen(false)
       reset()
       router.refresh()
-    } catch (error) {
+    } catch (error: any) {
       console.error(error)
-      toast.error('Müşteri oluşturulurken bir hata oluştu')
+      toast.error(error.message || 'Müşteri oluşturulurken bir hata oluştu')
     } finally {
       setIsLoading(false)
     }
