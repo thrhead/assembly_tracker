@@ -1,16 +1,4 @@
-import { API_BASE_URL, getAuthToken } from './api';
-
-const getHeaders = async (isFormData = false) => {
-    const token = await getAuthToken();
-    const headers = {
-        'Accept': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-    };
-    if (!isFormData) {
-        headers['Content-Type'] = 'application/json';
-    }
-    return headers;
-};
+import api from './api';
 
 const costService = {
     /**
@@ -19,24 +7,15 @@ const costService = {
      * @returns {Promise<Object>}
      */
     create: async (costData) => {
-        try {
-            const isFormData = costData instanceof FormData;
-            const headers = await getHeaders(isFormData);
+        const isFormData = costData instanceof FormData;
+        const config = {};
 
-            const response = await fetch(`${API_BASE_URL}/api/worker/costs`, {
-                method: 'POST',
-                headers,
-                body: isFormData ? costData : JSON.stringify(costData)
-            });
-
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || 'Masraf eklenemedi');
-            }
-            return data;
-        } catch (error) {
-            throw error;
+        if (isFormData) {
+            config.headers = { 'Content-Type': 'multipart/form-data' };
         }
+
+        const response = await api.post('/api/worker/costs', costData, config);
+        return response.data;
     },
 
     /**
@@ -44,21 +23,8 @@ const costService = {
      * @returns {Promise<Array>}
      */
     getMyCosts: async () => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/worker/costs`, {
-                method: 'GET',
-                headers
-            });
-
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || 'Masraflar alınamadı');
-            }
-            return data;
-        } catch (error) {
-            throw error;
-        }
+        const response = await api.get('/api/worker/costs');
+        return response.data;
     },
 
     /**
@@ -67,25 +33,12 @@ const costService = {
      * @returns {Promise<Array>}
      */
     getAll: async (filters = {}) => {
-        try {
-            const params = new URLSearchParams();
-            if (filters.status) params.append('status', filters.status);
-            if (filters.jobId) params.append('jobId', filters.jobId);
+        const params = new URLSearchParams();
+        if (filters.status) params.append('status', filters.status);
+        if (filters.jobId) params.append('jobId', filters.jobId);
 
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/admin/costs?${params.toString()}`, {
-                method: 'GET',
-                headers
-            });
-
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || 'Masraflar alınamadı');
-            }
-            return data;
-        } catch (error) {
-            throw error;
-        }
+        const response = await api.get(`/api/admin/costs?${params.toString()}`);
+        return response.data;
     },
 
     /**
@@ -96,23 +49,9 @@ const costService = {
      * @returns {Promise<Object>}
      */
     updateStatus: async (id, status, rejectionReason) => {
-        try {
-            const headers = await getHeaders();
-            const response = await fetch(`${API_BASE_URL}/api/admin/costs/${id}`, {
-                method: 'PATCH',
-                headers,
-                body: JSON.stringify({ status, rejectionReason })
-            });
-
-            const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.error || 'Durum güncellenemedi');
-            }
-            return data;
-        } catch (error) {
-            throw error;
-        }
-    }
+        const response = await api.patch(`/api/admin/costs/${id}`, { status, rejectionReason });
+        return response.data;
+    },
 };
 
 export default costService;

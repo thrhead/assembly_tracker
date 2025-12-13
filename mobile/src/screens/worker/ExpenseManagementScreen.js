@@ -6,9 +6,9 @@ import {
     TouchableOpacity,
     TextInput,
     StatusBar,
-    SafeAreaView,
     ScrollView
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useWorkerExpenses } from '../../hooks/useWorkerExpenses';
 import { ProjectFilter, CategoryFilter } from '../../components/worker/expense/ExpenseFilter';

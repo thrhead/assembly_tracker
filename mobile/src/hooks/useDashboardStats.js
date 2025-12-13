@@ -15,11 +15,18 @@ export const useDashboardStats = () => {
         try {
             setLoading(true);
             const [statsRes, jobsRes] = await Promise.all([
-                api.get('/admin/stats'),
-                api.get('/admin/jobs')
+                api.get('/api/admin/stats'),
+                api.get('/api/admin/jobs')
             ]);
             setStatsData(statsRes.data);
-            setRecentJobs(jobsRes.data?.slice(0, 5) || []);
+
+            // Validate jobs data
+            if (Array.isArray(jobsRes.data)) {
+                setRecentJobs(jobsRes.data.slice(0, 5));
+            } else {
+                console.error('Invalid jobs data received:', typeof jobsRes.data, jobsRes.data ? jobsRes.data.toString().substring(0, 100) : 'null');
+                setRecentJobs([]);
+            }
         } catch (error) {
             console.error('Error fetching admin dashboard data:', error);
         } finally {

@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
 
-const RecentJobsList = ({ jobs, onJobPress, onViewAll }) => {
+const RecentJobsList = ({ jobs = [], onJobPress, onViewAll }) => {
+    const jobsList = Array.isArray(jobs) ? jobs : [];
     return (
         <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -13,10 +14,10 @@ const RecentJobsList = ({ jobs, onJobPress, onViewAll }) => {
                 </TouchableOpacity>
             </View>
             <View style={styles.recentList}>
-                {jobs.length === 0 ? (
+                {jobsList.length === 0 ? (
                     <Text style={{ color: '#aaa', fontStyle: 'italic', padding: 8 }}>Henüz iş bulunmuyor.</Text>
                 ) : (
-                    jobs.map((job) => (
+                    jobsList.map((job) => (
                         <TouchableOpacity
                             key={job.id}
                             style={styles.recentItem}

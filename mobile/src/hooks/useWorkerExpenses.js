@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Alert } from 'react-native';
-import costService from '../../services/cost.service';
-import jobService from '../../services/job.service';
+import costService from '../services/cost.service';
+import jobService from '../services/job.service';
 
 export const useWorkerExpenses = () => {
     const [projects, setProjects] = useState([]);
@@ -87,7 +87,7 @@ export const useWorkerExpenses = () => {
             const matchesCategory = selectedCategory === 'Tümü' ? true : expense.category === selectedCategory;
             const matchesSearch = searchQuery
                 ? (expense.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                   expense.category?.toLowerCase().includes(searchQuery.toLowerCase()))
+                    expense.category?.toLowerCase().includes(searchQuery.toLowerCase()))
                 : true;
             return matchesProject && matchesCategory && matchesSearch;
         });

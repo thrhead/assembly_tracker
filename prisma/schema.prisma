@@ -1,4 +1,3 @@
-// Prisma Schema
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,213 +7,184 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Enums removed for SQLite compatibility
-// UserRole: ADMIN, MANAGER, TEAM_LEAD, WORKER, CUSTOMER
-// JobStatus: PENDING, IN_PROGRESS, COMPLETED, ON_HOLD, CANCELLED
-// ApprovalStatus: PENDING, APPROVED, REJECTED
-
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  passwordHash  String
-  role          String    @default("WORKER") // UserRole
-  phone         String?
-  avatarUrl     String?
-  isActive      Boolean   @default(true)
-  pushToken     String?   // Expo push token
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  // Relations
-  customerProfile Customer?
-  teamMember      TeamMember[]
-  managedTeams    Team[]        @relation("TeamLead")
-  assignedJobs    JobAssignment[]
-  createdJobs     Job[]         @relation("JobCreator")
-  notifications   Notification[]
-  approvals       Approval[]    @relation("Approver")
-  requestedApprovals Approval[] @relation("Requester")
-  completedSteps  JobStep[]     @relation("StepCompleter")
-  approvedSteps   JobStep[]     @relation("StepApprover")
-  uploadedPhotos  StepPhoto[]
-  createdCosts    CostTracking[] @relation("CostCreator")
-  approvedCosts   CostTracking[] @relation("CostApprover")
-  approvedSubSteps JobSubStep[]  @relation("SubStepApprover")
-  acceptedJobs    Job[]         @relation("JobAccepter")
+  id                 String          @id @default(cuid())
+  name               String?
+  email              String          @unique
+  passwordHash       String
+  role               String          @default("WORKER")
+  phone              String?
+  avatarUrl          String?
+  isActive           Boolean         @default(true)
+  pushToken          String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  approvals          Approval[]      @relation("Approver")
+  requestedApprovals Approval[]      @relation("Requester")
+  approvedCosts      CostTracking[]  @relation("CostApprover")
+  createdCosts       CostTracking[]  @relation("CostCreator")
+  customerProfile    Customer?
+  assignedJobs       JobAssignment[]
+  approvedSteps      JobStep[]       @relation("StepApprover")
+  completedSteps     JobStep[]       @relation("StepCompleter")
+  approvedSubSteps   JobSubStep[]    @relation("SubStepApprover")
+  acceptedJobs       Job[]           @relation("JobAccepter")
+  createdJobs        Job[]           @relation("JobCreator")
+  notifications      Notification[]
+  uploadedPhotos     StepPhoto[]
+  teamMember         TeamMember[]
+  managedTeams       Team[]          @relation("TeamLead")
 
   @@map("users")
 }
 
 model Customer {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  company     String
-  address     String?
-  taxId       String?
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobs        Job[]
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  company   String
+  address   String?
+  taxId     String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs      Job[]
 
   @@map("customers")
 }
 
 model Team {
-  id          String   @id @default(cuid())
+  id          String          @id @default(cuid())
   name        String
   leadId      String?
   description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  lead        User?    @relation("TeamLead", fields: [leadId], references: [id])
-  members     TeamMember[]
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   assignments JobAssignment[]
+  members     TeamMember[]
+  lead        User?           @relation("TeamLead", fields: [leadId], references: [id])
 
   @@map("teams")
 }
 
 model TeamMember {
-  id        String   @id @default(cuid())
-  teamId    String
-  userId    String
-  joinedAt  DateTime @default(now())
-
-  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id       String   @id @default(cuid())
+  teamId   String
+  userId   String
+  joinedAt DateTime @default(now())
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId])
   @@map("team_members")
 }
 
 model Job {
-  id             String    @id @default(cuid())
-  title          String
-  description    String?
-  customerId     String
-  creatorId      String
-  status         String    @default("PENDING") // JobStatus
-  priority       String    @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
-  location       String?
-  latitude       Float?
-  longitude      Float?
-  scheduledDate  DateTime?
+  id               String          @id @default(cuid())
+  title            String
+  description      String?
+  customerId       String
+  creatorId        String
+  status           String          @default("PENDING")
+  priority         String          @default("MEDIUM")
+  location         String?
+  latitude         Float?
+  longitude        Float?
+  scheduledDate    DateTime?
   scheduledEndDate DateTime?
-  startedAt      DateTime?
-  completedDate  DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  customer       Customer  @relation(fields: [customerId], references: [id])
-  creator        User      @relation("JobCreator", fields: [creatorId], references: [id])
-  steps          JobStep[]
-  assignments    JobAssignment[]
-  costs          CostTracking[]
-  approvals      Approval[]
-
-  // Acceptance fields
-  acceptanceStatus String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  startedAt        DateTime?
+  completedDate    DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  acceptanceStatus String          @default("PENDING")
   rejectionReason  String?
   acceptedById     String?
   acceptedAt       DateTime?
-  
-  acceptedBy       User?    @relation("JobAccepter", fields: [acceptedById], references: [id])
+  approvals        Approval[]
+  costs            CostTracking[]
+  assignments      JobAssignment[]
+  steps            JobStep[]
+  acceptedBy       User?           @relation("JobAccepter", fields: [acceptedById], references: [id])
+  creator          User            @relation("JobCreator", fields: [creatorId], references: [id])
+  customer         Customer        @relation(fields: [customerId], references: [id])
 
   @@map("jobs")
 }
 
 model JobStep {
-  id          String   @id @default(cuid())
-  jobId       String
-  title       String
-  description String?
-  isCompleted Boolean  @default(false)
-  completedAt DateTime?
-  startedAt   DateTime?
-  blockedAt   DateTime?
-  blockedReason String?  // POWER_OUTAGE, MATERIAL_SHORTAGE, etc.
-  blockedNote String?
-  order       Int
-  
-  // Fotoğraf veya not eklenebilir
-  notes       String?
-  photoUrl    String?
-
-  // Approval fields
-  approvalStatus  String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  id              String       @id @default(cuid())
+  jobId           String
+  title           String
+  description     String?
+  isCompleted     Boolean      @default(false)
+  completedAt     DateTime?
+  startedAt       DateTime?
+  blockedAt       DateTime?
+  blockedReason   String?
+  blockedNote     String?
+  order           Int
+  notes           String?
+  photoUrl        String?
+  approvalStatus  String       @default("PENDING")
   rejectionReason String?
   approvedById    String?
   approvedAt      DateTime?
-
-  completedById String?
-  completedBy   User?    @relation("StepCompleter", fields: [completedById], references: [id])
-  approvedBy    User?    @relation("StepApprover", fields: [approvedById], references: [id])
-
-  subSteps    JobSubStep[]
-  photos      StepPhoto[]
-
-  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  completedById   String?
+  approvedBy      User?        @relation("StepApprover", fields: [approvedById], references: [id])
+  completedBy     User?        @relation("StepCompleter", fields: [completedById], references: [id])
+  job             Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  subSteps        JobSubStep[]
+  photos          StepPhoto[]
 
   @@map("job_steps")
 }
 
 model JobSubStep {
-  id          String   @id @default(cuid())
-  stepId      String
-  title       String
-  isCompleted Boolean  @default(false)
-  completedAt DateTime?
-  startedAt   DateTime?
-  blockedAt   DateTime?
-  blockedReason String?
-  blockedNote String?
-  order       Int
-
-  step        JobStep  @relation(fields: [stepId], references: [id], onDelete: Cascade)
-  photos      StepPhoto[]
-
-  // Approval fields
-  approvalStatus  String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  id              String      @id @default(cuid())
+  stepId          String
+  title           String
+  isCompleted     Boolean     @default(false)
+  completedAt     DateTime?
+  startedAt       DateTime?
+  blockedAt       DateTime?
+  blockedReason   String?
+  blockedNote     String?
+  order           Int
+  approvalStatus  String      @default("PENDING")
   rejectionReason String?
   approvedById    String?
   approvedAt      DateTime?
-  
-  approvedBy      User?    @relation("SubStepApprover", fields: [approvedById], references: [id])
+  approvedBy      User?       @relation("SubStepApprover", fields: [approvedById], references: [id])
+  step            JobStep     @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  photos          StepPhoto[]
 
   @@map("job_sub_steps")
 }
 
 model StepPhoto {
-  id          String   @id @default(cuid())
-  stepId      String
-  url         String
-  uploadedAt  DateTime @default(now())
+  id           String      @id @default(cuid())
+  stepId       String
+  url          String
+  uploadedAt   DateTime    @default(now())
   uploadedById String
-  
-  step        JobStep  @relation(fields: [stepId], references: [id], onDelete: Cascade)
-  
-  subStepId   String?
-  subStep     JobSubStep? @relation(fields: [subStepId], references: [id])
-  
-  uploadedBy  User     @relation(fields: [uploadedById], references: [id])
+  subStepId    String?
+  step         JobStep     @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  subStep      JobSubStep? @relation(fields: [subStepId], references: [id])
+  uploadedBy   User        @relation(fields: [uploadedById], references: [id])
 
   @@map("step_photos")
 }
 
 model JobAssignment {
-  id        String   @id @default(cuid())
-  jobId     String
-  teamId    String?
-  workerId  String?
+  id         String   @id @default(cuid())
+  jobId      String
+  teamId     String?
+  workerId   String?
   assignedAt DateTime @default(now())
-
-  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  team      Team?    @relation(fields: [teamId], references: [id])
-  worker    User?    @relation(fields: [workerId], references: [id])
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  team       Team?    @relation(fields: [teamId], references: [id])
+  worker     User?    @relation(fields: [workerId], references: [id])
 
   @@map("job_assignments")
 }
@@ -225,10 +195,9 @@ model Notification {
   title     String
   message   String
   isRead    Boolean  @default(false)
-  type      String   // INFO, WARNING, SUCCESS, ERROR
+  type      String
   link      String?
   createdAt DateTime @default(now())
-
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
@@ -239,77 +208,68 @@ model Approval {
   jobId       String
   requesterId String
   approverId  String?
-  status      String   @default("PENDING") // ApprovalStatus
-  type        String   // JOB_COMPLETION, COST_APPROVAL, etc.
+  status      String   @default("PENDING")
+  type        String
   notes       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
+  approver    User?    @relation("Approver", fields: [approverId], references: [id])
   job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   requester   User     @relation("Requester", fields: [requesterId], references: [id])
-  approver    User?    @relation("Approver", fields: [approverId], references: [id])
 
   @@map("approvals")
 }
 
 model CostTracking {
-  id          String   @id @default(cuid())
-  jobId       String
-  description String
-  amount      Float
-  currency    String   @default("TRY")
-  date        DateTime @default(now())
-  category    String?  // MATERIAL, LABOR, TRANSPORT, FOOD, ACCOMMODATION, OTHER
-  
-  // New fields
+  id              String   @id @default(cuid())
+  jobId           String
+  description     String
+  amount          Float
+  currency        String   @default("TRY")
+  date            DateTime @default(now())
+  category        String?
   receiptUrl      String?
-  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  status          String   @default("PENDING")
   rejectionReason String?
-  
   createdById     String
   approvedById    String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
-  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  createdBy   User     @relation("CostCreator", fields: [createdById], references: [id])
-  approvedBy  User?    @relation("CostApprover", fields: [approvedById], references: [id])
+  approvedBy      User?    @relation("CostApprover", fields: [approvedById], references: [id])
+  createdBy       User     @relation("CostCreator", fields: [createdById], references: [id])
+  job             Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@map("cost_tracking")
 }
 
-// Job Templates
 model JobTemplate {
-  id          String   @id @default(cuid())
-  name        String   @unique
+  id          String         @id @default(cuid())
+  name        String         @unique
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   steps       TemplateStep[]
-  
+
   @@map("job_templates")
 }
 
 model TemplateStep {
-  id          String   @id @default(cuid())
-  templateId  String
-  title       String
-  order       Int
-  
-  template    JobTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  subSteps    TemplateSubStep[]
+  id         String            @id @default(cuid())
+  templateId String
+  title      String
+  order      Int
+  template   JobTemplate       @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  subSteps   TemplateSubStep[]
 
   @@map("template_steps")
 }
 
 model TemplateSubStep {
-  id          String   @id @default(cuid())
-  stepId      String
-  title       String
-  order       Int
-  
-  step        TemplateStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  id     String       @id @default(cuid())
+  stepId String
+  title  String
+  order  Int
+  step   TemplateStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
 
   @@map("template_sub_steps")
 }

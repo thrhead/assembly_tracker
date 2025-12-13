@@ -8,8 +8,8 @@ import {
   ScrollView,
   Dimensions,
   StatusBar,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
 import CustomButton from '../components/CustomButton';
@@ -93,8 +93,8 @@ export default function LoginScreen({ navigation }) {
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.backgroundDark }}>
       {showLoginForm ? (
         <LoginForm
-            onBack={() => setShowLoginForm(false)}
-            onLoginSuccess={() => { /* Navigation handled by AuthContext */ }}
+          onBack={() => setShowLoginForm(false)}
+          onLoginSuccess={() => { /* Navigation handled by AuthContext */ }}
         />
       ) : renderLanding()}
     </SafeAreaView>

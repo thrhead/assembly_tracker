@@ -1,61 +1,24 @@
-import { API_BASE_URL, getAuthToken } from './api';
-
-const getHeaders = async (isFormData = false) => {
-    const token = await getAuthToken();
-    const headers = {
-        'Accept': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : ''
-    };
-    if (!isFormData) {
-        headers['Content-Type'] = 'application/json';
-    }
-    return headers;
-};
-
-const request = async (endpoint, options = {}) => {
-    try {
-        const isFormData = options.body instanceof FormData;
-        const headers = await getHeaders(isFormData);
-
-        const config = {
-            ...options,
-            headers: {
-                ...headers,
-                ...options.headers
-            }
-        };
-
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-
-        let data;
-        try {
-            data = await response.json();
-        } catch (e) {
-            // If response is not JSON (e.g. 204 No Content), data remains undefined
-            if (!response.ok) throw new Error('Sunucu hatası');
-        }
-
-        if (!response.ok) {
-            throw new Error(data?.error || 'İşlem başarısız');
-        }
-
-        return data;
-    } catch (error) {
-        console.error(`Request error [${endpoint}]:`, error);
-        throw error;
-    }
-};
+import api from './api';
 
 const jobService = {
     // Queries
-    getAdminJobs: async () => request('/api/admin/jobs'),
+    getAdminJobs: async () => {
+        const response = await api.get('/api/admin/jobs');
+        return response.data;
+    },
 
     // Alias for getAdminJobs (Legacy support)
     getAll: async () => jobService.getAdminJobs(),
 
-    getMyJobs: async () => request('/api/worker/jobs'),
+    getMyJobs: async () => {
+        const response = await api.get('/api/worker/jobs');
+        return response.data;
+    },
 
-    getJobById: async (jobId) => request(`/api/worker/jobs/${jobId}`),
+    getJobById: async (jobId) => {
+        const response = await api.get(`/api/worker/jobs/${jobId}`);
+        return response.data;
+    },
 
     searchJobs: async (filters = {}) => {
         const params = new URLSearchParams();
@@ -63,94 +26,132 @@ const jobService = {
         if (filters.status && filters.status !== 'ALL') params.append('status', filters.status);
         if (filters.priority) params.append('priority', filters.priority);
 
-        return request(`/api/admin/jobs?${params.toString()}`);
+        const response = await api.get(`/api/admin/jobs?${params.toString()}`);
+        return response.data;
     },
 
     // Alias for searchJobs (Legacy support)
     getAllJobs: async (filters) => jobService.searchJobs(filters),
 
-    getPendingApprovals: async () => request('/api/admin/jobs?status=PENDING_APPROVAL'),
+    getPendingApprovals: async () => {
+        const response = await api.get('/api/admin/jobs?status=PENDING_APPROVAL');
+        return response.data;
+    },
 
-    getTemplates: async () => request('/api/admin/templates'),
+    getTemplates: async () => {
+        const response = await api.get('/api/admin/templates');
+        return response.data;
+    },
 
     // Mutations - Job Status & Flow
-    startJob: async (jobId) => request(`/api/worker/jobs/${jobId}/start`, { method: 'POST' }),
+    startJob: async (jobId) => {
+        const response = await api.post(`/api/worker/jobs/${jobId}/start`);
+        return response.data;
+    },
 
-    completeJob: async (jobId) => request(`/api/worker/jobs/${jobId}/complete`, { method: 'POST' }),
+    completeJob: async (jobId) => {
+        const response = await api.post(`/api/worker/jobs/${jobId}/complete`);
+        return response.data;
+    },
 
-    acceptJob: async (jobId) => request(`/api/manager/jobs/${jobId}/accept`, { method: 'POST' }),
+    acceptJob: async (jobId) => {
+        const response = await api.post(`/api/manager/jobs/${jobId}/accept`);
+        return response.data;
+    },
 
-    rejectJob: async (jobId, reason) => request(`/api/manager/jobs/${jobId}/reject`, {
-        method: 'POST',
-        body: JSON.stringify({ reason })
-    }),
+    rejectJob: async (jobId, reason) => {
+        const response = await api.post(`/api/manager/jobs/${jobId}/reject`, { reason });
+        return response.data;
+    },
 
-    assignJob: async (jobId, workerId) => request(`/api/admin/jobs/${jobId}/assign`, {
-        method: 'POST',
-        body: JSON.stringify({ workerId })
-    }),
+    assignJob: async (jobId, workerId) => {
+        const response = await api.post(`/api/admin/jobs/${jobId}/assign`, { workerId });
+        return response.data;
+    },
 
     // Mutations - Steps
-    toggleStep: async (jobId, stepId, isCompleted) => request(`/api/worker/jobs/${jobId}/steps/${stepId}/toggle`, {
-        method: 'POST',
-        body: JSON.stringify({ isCompleted })
-    }),
+    toggleStep: async (jobId, stepId, isCompleted) => {
+        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/toggle`, { isCompleted });
+        return response.data;
+    },
 
-    startStep: async (jobId, stepId) => request(`/api/worker/jobs/${jobId}/steps/${stepId}/start`, { method: 'POST' }),
+    startStep: async (jobId, stepId) => {
+        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/start`);
+        return response.data;
+    },
 
-    approveStep: async (stepId) => request(`/api/manager/steps/${stepId}/approve`, { method: 'POST' }),
+    approveStep: async (stepId) => {
+        const response = await api.post(`/api/manager/steps/${stepId}/approve`);
+        return response.data;
+    },
 
-    rejectStep: async (stepId, reason) => request(`/api/manager/steps/${stepId}/reject`, {
-        method: 'POST',
-        body: JSON.stringify({ reason })
-    }),
+    rejectStep: async (stepId, reason) => {
+        const response = await api.post(`/api/manager/steps/${stepId}/reject`, { reason });
+        return response.data;
+    },
 
     // Mutations - Substeps
-    toggleSubstep: async (jobId, stepId, substepId, isCompleted) => request(`/api/worker/jobs/${jobId}/steps/${stepId}/substeps/${substepId}/toggle`, {
-        method: 'POST',
-        body: JSON.stringify({ isCompleted })
-    }),
+    toggleSubstep: async (jobId, stepId, substepId, isCompleted) => {
+        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/substeps/${substepId}/toggle`, { isCompleted });
+        return response.data;
+    },
 
-    startSubstep: async (jobId, stepId, substepId) => request(`/api/worker/substeps/${substepId}/start`, { method: 'POST' }),
+    startSubstep: async (jobId, stepId, substepId) => {
+        const response = await api.post(`/api/worker/substeps/${substepId}/start`);
+        return response.data;
+    },
 
-    approveSubstep: async (substepId) => request(`/api/manager/substeps/${substepId}/approve`, { method: 'POST' }),
+    approveSubstep: async (substepId) => {
+        const response = await api.post(`/api/manager/substeps/${substepId}/approve`);
+        return response.data;
+    },
 
-    rejectSubstep: async (substepId, reason) => request(`/api/manager/substeps/${substepId}/reject`, {
-        method: 'POST',
-        body: JSON.stringify({ reason })
-    }),
+    rejectSubstep: async (substepId, reason) => {
+        const response = await api.post(`/api/manager/substeps/${substepId}/reject`, { reason });
+        return response.data;
+    },
 
     // Mutations - Photos & Files
     uploadPhotos: async (jobId, stepId, formData, subStepId = null) => {
         if (subStepId) {
             formData.append('subStepId', subStepId);
         }
-        return request(`/api/worker/jobs/${jobId}/steps/${stepId}/photos`, {
-            method: 'POST',
-            body: formData
+        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/photos`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
         });
+        return response.data;
     },
 
-    bulkImportJobs: async (formData) => request('/api/admin/jobs/bulk-import', {
-        method: 'POST',
-        body: formData
-    }),
+    bulkImportJobs: async (formData) => {
+        const response = await api.post('/api/admin/jobs/bulk-import', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
 
-    importTemplate: async (formData) => request('/api/admin/templates/import', {
-        method: 'POST',
-        body: formData
-    }),
+    importTemplate: async (formData) => {
+        const response = await api.post('/api/admin/templates/import', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
 
     // Admin CRUD
-    create: async (jobData) => request('/api/admin/jobs', {
-        method: 'POST',
-        body: JSON.stringify(jobData)
-    }),
+    create: async (jobData) => {
+        const response = await api.post('/api/admin/jobs', jobData);
+        return response.data;
+    },
 
-    update: async (jobId, jobData) => request(`/api/admin/jobs/${jobId}`, {
-        method: 'PUT',
-        body: JSON.stringify(jobData)
-    }),
+    update: async (jobId, jobData) => {
+        const response = await api.put(`/api/admin/jobs/${jobId}`, jobData);
+        return response.data;
+    },
 };
 
 export default jobService;

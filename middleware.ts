@@ -20,16 +20,11 @@ export async function middleware(request: NextRequest) {
   const isAuthPage = request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/register")
 
-  const isDashboardPage = request.nextUrl.pathname.startsWith("/admin") ||
+  const isDashboardPage = (request.nextUrl.pathname.startsWith("/admin") ||
     request.nextUrl.pathname.startsWith("/manager") ||
     request.nextUrl.pathname.startsWith("/worker") ||
-    request.nextUrl.pathname.startsWith("/customer")
-
-  // Eğer kullanıcı giriş yapmışsa ve auth sayfasındaysa, dashboard'a yönlendir
-  if (session && isAuthPage) {
-    const role = session.user?.role?.toLowerCase()
-    return NextResponse.redirect(new URL(`/${role}`, request.url))
-  }
+    request.nextUrl.pathname.startsWith("/customer")) &&
+    !request.nextUrl.pathname.startsWith("/api")
 
   // Eğer kullanıcı giriş yapmamışsa ve protected sayfadaysa, login'e yönlendir  
   if (!session && isDashboardPage) {

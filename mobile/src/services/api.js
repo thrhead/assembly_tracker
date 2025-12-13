@@ -2,11 +2,17 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
+// This value is updated automatically by start_tunnel_auto.ps1
+const NGROK_URL = 'https://adjustment-wilderness-midnight-recordings.trycloudflare.com';
+
 const getBaseUrl = () => {
-    // For web (react-native-web), use localhost
+    // For web (react-native-web), always use localhost to avoid CORS/Network issues with tunnels
     if (Platform.OS === 'web') {
         return 'http://localhost:3000';
     }
+
+    if (NGROK_URL) return NGROK_URL;
+
     // For Android emulator, use 10.0.2.2
     if (Platform.OS === 'android') {
         return 'http://10.0.2.2:3000';
