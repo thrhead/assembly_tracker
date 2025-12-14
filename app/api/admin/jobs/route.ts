@@ -4,6 +4,7 @@ import { prisma } from '@/lib/db'
 import { verifyAdminOrManager } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { jobCreationSchema } from '@/lib/validations'
+import { sendJobNotification } from '@/lib/notification-helper';
 
 // Helper function to build where clause for filtering
 function buildJobFilter(searchParams: URLSearchParams) {
@@ -141,14 +142,24 @@ export async function POST(req: Request) {
             }
         })
 
-        if (data.teamId) {
+        if (data.teamId || data.workerId) {
             await prisma.jobAssignment.create({
                 data: {
                     jobId: newJob.id,
                     teamId: data.teamId,
+                    workerId: data.workerId,
                     assignedAt: new Date()
                 }
             })
+
+            // Notify assigned team or worker
+            await sendJobNotification(
+                newJob.id,
+                'Yeni İş Atandı',
+                `"${newJob.title}" başlıklı yeni bir iş size atandı.`,
+                'INFO',
+                `/worker/jobs/${newJob.id}`
+            );
         }
 
         return NextResponse.json(newJob, { status: 201 })

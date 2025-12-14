@@ -153,6 +153,11 @@ export default async function JobsPage(props: {
                 <TableCell>
                   <div className="font-medium">{job.customer.company}</div>
                   <div className="text-sm text-gray-500">{job.customer.user.name}</div>
+                  {job._count.steps === 0 && job.status === 'PENDING' && (
+                    <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                      🚫 İşe Başlanmadı
+                    </div>
+                  )}
                   {(job.steps.length > 0 || job.costs.length > 0) && (
                     <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
                       ⚠️ Onay Bekliyor
@@ -161,9 +166,28 @@ export default async function JobsPage(props: {
                 </TableCell>
                 <TableCell>
                   {job.assignments.length > 0 && job.assignments[0].team ? (
-                    <Badge variant="outline" className="font-normal">
-                      {job.assignments[0].team.name}
-                    </Badge>
+                    <div className="space-y-1">
+                      <Badge variant="outline" className="font-normal">
+                        {job.assignments[0].team.name}
+                      </Badge>
+                      {job.assignments[0].team.lead && (
+                        <div className="text-xs text-gray-500">
+                          👤 Lider: {job.assignments[0].team.lead.name}
+                        </div>
+                      )}
+                      {job.assignments[0].team.members && job.assignments[0].team.members.length > 0 && (
+                        <div className="text-xs text-gray-400">
+                          👥 {job.assignments[0].team.members.map((m: any) => m.user.name).join(', ')}
+                        </div>
+                      )}
+                    </div>
+                  ) : job.assignments.length > 0 && job.assignments[0].worker ? (
+                    <div className="space-y-1">
+                      <Badge variant="outline" className="font-normal bg-blue-50">
+                        {job.assignments[0].worker.name}
+                      </Badge>
+                      <div className="text-xs text-gray-400">Bireysel Atama</div>
+                    </div>
                   ) : (
                     <span className="text-sm text-gray-400 italic">Atanmamış</span>
                   )}

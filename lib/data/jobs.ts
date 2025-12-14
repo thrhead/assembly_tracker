@@ -66,7 +66,17 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
         },
         assignments: {
           include: {
-            team: true
+            team: {
+              include: {
+                lead: { select: { id: true, name: true } },
+                members: {
+                  include: {
+                    user: { select: { id: true, name: true } }
+                  }
+                }
+              }
+            },
+            worker: { select: { id: true, name: true } }
           }
         },
         steps: {
@@ -83,9 +93,14 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
           where: { status: 'PENDING' },
           select: { id: true }
         },
+        // Check if any step has started work
         _count: {
           select: {
-            steps: true
+            steps: {
+              where: {
+                startedAt: { not: null }
+              }
+            }
           }
         }
       }
@@ -105,99 +120,99 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
 }
 
 export async function getJobStats() {
-    const total = await prisma.job.count();
-    const pending = await prisma.job.count({ where: { status: 'PENDING' } });
-    const inProgress = await prisma.job.count({ where: { status: 'IN_PROGRESS' } });
-    const completed = await prisma.job.count({ where: { status: 'COMPLETED' } });
+  const total = await prisma.job.count();
+  const pending = await prisma.job.count({ where: { status: 'PENDING' } });
+  const inProgress = await prisma.job.count({ where: { status: 'IN_PROGRESS' } });
+  const completed = await prisma.job.count({ where: { status: 'COMPLETED' } });
 
-    // Pending approvals (jobs with pending costs or pending sub-steps)
-    // Note: This is a simplified count, a precise one would require a complex join or raw query
-    // similar to how `jobs` query does it but for counting.
-    // For now returning basic status stats.
+  // Pending approvals (jobs with pending costs or pending sub-steps)
+  // Note: This is a simplified count, a precise one would require a complex join or raw query
+  // similar to how `jobs` query does it but for counting.
+  // For now returning basic status stats.
 
-    return { total, pending, inProgress, completed };
+  return { total, pending, inProgress, completed };
 }
 
 export async function getJob(id: string) {
-    return await prisma.job.findUnique({
-        where: { id },
+  return await prisma.job.findUnique({
+    where: { id },
+    include: {
+      customer: {
         include: {
-            customer: {
-                include: {
-                    user: true
-                }
-            },
-            assignments: {
-                include: {
-                    team: {
-                        include: {
-                            members: {
-                                include: {
-                                    user: true
-                                }
-                            }
-                        }
-                    },
-                    worker: true
-                }
-            },
-            approvals: {
-                where: {
-                    status: 'PENDING'
-                },
-                include: {
-                    requester: {
-                        select: {
-                            name: true,
-                            email: true
-                        }
-                    }
-                }
-            },
-            steps: {
-                orderBy: {
-                    order: 'asc'
-                },
-                include: {
-                    completedBy: {
-                        select: {
-                            name: true
-                        }
-                    },
-                    subSteps: {
-                        orderBy: {
-                            order: 'asc'
-                        },
-                        include: {
-                            photos: true
-                        }
-                    },
-                    photos: {
-                        orderBy: {
-                            uploadedAt: 'desc'
-                        },
-                        include: {
-                            uploadedBy: {
-                                select: {
-                                    name: true
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            costs: {
-                orderBy: {
-                    date: 'desc'
-                },
-                include: {
-                    createdBy: {
-                        select: {
-                            name: true
-                        }
-                    }
-                }
-            }
+          user: true
         }
-    });
+      },
+      assignments: {
+        include: {
+          team: {
+            include: {
+              members: {
+                include: {
+                  user: true
+                }
+              }
+            }
+          },
+          worker: true
+        }
+      },
+      approvals: {
+        where: {
+          status: 'PENDING'
+        },
+        include: {
+          requester: {
+            select: {
+              name: true,
+              email: true
+            }
+          }
+        }
+      },
+      steps: {
+        orderBy: {
+          order: 'asc'
+        },
+        include: {
+          completedBy: {
+            select: {
+              name: true
+            }
+          },
+          subSteps: {
+            orderBy: {
+              order: 'asc'
+            },
+            include: {
+              photos: true
+            }
+          },
+          photos: {
+            orderBy: {
+              uploadedAt: 'desc'
+            },
+            include: {
+              uploadedBy: {
+                select: {
+                  name: true
+                }
+              }
+            }
+          }
+        }
+      },
+      costs: {
+        orderBy: {
+          date: 'desc'
+        },
+        include: {
+          createdBy: {
+            select: {
+              name: true
+            }
+          }
+        }
+      }
+    }
+  });
 }

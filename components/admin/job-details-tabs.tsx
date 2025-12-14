@@ -99,6 +99,7 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                         steps={job.steps}
                         scheduledDate={job.scheduledDate}
                         completedDate={job.completedDate}
+                        jobId={job.id}
                     />
                 </TabsContent>
 

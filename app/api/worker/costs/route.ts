@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { broadcast, emitToUser } from '@/lib/socket'
 import { CostSubmittedPayload } from '@/lib/socket-events'
 import { sendCostApprovalEmail } from '@/lib/email'
+import { sendAdminNotification } from '@/lib/notification-helper'
 
 const createCostSchema = z.object({
     jobId: z.string().min(1),
@@ -133,6 +134,15 @@ export async function POST(req: Request) {
 
         // Broadcast to all admins/managers
         broadcast('cost:submitted', socketPayload)
+
+        // Send push notification to admins
+        await sendAdminNotification(
+            'Yeni Masraf Eklendi',
+            `${session.user.name || session.user.email} - ${data.amount} ${data.currency} (${data.category})`,
+            'INFO',
+            `/admin/costs`,
+            session.user.id
+        )
 
         return NextResponse.json(cost, { status: 201 })
     } catch (error) {

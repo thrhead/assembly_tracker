@@ -364,7 +364,9 @@ export default function JobDetailScreen({ route, navigation }) {
                 currency: 'TRY'
             });
 
-            Alert.alert('Başarılı', 'Masraf eklendi ve onaya gönderildi.');
+            // Alert.alert('Başarılı', 'Masraf eklendi ve onaya gönderildi.');
+            setSuccessMessage('Masraf eklendi ve onaya gönderildi');
+            setSuccessModalVisible(true);
             setCostModalVisible(false);
             setCostAmount('');
             setCostDescription('');

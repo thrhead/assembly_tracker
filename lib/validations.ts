@@ -96,6 +96,7 @@ export const jobCreationSchema = z.object({
   description: z.string().optional(),
   customerId: z.string().min(1, 'Customer is required'),
   teamId: z.string().optional(),
+  workerId: z.string().optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   location: z.string().optional(),
   scheduledDate: z.string().min(1, 'Scheduled date is required'),

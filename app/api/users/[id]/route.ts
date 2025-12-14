@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { auth } from '@/lib/auth'
+import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 
 const updateUserSchema = z.object({
@@ -18,7 +18,10 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await auth()
+        console.log(`[API] PUT /api/users/${(await params).id} started`)
+        const session = await verifyAuth(req)
+        console.log(`[API] PUT /api/users/${(await params).id} auth check done. Role: ${session?.user?.role}`)
+
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
@@ -69,7 +72,7 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await auth()
+        const session = await verifyAuth(req)
         // Admin can view anyone. Users can view themselves.
         // Manager/TeamLead logic might be needed but for now:
 

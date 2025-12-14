@@ -11,7 +11,8 @@ import {
     RefreshControl,
     LayoutAnimation,
     Platform,
-    UIManager
+    UIManager,
+    ActivityIndicator
 } from 'react-native';
 
 if (Platform.OS === 'android') {
@@ -197,11 +198,20 @@ export default function WorkerDashboardScreen({ navigation }) {
                         />
                     ))
                 ) : (
-                    <Text style={{ color: COLORS.slate500, marginLeft: 4, fontStyle: 'italic' }}>
-                        {activeFilter === 'ALL' ? 'Aktif görev bulunmuyor.' :
-                            activeFilter === 'IN_PROGRESS' ? 'Devam eden görev bulunmuyor.' :
-                                'Bekleyen görev bulunmuyor.'}
-                    </Text>
+                    <View style={styles.emptyStateContainer}>
+                        <View style={styles.emptyStateIconContainer}>
+                            <MaterialIcons
+                                name={activeFilter === 'ALL' ? 'assignment' : activeFilter === 'PENDING' ? 'pending-actions' : 'hourglass-empty'}
+                                size={32}
+                                color={COLORS.slate400}
+                            />
+                        </View>
+                        <Text style={styles.emptyStateText}>
+                            {activeFilter === 'ALL' ? 'Aktif görev bulunmuyor' :
+                                activeFilter === 'IN_PROGRESS' ? 'Devam eden görev yok' :
+                                    'Bekleyen görev yok'}
+                        </Text>
+                    </View>
                 )}
             </ScrollView>
         </View>
@@ -221,50 +231,54 @@ export default function WorkerDashboardScreen({ navigation }) {
                 contentContainerStyle={styles.scrollContent}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
             >
-                {renderHeader()}
-                {renderActiveTasks()}
+                {loading && !refreshing ? (
+                    <View style={{ height: 200, justifyContent: 'center', alignItems: 'center' }}>
+                        <ActivityIndicator size="large" color={COLORS.primary} />
+                    </View>
+                ) : (
+                    <>
+                        {renderHeader()}
+                        {renderActiveTasks()}
 
-                {/* Stats Grid */}
-                <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>İstatistikler</Text>
-                    {renderStatsGrid()}
-                </View>
-
-                {/* Cost Overview */}
-                <View style={styles.sectionContainer}>
-                    <GradientCard
-                        style={styles.costCard}
-                        onPress={() => navigation.navigate('ExpenseManagement')}
-                        colors={[COLORS.primary, '#15803d']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                    >
-                        <View style={styles.costHeader}>
-                            <View>
-                                <Text style={styles.costTitle}>Masraflar</Text>
-                                <Text style={styles.costAmount}>₺{stats.totalEarnings.toLocaleString()}</Text>
-                            </View>
-                            <View style={styles.costIconCircle}>
-                                <MaterialIcons name="account-balance-wallet" size={24} color={COLORS.white} />
-                            </View>
+                        {/* Stats Grid */}
+                        <View style={styles.sectionContainer}>
+                            <Text style={styles.sectionTitle}>İstatistikler</Text>
+                            {renderStatsGrid()}
                         </View>
-                        <View style={styles.costTrend}>
-                            {/* Transparent white background for pill */}
-                            <View style={styles.trendPill}>
-                                <MaterialIcons name="trending-up" size={16} color={COLORS.white} />
-                                <Text style={styles.trendText}>Geçen aya göre +12%</Text>
-                            </View>
-                            <MaterialIcons name="chevron-right" size={24} color="rgba(255,255,255,0.8)" />
+
+                        {/* Cost Overview */}
+                        <View style={styles.sectionContainer}>
+                            <GradientCard
+                                style={styles.costCard}
+                                onPress={() => navigation.navigate('ExpenseManagement')}
+                                colors={[COLORS.primary, '#15803d']}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                            >
+                                <View style={styles.costHeader}>
+                                    <View>
+                                        <Text style={styles.costTitle}>Masraflar</Text>
+                                        <Text style={styles.costAmount}>₺{stats.totalEarnings.toLocaleString()}</Text>
+                                    </View>
+                                    <View style={styles.costIconCircle}>
+                                        <MaterialIcons name="account-balance-wallet" size={24} color={COLORS.white} />
+                                    </View>
+                                </View>
+                                <View style={styles.costTrend}>
+                                    {/* Transparent white background for pill */}
+                                    <View style={styles.trendPill}>
+                                        <MaterialIcons name="trending-up" size={16} color={COLORS.white} />
+                                        <Text style={styles.trendText}>Geçen aya göre +12%</Text>
+                                    </View>
+                                    <MaterialIcons name="chevron-right" size={24} color="rgba(255,255,255,0.8)" />
+                                </View>
+                            </GradientCard>
                         </View>
-                    </GradientCard>
-                </View>
 
-                <View style={{ height: 80 }} />
-
-                <View style={{ height: 80 }} />
+                        <View style={{ height: 80 }} />
+                    </>
+                )}
             </ScrollView>
-
-
         </SafeAreaView>
     );
 }
@@ -306,4 +320,7 @@ const styles = StyleSheet.create({
     trendPill: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
     trendText: { color: COLORS.white, fontSize: 12, fontWeight: '700' },
     fab: { position: 'absolute', bottom: 24, right: 24, width: 56, height: 56, borderRadius: 28, backgroundColor: COLORS.primary, justifyContent: 'center', alignItems: 'center', shadowColor: COLORS.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 },
+    emptyStateContainer: { width: width * 0.75, height: 160, backgroundColor: COLORS.cardDark, borderRadius: 24, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: COLORS.slate800, borderStyle: 'dashed' },
+    emptyStateIconContainer: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(255,255,255,0.03)', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+    emptyStateText: { color: COLORS.slate400, fontSize: 14, fontWeight: '500' },
 });

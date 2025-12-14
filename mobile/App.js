@@ -53,6 +53,7 @@ function AppNavigator() {
 
     const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
       console.log("Notification response received:", response);
+      // Future: extract jobId and navigate
     });
 
     return () => {

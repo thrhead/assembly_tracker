@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
+import { sendAdminNotification } from '@/lib/notification-helper';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -31,6 +32,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
                 updatedAt: new Date()
             }
         });
+
+        // Notify admins
+        console.log('[JOB START] About to send admin notification for job:', job.id, job.title);
+        await sendAdminNotification(
+            'İş Başladı',
+            `"${job.title}" işi ${session.user.name || session.user.email} tarafından başlatıldı.`,
+            'INFO',
+            `/admin/jobs/${id}`,
+            session.user.id
+        );
+        console.log('[JOB START] Admin notification sent successfully');
 
         return NextResponse.json(updatedJob);
     } catch (error) {

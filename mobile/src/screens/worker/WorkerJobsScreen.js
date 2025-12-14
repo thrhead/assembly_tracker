@@ -7,7 +7,8 @@ import {
     TouchableOpacity,
     RefreshControl,
     StatusBar,
-    Alert
+    Alert,
+    ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -27,6 +28,7 @@ export default function WorkerJobsScreen() {
     const navigation = useNavigation();
     const { user } = useAuth();
     const [jobs, setJobs] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
     // Modal States
@@ -38,10 +40,14 @@ export default function WorkerJobsScreen() {
     // Fetch jobs
     const fetchJobs = useCallback(async () => {
         try {
+            setLoading(true);
             const data = isAdmin ? await jobService.getAllJobs() : await jobService.getMyJobs();
             setJobs(data);
         } catch (error) {
             console.error('Error fetching jobs:', error);
+            Alert.alert('Hata', 'Görevler yüklenirken bir hata oluştu');
+        } finally {
+            setLoading(false);
         }
     }, [isAdmin]);
 
@@ -62,8 +68,15 @@ export default function WorkerJobsScreen() {
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await fetchJobs();
-        setRefreshing(false);
+        // Do not set global loading true on refresh to keep list visible
+        try {
+            const data = isAdmin ? await jobService.getAllJobs() : await jobService.getMyJobs();
+            setJobs(data);
+        } catch (error) {
+            console.error('Error refreshing jobs:', error);
+        } finally {
+            setRefreshing(false);
+        }
     };
 
     const renderItem = useCallback(({ item }) => (
@@ -72,6 +85,17 @@ export default function WorkerJobsScreen() {
             onPress={(job) => navigation.navigate('JobDetail', { jobId: job.id })}
         />
     ), [navigation]);
+
+    if (loading && !refreshing && jobs.length === 0) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+                <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+                    <ActivityIndicator size="large" color={COLORS.neonGreen} />
+                </View>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.container}>

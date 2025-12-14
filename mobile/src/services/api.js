@@ -6,26 +6,26 @@ import { Platform } from 'react-native';
 const NGROK_URL = 'https://adjustment-wilderness-midnight-recordings.trycloudflare.com';
 
 const getBaseUrl = () => {
-    // For web (react-native-web), always use localhost to avoid CORS/Network issues with tunnels
+    // For web (react-native-web), always use localhost
     if (Platform.OS === 'web') {
         return 'http://localhost:3000';
     }
 
-    if (NGROK_URL) return NGROK_URL;
+    // Hardcoded LAN IP for physical device testing
+    return 'http://192.168.1.173:3000';
 
-    // For Android emulator, use 10.0.2.2
-    if (Platform.OS === 'android') {
-        return 'http://10.0.2.2:3000';
-    }
-    // Default to localhost for iOS simulator or other cases
+    /* Tunnel logic disabled for now to simplify
+    if (NGROK_URL) return NGROK_URL;
+    if (Platform.OS === 'android') return 'http://10.0.2.2:3000';
     return 'http://localhost:3000';
+    */
 };
 
 export const API_BASE_URL = __DEV__ ? getBaseUrl() : 'https://your-production-url.com';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 10000,
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
     },

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
+import { sendAdminNotification } from '@/lib/notification-helper';
+import { broadcast } from '@/lib/socket';
 
 export async function POST(request: Request, { params }: { params: Promise<{ substepId: string }> }) {
     try {
@@ -15,7 +17,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
         }
 
         const substep = await prisma.jobSubStep.findUnique({
-            where: { id: substepId }
+            where: { id: substepId },
+            include: {
+                step: {
+                    include: { job: { select: { id: true, title: true } } }
+                }
+            }
         });
         console.log('[DEBUG] Substep found:', substep ? 'Yes' : 'No');
 
@@ -35,6 +42,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ sub
             }
         });
         console.log('[DEBUG] Substep updated successfully');
+
+        // Notify admins when work starts (DB + Push)
+        await sendAdminNotification(
+            'İşe Başlandı',
+            `"${substep.step.job.title}" - "${substep.title}" başlatıldı (${session.user.name || session.user.email})`,
+            'INFO',
+            `/admin/jobs/${substep.step.job.id}`,
+            session.user.id
+        );
+
+        // Socket.IO broadcast for real-time web notifications
+        broadcast('substep:started', {
+            substepId: substepId,
+            jobId: substep.step.job.id,
+            jobTitle: substep.step.job.title,
+            substepTitle: substep.title,
+            startedBy: session.user.name || session.user.email
+        });
 
         return NextResponse.json(updatedSubstep);
     } catch (error: any) {

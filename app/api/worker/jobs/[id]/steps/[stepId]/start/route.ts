@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
+import { sendAdminNotification } from '@/lib/notification-helper';
+import { broadcast } from '@/lib/socket';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string; stepId: string }> }) {
     try {
@@ -12,7 +14,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         const { id, stepId } = await params;
 
         const step = await prisma.jobStep.findUnique({
-            where: { id: stepId, jobId: id }
+            where: { id: stepId, jobId: id },
+            include: { job: { select: { id: true, title: true } } }
         });
 
         if (!step) {
@@ -29,6 +32,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
                 startedAt: new Date()
             }
         });
+
+        // Socket.IO broadcast for real-time web notifications
+        broadcast('step:started', {
+            stepId: stepId,
+            jobId: step.job.id,
+            jobTitle: step.job.title,
+            stepTitle: step.title,
+            startedBy: session.user.name || session.user.email
+        });
+
+        // Send push notification to admins (DB + Push)
+        await sendAdminNotification(
+            'Ana Görev Başladı',
+            `"${step.job.title}" - "${step.title}" başlatıldı (${session.user.name || session.user.email})`,
+            'INFO',
+            `/admin/jobs/${step.job.id}`,
+            session.user.id
+        );
 
         return NextResponse.json(updatedStep);
     } catch (error) {

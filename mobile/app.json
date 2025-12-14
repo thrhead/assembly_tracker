@@ -29,8 +29,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "395621ea-54bf-4ba6-b540-e654f1c129e"
+        "projectId": "7494834e-65b0-43bf-b568-1f47f73ada6a"
       }
-    }
+    },
+    "owner": "thead"
   }
 }

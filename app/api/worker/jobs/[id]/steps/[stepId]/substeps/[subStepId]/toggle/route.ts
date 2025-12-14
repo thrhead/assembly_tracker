@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
+import { sendAdminNotification } from '@/lib/notification-helper'
+import { broadcast } from '@/lib/socket'
 
 export async function POST(
     req: Request,
@@ -14,7 +16,12 @@ export async function POST(
         }
 
         const subStep = await prisma.jobSubStep.findUnique({
-            where: { id: params.subStepId }
+            where: { id: params.subStepId },
+            include: {
+                step: {
+                    include: { job: { select: { title: true } } }
+                }
+            }
         })
 
         if (!subStep) {
@@ -40,6 +47,27 @@ export async function POST(
             newStatus: updatedSubStep.approvalStatus,
             newCompleted: updatedSubStep.isCompleted
         })
+
+        // Notify admins when substep is completed (toggled ON)
+        if (updatedSubStep.isCompleted && !subStep.isCompleted) {
+            // Socket.IO broadcast for real-time web notifications
+            broadcast('substep:completed', {
+                substepId: params.subStepId,
+                jobId: params.id,
+                jobTitle: subStep.step.job.title,
+                substepTitle: subStep.title,
+                completedBy: session.user.name || session.user.email
+            })
+
+            // Send push notification to admins (DB + Push)
+            await sendAdminNotification(
+                'Alt Adım Tamamlandı',
+                `"${subStep.step.job.title}" - "${subStep.title}" tamamlandı (${session.user.name || session.user.email})`,
+                'SUCCESS',
+                `/admin/jobs/${params.id}`,
+                session.user.id
+            )
+        }
 
         // Check if all substeps are completed
         const allSubSteps = await prisma.jobSubStep.findMany({
