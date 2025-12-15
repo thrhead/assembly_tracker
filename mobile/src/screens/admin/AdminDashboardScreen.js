@@ -60,75 +60,80 @@ export default function AdminDashboardScreen({ navigation }) {
                 contentContainerStyle={styles.scrollContent}
                 refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
             >
-                {/* Header */}
-                <View style={styles.header}>
-                    <View style={styles.headerLeft}>
+                {/* Header Container */}
+                <View style={styles.headerContainer}>
+                    <View style={styles.headerContent}>
+                        <View style={styles.userInfo}>
+                            <Text style={styles.welcomeLabel}>Hoşgeldiniz,</Text>
+                            <Text style={styles.userName}>{user?.name || 'Admin'}</Text>
+                        </View>
                         <TouchableOpacity
-                            style={styles.menuButton}
-                            onPress={() => setIsDrawerOpen(true)}
+                            style={styles.profileButton}
+                            onPress={() => navigation.navigate('Profile')}
                         >
-                            <MaterialIcons name="menu" size={28} color={COLORS.primary} />
+                            <View style={styles.avatarCircle}>
+                                <Text style={styles.avatarText}>
+                                    {user?.name?.charAt(0) || 'A'}
+                                </Text>
+                            </View>
                         </TouchableOpacity>
-                        <View>
-                            <Text style={styles.welcomeText}>Tekrar Hoşgeldiniz,</Text>
-                            <Text style={styles.userName}>{user?.name || 'Admin Kullanıcı'}</Text>
+                    </View>
+
+                    {/* Stats Summary Row if needed, or just spacing */}
+                </View>
+
+                {/* Main Content Container - overlaps header slightly for depth if we add negative margin, 
+                    but for now keeping clean flow */}
+                <View style={styles.mainContent}>
+
+                    {/* Stats Grid */}
+                    <DashboardStatsGrid statsData={statsData} />
+
+                    {/* Navigation Grid */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Menü</Text>
+                        <View style={styles.navGrid}>
+                            {navItems.map((item) => (
+                                <View key={item.id} style={styles.navItemWrapper}>
+                                    <DashboardAction
+                                        label={item.title}
+                                        icon={<MaterialIcons name={item.icon} size={32} color={item.color} />}
+                                        onPress={() => handleNavPress(item.route)}
+                                        isActive={true}
+                                        style={styles.navAction}
+                                    />
+                                </View>
+                            ))}
                         </View>
                     </View>
-                    <View style={{ flexDirection: 'row', gap: 8 }}>
-                        <TouchableOpacity style={styles.notificationButton} onPress={() => navigation.navigate('Notifications')}>
-                            <MaterialIcons name="notifications" size={24} color={COLORS.primary} />
-                            <View style={styles.notificationBadge} />
-                        </TouchableOpacity>
+
+                    {/* Quick Actions */}
+                    <View style={styles.section}>
+                        <Text style={styles.sectionTitle}>Hızlı İşlemler</Text>
+                        <View style={styles.quickActions}>
+                            <DashboardAction
+                                label="Yeni İş"
+                                icon={<MaterialIcons name="add-task" size={32} color={COLORS.cyan500} />}
+                                onPress={() => navigation.navigate('CreateJob')}
+                                style={{ flex: 1 }}
+                            />
+                            <DashboardAction
+                                label="Yeni Kullanıcı"
+                                icon={<MaterialIcons name="person-add" size={32} color={COLORS.pink500} />}
+                                onPress={() => navigation.navigate('UserManagement', { openCreate: true })}
+                                style={{ flex: 1 }}
+                            />
+                        </View>
                     </View>
+
+                    {/* Recent Jobs */}
+                    <RecentJobsList
+                        jobs={recentJobs}
+                        onJobPress={(id) => navigation.navigate('JobDetail', { jobId: id })}
+                        onViewAll={() => navigation.navigate('Jobs')}
+                    />
+
                 </View>
-
-                {/* Stats Grid */}
-                <DashboardStatsGrid statsData={statsData} />
-
-                {/* Navigation Grid */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Menü</Text>
-                    <View style={styles.navGrid}>
-                        {navItems.map((item) => (
-                            <View key={item.id} style={styles.navItemWrapper}>
-                                <DashboardAction
-                                    label={item.title}
-                                    icon={<MaterialIcons name={item.icon} size={32} color={item.color} />}
-                                    onPress={() => handleNavPress(item.route)}
-                                    isActive={true}
-                                    style={styles.navAction}
-                                />
-                            </View>
-                        ))}
-                    </View>
-                </View>
-
-                {/* Quick Actions */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Hızlı İşlemler</Text>
-                    <View style={styles.quickActions}>
-                        <DashboardAction
-                            label="Yeni İş"
-                            icon={<MaterialIcons name="add-task" size={32} color={COLORS.cyan500} />}
-                            onPress={() => navigation.navigate('CreateJob')}
-                            style={{ flex: 1 }}
-                        />
-                        <DashboardAction
-                            label="Yeni Kullanıcı"
-                            icon={<MaterialIcons name="person-add" size={32} color={COLORS.pink500} />}
-                            onPress={() => navigation.navigate('UserManagement', { openCreate: true })}
-                            style={{ flex: 1 }}
-                        />
-                    </View>
-                </View>
-
-                {/* Recent Jobs */}
-                <RecentJobsList
-                    jobs={recentJobs}
-                    onJobPress={(id) => navigation.navigate('JobDetail', { jobId: id })}
-                    onViewAll={() => navigation.navigate('Jobs')}
-                />
-
             </ScrollView>
 
             <DashboardBottomNav navigation={navigation} />
@@ -145,48 +150,64 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     scrollContent: {
-        paddingBottom: 120, // Increased padding
+        paddingBottom: 120,
     },
-    header: {
+    headerContainer: {
+        padding: 20,
+        paddingTop: 24,
+        paddingBottom: 32,
+        backgroundColor: COLORS.cardDark,
+        borderBottomLeftRadius: 24,
+        borderBottomRightRadius: 24,
+        marginBottom: -24, // Overlap effect
+        zIndex: 1,
+    },
+    headerContent: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 16,
-        paddingTop: 20,
     },
-    headerLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
+    userInfo: {
+        gap: 4,
     },
-    menuButton: {
-        padding: 4,
-    },
-    welcomeText: {
+    welcomeLabel: {
         fontSize: 14,
         color: COLORS.slate400,
+        fontWeight: '500',
     },
     userName: {
-        fontSize: 18,
+        fontSize: 24,
         fontWeight: 'bold',
-        color: COLORS.textLight,
+        color: COLORS.white,
+        letterSpacing: -0.5,
     },
-    notificationButton: {
-        padding: 8,
-        position: 'relative',
-        backgroundColor: COLORS.slate800,
-        borderRadius: 20,
+    profileButton: {
+        padding: 4,
     },
-    notificationBadge: {
-        position: 'absolute',
-        top: 8,
-        right: 8,
-        width: 8,
-        height: 8,
-        borderRadius: 4,
+    avatarCircle: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
         backgroundColor: COLORS.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
         borderWidth: 2,
-        borderColor: COLORS.backgroundDark,
+        borderColor: 'rgba(255,255,255,0.1)',
+        shadowColor: COLORS.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 4,
+    },
+    avatarText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: COLORS.backgroundDark,
+    },
+    mainContent: {
+        flex: 1,
+        zIndex: 2,
+        paddingTop: 12, // Space after overlap
     },
     section: {
         padding: 16,
@@ -205,7 +226,7 @@ const styles = StyleSheet.create({
         marginHorizontal: -6,
     },
     navItemWrapper: {
-        width: '33.33%',
+        width: '50%',
         padding: 6,
     },
     navAction: {

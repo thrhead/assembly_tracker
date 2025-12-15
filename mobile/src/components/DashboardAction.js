@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.cardDark,
         borderRadius: 12,
-        padding: 20,
+        padding: 16,
         alignItems: 'center',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },

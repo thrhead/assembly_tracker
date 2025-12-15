@@ -19,14 +19,16 @@ const StatCard = ({
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
         >
-            <View style={[styles.iconBox, { backgroundColor: `${iconColor}15` }]}>
-                <MaterialIcons name={icon} size={28} color={iconColor} />
-            </View>
-            <View style={styles.textContainer}>
-                <Text style={[styles.number, { color: COLORS.white }]}>
-                    {value}
-                </Text>
-                <Text style={styles.label}>{label}</Text>
+            <View style={styles.contentContainer}>
+                <View style={[styles.iconBox, { backgroundColor: `${iconColor}15` }]}>
+                    <MaterialIcons name={icon} size={24} color={iconColor} />
+                </View>
+                <View style={styles.textContainer}>
+                    <Text style={[styles.number, { color: COLORS.white }]}>
+                        {value}
+                    </Text>
+                    <Text style={styles.label} numberOfLines={1}>{label}</Text>
+                </View>
             </View>
         </GradientCard>
     );
@@ -34,39 +36,50 @@ const StatCard = ({
 
 const styles = StyleSheet.create({
     card: {
-        flex: 1,
-        padding: 16,
         borderRadius: 20,
-        margin: 6,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
-        minHeight: 140, // Ensure nice height
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-    },
-    iconBox: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
+        padding: 12,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.05)',
+        borderColor: 'rgba(255,255,255,0.08)',
+        // Shadow for depth
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 4,
+        },
+        shadowOpacity: 0.30,
+        shadowRadius: 4.65,
+        elevation: 8,
+    },
+    contentContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    iconBox: {
+        width: 42,
+        height: 42,
+        borderRadius: 14,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
     },
     textContainer: {
-        width: '100%',
+        flex: 1,
+        justifyContent: 'center',
     },
     number: {
-        fontSize: 28,
-        fontWeight: '700',
-        marginBottom: 4,
-        letterSpacing: 0.5,
+        fontSize: 24,
+        fontWeight: '800',
+        lineHeight: 28,
+        letterSpacing: -0.5,
     },
     label: {
         color: COLORS.slate400,
-        fontSize: 13,
-        fontWeight: '500',
+        fontSize: 12,
+        fontWeight: '600',
+        marginTop: 2,
     },
 });
 

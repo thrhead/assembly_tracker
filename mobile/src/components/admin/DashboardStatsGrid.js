@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
         gap: 12,
     },
     statCard: {
-        width: '48%',
+        width: '47%',
         marginBottom: 0,
     },
 });
