@@ -135,9 +135,9 @@ export function PhotoUploadDialog({
               </button>
             </div>
           ) : (
-            <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-600">
+            <label className="group flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-indigo-50 hover:border-indigo-400 transition-all duration-300 dark:bg-gray-900 dark:hover:bg-gray-800 dark:border-gray-600">
               <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                <Upload className="h-8 w-8 text-gray-400 mb-2" />
+                <Upload className="h-8 w-8 text-gray-400 mb-2 group-hover:text-indigo-500 group-hover:scale-110 transition-transform duration-300" />
                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Resim seçmek için tıklayın
                 </p>
