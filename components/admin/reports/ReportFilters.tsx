@@ -8,16 +8,32 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface ReportFiltersProps {
-    onFilterChange: (range: DateRange | undefined) => void;
+    onFilterChange?: (range: DateRange | undefined) => void;
 }
 
 export default function ReportFilters({ onFilterChange }: ReportFiltersProps) {
-    const [date, setDate] = useState<DateRange | undefined>();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    
+    const [date, setDate] = useState<DateRange | undefined>(() => {
+        const from = searchParams.get("from");
+        const to = searchParams.get("to");
+        return from && to ? { from: new Date(from), to: new Date(to) } : undefined;
+    });
 
     const handleFilter = () => {
-        onFilterChange(date);
+        const params = new URLSearchParams(searchParams.toString());
+        if (date?.from) params.set("from", date.from.toISOString());
+        else params.delete("from");
+        
+        if (date?.to) params.set("to", date.to.toISOString());
+        else params.delete("to");
+
+        router.push(`?${params.toString()}`);
+        if (onFilterChange) onFilterChange(date);
     };
 
     return (

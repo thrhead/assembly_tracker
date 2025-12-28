@@ -11,6 +11,11 @@ vi.mock('@/lib/data/reports', () => ({
 vi.mock('@/components/admin/reports/charts/JobDistributionChart', () => ({ default: () => <div>Job Chart</div> }))
 vi.mock('@/components/admin/reports/charts/TeamPerformanceChart', () => ({ default: () => <div>Team Chart</div> }))
 
+vi.mock('next/navigation', () => ({
+    useRouter: () => ({ push: vi.fn() }),
+    useSearchParams: () => ({ get: vi.fn(), toString: () => '' }),
+}))
+
 describe('PerformanceReportPage', () => {
     it('should render page title', async () => {
         vi.mocked(reportData.getJobStatusDistribution).mockResolvedValue({ 'COMPLETED': 10 })

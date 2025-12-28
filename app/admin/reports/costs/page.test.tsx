@@ -14,6 +14,11 @@ vi.mock('@/components/admin/reports/charts/CostTrendChart', () => ({
     default: () => <div data-testid="cost-trend-chart">Chart</div>
 }))
 
+vi.mock('next/navigation', () => ({
+    useRouter: () => ({ push: vi.fn() }),
+    useSearchParams: () => ({ get: vi.fn(), toString: () => '' }),
+}))
+
 describe('CostReportPage', () => {
     it('should render page title', async () => {
         // Mock return value

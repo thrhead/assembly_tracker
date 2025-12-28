@@ -2,13 +2,18 @@ import { getJobStatusDistribution, getTeamPerformance } from "@/lib/data/reports
 import JobDistributionChart from "@/components/admin/reports/charts/JobDistributionChart";
 import TeamPerformanceChart from "@/components/admin/reports/charts/TeamPerformanceChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ReportFilters from "@/components/admin/reports/ReportFilters";
+import { Suspense } from "react";
 
 export default async function PerformanceReportPage(props: {
     searchParams?: Promise<{ from?: string; to?: string }>
 }) {
     const searchParams = await props.searchParams;
-    const from = searchParams?.from ? new Date(searchParams.from) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    const to = searchParams?.to ? new Date(searchParams.to) : new Date();
+    const fromStr = searchParams?.from;
+    const toStr = searchParams?.to;
+
+    const from = fromStr ? new Date(fromStr) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const to = toStr ? new Date(toStr) : new Date();
 
     const jobDistribution = await getJobStatusDistribution(from, to);
     const teamPerformance = await getTeamPerformance(from, to);
@@ -30,6 +35,12 @@ export default async function PerformanceReportPage(props: {
         <div className="flex-1 space-y-4 p-8 pt-6">
             <div className="flex items-center justify-between space-y-2">
                 <h2 className="text-3xl font-bold tracking-tight">Performans Raporu</h2>
+            </div>
+
+            <div className="flex items-center justify-between">
+                <Suspense fallback={<div>Yükleniyor...</div>}>
+                    <ReportFilters />
+                </Suspense>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">

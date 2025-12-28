@@ -4,6 +4,8 @@ import CostTrendChart from "@/components/admin/reports/charts/CostTrendChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExcelDownloadButton } from "@/components/excel-download-button";
 import { PDFDownloadButton } from "@/components/pdf-download-button";
+import ReportFilters from "@/components/admin/reports/ReportFilters";
+import { Suspense } from "react";
 
 export default async function CostReportPage(props: {
     searchParams?: Promise<{ from?: string; to?: string }>
@@ -22,9 +24,6 @@ export default async function CostReportPage(props: {
         date: category, 
         amount
     }));
-
-    // Calculate totals
-    const totalCost = Object.values(costBreakdown).reduce((a, b) => a + b, 0);
 
     return (
         <div className="flex-1 space-y-4 p-8 pt-6">
@@ -46,6 +45,12 @@ export default async function CostReportPage(props: {
                         }}
                     />
                 </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+                <Suspense fallback={<div>Yükleniyor...</div>}>
+                    <ReportFilters />
+                </Suspense>
             </div>
             
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
