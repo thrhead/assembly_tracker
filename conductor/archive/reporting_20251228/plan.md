@@ -39,4 +39,4 @@
 - [x] Task: E2E Testleri ve Bug Fixes
   - [x] Subtask: Write E2E Tests (Skipped - Replaced with Unit/Integration Tests)
   - [x] Subtask: Perform Final Polish & Bug Fixes 3867799
-- [ ] Task: Conductor - User Manual Verification 'Dışa Aktarma ve Finalizasyon' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Dışa Aktarma ve Finalizasyon' (Protocol in workflow.md) [checkpoint: f5c6bfd]
