@@ -2,19 +2,23 @@ import { getCostBreakdown } from "@/lib/data/reports";
 import KPICards from "@/components/admin/reports/KPICards";
 import CostTrendChart from "@/components/admin/reports/charts/CostTrendChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ExcelDownloadButton } from "@/components/excel-download-button";
 
 export default async function CostReportPage(props: {
     searchParams?: Promise<{ from?: string; to?: string }>
 }) {
     const searchParams = await props.searchParams;
-    const from = searchParams?.from ? new Date(searchParams.from) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    const to = searchParams?.to ? new Date(searchParams.to) : new Date();
+    const fromStr = searchParams?.from;
+    const toStr = searchParams?.to;
+    
+    const from = fromStr ? new Date(fromStr) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const to = toStr ? new Date(toStr) : new Date();
 
     const costBreakdown = await getCostBreakdown(from, to);
 
     // Transform breakdown for chart
     const chartData = Object.entries(costBreakdown).map(([category, amount]) => ({
-        date: category, // Using category as X-axis for now as the breakdown function aggregates by category
+        date: category, 
         amount
     }));
 
@@ -25,6 +29,15 @@ export default async function CostReportPage(props: {
         <div className="flex-1 space-y-4 p-8 pt-6">
             <div className="flex items-center justify-between space-y-2">
                 <h2 className="text-3xl font-bold tracking-tight">Maliyet Raporu</h2>
+                <div className="flex items-center space-x-2">
+                    <ExcelDownloadButton 
+                        type="costs" 
+                        filters={{
+                            startDate: from.toISOString(),
+                            endDate: to.toISOString()
+                        }}
+                    />
+                </div>
             </div>
             
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
