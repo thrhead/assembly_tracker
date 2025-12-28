@@ -7,28 +7,52 @@ import { toast } from 'sonner'
 import { generateJobPDF, JobReportData } from '@/lib/pdf-generator'
 
 interface PDFDownloadButtonProps {
-    jobId: string
+    jobId?: string
+    type?: 'job' | 'costs'
+    filters?: Record<string, any>
     variant?: 'default' | 'outline' | 'ghost'
     size?: 'default' | 'sm' | 'lg' | 'icon'
 }
 
-export function PDFDownloadButton({ jobId, variant = 'outline', size = 'default' }: PDFDownloadButtonProps) {
+export function PDFDownloadButton({ 
+    jobId, 
+    type = 'job',
+    filters = {},
+    variant = 'outline', 
+    size = 'default' 
+}: PDFDownloadButtonProps) {
     const [isGenerating, setIsGenerating] = useState(false)
 
     const handleDownload = async () => {
         try {
             setIsGenerating(true)
 
-            // Fetch job data
-            const response = await fetch(`/api/reports/job/${jobId}`)
-            if (!response.ok) {
-                throw new Error('Failed to fetch job data')
+            let url = ''
+            const params = new URLSearchParams(filters)
+
+            if (type === 'job' && jobId) {
+                url = `/api/reports/job/${jobId}`
+            } else if (type === 'costs') {
+                url = `/api/reports/excel/costs?${params.toString()}` // Reusing the same API as excel for raw data
             }
 
-            const jobData: JobReportData = await response.json()
+            if (!url) throw new Error('Invalid download parameters')
 
-            // Generate PDF
-            generateJobPDF(jobData)
+            const response = await fetch(url)
+            if (!response.ok) {
+                throw new Error('Failed to fetch data')
+            }
+
+            const data = await response.json()
+
+            // Dynamic import to avoid SSR issues
+            const { generateJobPDF, generateCostReportPDF } = await import('@/lib/pdf-generator')
+
+            if (type === 'job') {
+                generateJobPDF(data)
+            } else if (type === 'costs') {
+                generateCostReportPDF(data)
+            }
 
             toast.success('PDF raporu oluşturuldu', {
                 description: 'Rapor başarıyla indirildi.'

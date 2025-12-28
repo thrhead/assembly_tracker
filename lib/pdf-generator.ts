@@ -238,3 +238,74 @@ export function generateJobPDF(data: JobReportData) {
     // Download PDF
     doc.save(filename)
 }
+
+export function generateCostReportPDF(costs: Array<{
+    date: Date,
+    jobTitle: string,
+    category: string | null,
+    description: string,
+    amount: number,
+    status: string,
+    createdBy: string
+}>) {
+    const doc = new jsPDF()
+
+    // Set font
+    doc.setFont('helvetica')
+
+    let yPos = 20
+
+    // Header
+    doc.setFontSize(20)
+    doc.setTextColor(22, 163, 74) // Green-600
+    doc.text('Maliyet Raporu', 105, yPos, { align: 'center' })
+
+    yPos += 15
+    doc.setFontSize(10)
+    doc.setTextColor(100, 100, 100)
+    doc.text(`Oluşturulma Tarihi: ${format(new Date(), 'dd MMMM yyyy, HH:mm', { locale: tr })}`, 105, yPos, { align: 'center' })
+
+    yPos += 15
+
+    const costsData = costs.map(cost => [
+        format(new Date(cost.date), 'dd/MM/yyyy', { locale: tr }),
+        cost.jobTitle,
+        cost.category || '-',
+        cost.description,
+        `₺${cost.amount.toFixed(2)}`,
+        cost.status,
+        cost.createdBy
+    ])
+
+    const totalCost = costs
+        .filter(c => c.status === 'APPROVED')
+        .reduce((sum, c) => sum + c.amount, 0)
+
+    autoTable(doc, {
+        startY: yPos,
+        head: [['Tarih', 'İş', 'Kategori', 'Açıklama', 'Tutar', 'Durum', 'Oluşturan']],
+        body: costsData,
+        foot: [['', '', '', 'Toplam Onaylı:', `₺${totalCost.toFixed(2)}`, '', '']],
+        theme: 'striped',
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [22, 163, 74] },
+        footStyles: { fillColor: [248, 250, 252], fontStyle: 'bold' }
+    })
+
+    // Footer with page numbers
+    const pageCount = doc.getNumberOfPages()
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i)
+        doc.setFontSize(8)
+        doc.setTextColor(150, 150, 150)
+        doc.text(
+            `Sayfa ${i} / ${pageCount}`,
+            105,
+            doc.internal.pageSize.height - 10,
+            { align: 'center' }
+        )
+    }
+
+    const filename = `Maliyet_Raporu_${format(new Date(), 'yyyyMMdd')}.pdf`
+    doc.save(filename)
+}

@@ -3,6 +3,7 @@ import KPICards from "@/components/admin/reports/KPICards";
 import CostTrendChart from "@/components/admin/reports/charts/CostTrendChart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExcelDownloadButton } from "@/components/excel-download-button";
+import { PDFDownloadButton } from "@/components/pdf-download-button";
 
 export default async function CostReportPage(props: {
     searchParams?: Promise<{ from?: string; to?: string }>
@@ -31,6 +32,13 @@ export default async function CostReportPage(props: {
                 <h2 className="text-3xl font-bold tracking-tight">Maliyet Raporu</h2>
                 <div className="flex items-center space-x-2">
                     <ExcelDownloadButton 
+                        type="costs" 
+                        filters={{
+                            startDate: from.toISOString(),
+                            endDate: to.toISOString()
+                        }}
+                    />
+                    <PDFDownloadButton 
                         type="costs" 
                         filters={{
                             startDate: from.toISOString(),
