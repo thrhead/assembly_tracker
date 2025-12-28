@@ -7,13 +7,13 @@
 - [x] Task: Veritabanı Optimizasyonu 9497a91
   - [ ] Subtask: Analyze Query Performance
   - [ ] Subtask: Add Indexes if necessary (Prisma Schema Update)
-- [ ] Task: Conductor - User Manual Verification 'Altyapı ve Veri Hazırlığı' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Altyapı ve Veri Hazırlığı' (Protocol in workflow.md) [checkpoint: 073ade0]
 
 ## Phase 2: UI Bileşenleri ve Görselleştirme
-- [ ] Task: Temel Raporlama Bileşenleri
+- [x] Task: Temel Raporlama Bileşenleri 2a55c8c
   - [ ] Subtask: Write Tests for KPI Cards & Filter Components
   - [ ] Subtask: Implement KPI Cards & Date Range/Filter Components
-- [ ] Task: Grafik Entegrasyonu (Recharts)
+- [x] Task: Grafik Entegrasyonu (Recharts) a158684
   - [ ] Subtask: Write Tests for Chart Components
   - [ ] Subtask: Implement Cost Trend Chart (Line)
   - [ ] Subtask: Implement Job Distribution Chart (Pie)
