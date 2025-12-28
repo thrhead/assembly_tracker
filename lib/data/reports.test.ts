@@ -18,7 +18,7 @@ describe('Report Service', () => {
             const startDate = new Date('2025-01-01')
             const endDate = new Date('2025-01-31')
 
-            const result = await getCostBreakdown(startDate, endDate)
+            const result = await getCostBreakdown(startDate, endDate, 'APPROVED')
 
             expect(prisma.costTracking.groupBy).toHaveBeenCalledWith({
                 by: ['category'],

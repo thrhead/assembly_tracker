@@ -18,8 +18,8 @@ describe('CostTrendChart', () => {
     ]
 
     it('should render chart title', () => {
-        render(<CostTrendChart data={mockData} />)
-        expect(screen.getByText('Maliyet Trendi')).toBeInTheDocument()
+        render(<CostTrendChart data={mockData} categories={['amount']} />)
+        expect(screen.getByText(/Maliyet Trendi/i)).toBeInTheDocument()
     })
 
     // It's hard to test SVG internals of Recharts with jsdom, 

@@ -9,56 +9,67 @@ import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ReportFiltersProps {
+    jobs?: { id: string; title: string }[];
+    categories?: string[];
     onFilterChange?: (range: DateRange | undefined) => void;
 }
 
-export default function ReportFilters({ onFilterChange }: ReportFiltersProps) {
+export default function ReportFilters({ jobs = [], categories = [], onFilterChange }: ReportFiltersProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     
-    const [date, setDate] = useState<DateRange | undefined>(() => {
+    const date = (() => {
         const from = searchParams.get("from");
         const to = searchParams.get("to");
         return from && to ? { from: new Date(from), to: new Date(to) } : undefined;
-    });
+    })();
 
-    const handleFilter = () => {
+    const jobStatus = searchParams.get("jobStatus") || "all";
+    const selectedJobId = searchParams.get("jobId") || "all";
+    const selectedCategory = searchParams.get("category") || "all";
+
+    const updateFilters = (updates: Record<string, string | DateRange | undefined>) => {
         const params = new URLSearchParams(searchParams.toString());
-        if (date?.from) params.set("from", date.from.toISOString());
-        else params.delete("from");
         
-        if (date?.to) params.set("to", date.to.toISOString());
-        else params.delete("to");
+        Object.entries(updates).forEach(([key, value]) => {
+            if (key === 'date') {
+                const range = value as DateRange | undefined;
+                if (range?.from) params.set("from", range.from.toISOString());
+                else params.delete("from");
+                if (range?.to) params.set("to", range.to.toISOString());
+                else params.delete("to");
+            } else {
+                if (value && value !== "all") params.set(key, value as string);
+                else params.delete(key);
+            }
+        });
 
         router.push(`?${params.toString()}`);
-        if (onFilterChange) onFilterChange(date);
     };
 
     return (
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 flex-wrap gap-y-2">
             <Popover>
                 <PopoverTrigger asChild>
                     <Button
                         variant={"outline"}
                         className={cn(
-                            "w-[300px] justify-start text-left font-normal",
+                            "w-[260px] justify-start text-left font-normal",
                             !date && "text-muted-foreground"
                         )}
                     >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {date?.from ? (
                             date.to ? (
-                                <>
-                                    {format(date.from, "LLL dd, y")} -{" "}
-                                    {format(date.to, "LLL dd, y")}
-                                </>
+                                <>{format(date.from, "dd.MM.yy")} - {format(date.to, "dd.MM.yy")}</>
                             ) : (
-                                format(date.from, "LLL dd, y")
+                                format(date.from, "dd.MM.yy")
                             )
                         ) : (
-                            <span>Tarih Aralığı Seçin</span>
+                            <span>Tarih Aralığı</span>
                         )}
                     </Button>
                 </PopoverTrigger>
@@ -68,12 +79,47 @@ export default function ReportFilters({ onFilterChange }: ReportFiltersProps) {
                         mode="range"
                         defaultMonth={date?.from}
                         selected={date}
-                        onSelect={setDate}
+                        onSelect={(newDate) => updateFilters({ date: newDate })}
                         numberOfMonths={2}
                     />
                 </PopoverContent>
             </Popover>
-            <Button onClick={handleFilter}>Filtrele</Button>
+
+            <Select value={jobStatus} onValueChange={(val) => updateFilters({ jobStatus: val })}>
+                <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="İş Durumu" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">Tüm Durumlar</SelectItem>
+                    <SelectItem value="IN_PROGRESS">Aktif İşler</SelectItem>
+                    <SelectItem value="COMPLETED">Tamamlananlar</SelectItem>
+                    <SelectItem value="PENDING">Bekleyenler</SelectItem>
+                </SelectContent>
+            </Select>
+
+            <Select value={selectedJobId} onValueChange={(val) => updateFilters({ jobId: val })}>
+                <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Montaj Seçin" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">Tüm Montajlar</SelectItem>
+                    {jobs.map(job => (
+                        <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+
+            <Select value={selectedCategory} onValueChange={(val) => updateFilters({ category: val })}>
+                <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Kategori" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">Tüm Kategoriler</SelectItem>
+                    {categories.map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         </div>
     );
 }

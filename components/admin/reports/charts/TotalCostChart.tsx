@@ -1,17 +1,13 @@
 "use client";
 
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-interface CostTrendChartProps {
-    data: any[];
-    categories: string[];
-    title?: string;
+interface TotalCostChartProps {
+    data: { date: string; amount: number }[];
 }
 
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#0088fe', '#00c49f'];
-
-export default function CostTrendChart({ data, categories, title = "Maliyet Trendi (Kalem Bazlı)" }: CostTrendChartProps) {
+export default function TotalCostChart({ data }: TotalCostChartProps) {
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('tr-TR', {
             style: 'currency',
@@ -23,12 +19,18 @@ export default function CostTrendChart({ data, categories, title = "Maliyet Tren
     return (
         <Card>
             <CardHeader>
-                <CardTitle>{title}</CardTitle>
+                <CardTitle>Toplam Harcama Grafiği</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={data}>
+                        <AreaChart data={data}>
+                            <defs>
+                                <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.1}/>
+                                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                                </linearGradient>
+                            </defs>
                              <CartesianGrid strokeDasharray="3 3" vertical={false} />
                             <XAxis 
                                 dataKey="date" 
@@ -52,19 +54,15 @@ export default function CostTrendChart({ data, categories, title = "Maliyet Tren
                                 formatter={(value: number) => formatCurrency(value)}
                                 labelFormatter={(label) => `Tarih: ${new Date(label).toLocaleDateString('tr-TR')}`}
                             />
-                            <Legend />
-                            {categories.map((cat, index) => (
-                                <Line
-                                    key={cat}
-                                    type="monotone"
-                                    dataKey={cat}
-                                    stroke={COLORS[index % COLORS.length]}
-                                    strokeWidth={2}
-                                    dot={{ r: 4 }}
-                                    activeDot={{ r: 6 }}
-                                />
-                            ))}
-                        </LineChart>
+                            <Area
+                                type="monotone"
+                                dataKey="amount"
+                                stroke="#4f46e5"
+                                fillOpacity={1}
+                                fill="url(#colorAmount)"
+                                strokeWidth={2}
+                            />
+                        </AreaChart>
                     </ResponsiveContainer>
                 </div>
             </CardContent>

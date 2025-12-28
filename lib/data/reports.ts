@@ -21,10 +21,17 @@ export async function getJobsForReport() {
     });
 }
 
-export async function getReportStats() {
+export async function getReportStats(startDate: Date, endDate: Date, jobStatus?: string, jobId?: string, category?: string) {
+    const jobWhere: any = {
+        createdAt: { gte: startDate, lte: endDate }
+    };
+    if (jobStatus && jobStatus !== 'all') jobWhere.status = jobStatus;
+    if (jobId && jobId !== 'all') jobWhere.id = jobId;
+
     const jobsByStatus = await prisma.job.groupBy({
         by: ['status'],
-        _count: true
+        _count: true,
+        where: jobWhere
     });
 
     const pendingJobs = jobsByStatus.find(g => g.status === 'PENDING')?._count || 0;
@@ -32,25 +39,63 @@ export async function getReportStats() {
     const completedJobs = jobsByStatus.find(g => g.status === 'COMPLETED')?._count || 0;
     const totalJobs = pendingJobs + inProgressJobs + completedJobs;
 
+    const costWhere: any = {
+        date: { gte: startDate, lte: endDate }
+    };
+    if (jobStatus && jobStatus !== 'all') costWhere.job = { status: jobStatus };
+    if (jobId && jobId !== 'all') costWhere.jobId = jobId;
+    if (category && category !== 'all') costWhere.category = category;
+    
+    // Total APPROVED costs for the specific filters
+    const approvedCosts = await prisma.costTracking.aggregate({
+        _sum: { amount: true },
+        where: { ...costWhere, status: 'APPROVED' }
+    });
+
+    const pendingCostsCount = await prisma.costTracking.count({
+        where: { ...costWhere, status: 'PENDING' }
+    });
+
     return {
         totalJobs,
         pendingJobs,
         inProgressJobs,
-        completedJobs
+        completedJobs,
+        totalCost: approvedCosts._sum.amount || 0,
+        pendingApprovals: pendingCostsCount
     };
 }
 
-export async function getCostBreakdown(startDate: Date, endDate: Date) {
+export async function getCostBreakdown(startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) {
+    const where: any = {
+        date: {
+            gte: startDate,
+            lte: endDate
+        }
+    };
+
+    if (status && status !== 'all') {
+        where.status = status;
+    } else {
+        where.status = { not: 'REJECTED' };
+    }
+
+    if (jobStatus && jobStatus !== 'all') {
+        where.job = { ...where.job, status: jobStatus };
+    }
+
+    if (jobId && jobId !== 'all') {
+        where.jobId = jobId;
+    }
+
+    if (category && category !== 'all') {
+        where.category = category;
+    }
+
     const costs = await prisma.costTracking.groupBy({
         by: ['category'],
         _sum: { amount: true },
-        where: {
-            date: {
-                gte: startDate,
-                lte: endDate
-            },
-            status: 'APPROVED'
-        }
+        where
     });
 
     const breakdown: Record<string, number> = {};
@@ -63,16 +108,130 @@ export async function getCostBreakdown(startDate: Date, endDate: Date) {
     return breakdown;
 }
 
-export async function getJobStatusDistribution(startDate: Date, endDate: Date) {
+export async function getCostTrend(startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) {
+    const where: any = {
+        date: { gte: startDate, lte: endDate }
+    };
+
+    if (status && status !== 'all') where.status = status;
+    else where.status = { not: 'REJECTED' };
+
+    if (jobStatus && jobStatus !== 'all') where.job = { ...where.job, status: jobStatus };
+    if (jobId && jobId !== 'all') where.jobId = jobId;
+    if (category && category !== 'all') where.category = category;
+
+    const costs = await prisma.costTracking.findMany({
+        where,
+        select: { date: true, amount: true, category: true },
+        orderBy: { date: 'asc' }
+    });
+
+    const trendMap: Record<string, Record<string, number>> = {};
+    const categoriesSet = new Set<string>();
+
+    costs.forEach(cost => {
+        const dateStr = cost.date.toISOString().split('T')[0];
+        const cat = cost.category || 'Diğer';
+        categoriesSet.add(cat);
+        
+        if (!trendMap[dateStr]) trendMap[dateStr] = {};
+        trendMap[dateStr][cat] = (trendMap[dateStr][cat] || 0) + cost.amount;
+    });
+
+    const categories = Array.from(categoriesSet);
+    const data = Object.entries(trendMap).map(([date, values]) => ({
+        date,
+        ...values
+    }));
+
+    return { data, categories };
+}
+
+export async function getTotalCostTrend(startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) {
+    const where: any = {
+        date: { gte: startDate, lte: endDate }
+    };
+
+    if (status && status !== 'all') where.status = status;
+    else where.status = { not: 'REJECTED' };
+
+    if (jobStatus && jobStatus !== 'all') where.job = { ...where.job, status: jobStatus };
+    if (jobId && jobId !== 'all') where.jobId = jobId;
+    if (category && category !== 'all') where.category = category;
+
+    const costs = await prisma.costTracking.findMany({
+        where,
+        select: { date: true, amount: true },
+        orderBy: { date: 'asc' }
+    });
+
+    const trendMap: Record<string, number> = {};
+    costs.forEach(cost => {
+        const dateStr = cost.date.toISOString().split('T')[0];
+        trendMap[dateStr] = (trendMap[dateStr] || 0) + cost.amount;
+    });
+
+    return Object.entries(trendMap).map(([date, amount]) => ({
+        date,
+        amount
+    }));
+}
+
+export async function getPendingCostsList(startDate: Date, endDate: Date, jobStatus?: string, jobId?: string, category?: string) {
+    const where: any = {
+        date: { gte: startDate, lte: endDate },
+        status: 'PENDING'
+    };
+
+    if (jobStatus && jobStatus !== 'all') where.job = { status: jobStatus };
+    if (jobId && jobId !== 'all') where.jobId = jobId;
+    if (category && category !== 'all') where.category = category;
+
+    return await prisma.costTracking.findMany({
+        where,
+        include: {
+            job: true,
+            createdBy: true
+        },
+        orderBy: { date: 'desc' }
+    });
+}
+
+export async function getJobsListForFilter() {
+    return await prisma.job.findMany({
+        select: { id: true, title: true },
+        orderBy: { title: 'asc' }
+    });
+}
+
+export async function getCategoriesForFilter() {
+    const categories = await prisma.costTracking.groupBy({
+        by: ['category'],
+        where: { category: { not: null } }
+    });
+    return categories.map(c => c.category as string);
+}
+
+export async function getJobStatusDistribution(startDate: Date, endDate: Date, jobStatus?: string, jobId?: string) {
+    const where: any = {
+        createdAt: {
+            gte: startDate,
+            lte: endDate
+        }
+    };
+
+    if (jobStatus && jobStatus !== 'all') {
+        where.status = jobStatus;
+    }
+
+    if (jobId && jobId !== 'all') {
+        where.id = jobId;
+    }
+
     const jobs = await prisma.job.groupBy({
         by: ['status'],
         _count: true,
-        where: {
-            createdAt: {
-                gte: startDate,
-                lte: endDate
-            }
-        }
+        where
     });
 
     const distribution: Record<string, number> = {};
@@ -83,26 +242,35 @@ export async function getJobStatusDistribution(startDate: Date, endDate: Date) {
     return distribution;
 }
 
-export async function getTeamPerformance(startDate: Date, endDate: Date) {
-    // Fetch completed jobs with team assignments within the date range
-    const jobs = await prisma.job.findMany({
-        where: {
-            status: 'COMPLETED',
-            completedDate: {
-                gte: startDate,
-                lte: endDate
-            },
-            startedAt: {
-                not: null
-            },
-            assignments: {
-                some: {
-                    teamId: {
-                        not: null
-                    }
+export async function getTeamPerformance(startDate: Date, endDate: Date, jobStatus?: string, jobId?: string) {
+    const where: any = {
+        status: 'COMPLETED',
+        completedDate: {
+            gte: startDate,
+            lte: endDate
+        },
+        startedAt: {
+            not: null
+        },
+        assignments: {
+            some: {
+                teamId: {
+                    not: null
                 }
             }
-        },
+        }
+    };
+
+    if (jobStatus && jobStatus !== 'all') {
+        where.status = jobStatus;
+    }
+
+    if (jobId && jobId !== 'all') {
+        where.id = jobId;
+    }
+
+    const jobs = await prisma.job.findMany({
+        where,
         include: {
             assignments: {
                 include: {

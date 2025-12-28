@@ -14,12 +14,9 @@ vi.mock('next/navigation', () => ({
 }))
 
 describe('ReportFilters', () => {
-    it('should render date picker and filter button', () => {
-        render(<ReportFilters onFilterChange={vi.fn()} />)
-        // Adjust text matchers based on your UI library's text
+    it('should render date picker and job selection', () => {
+        render(<ReportFilters jobs={[]} categories={[]} onFilterChange={vi.fn()} />)
         expect(screen.getByText(/Tarih Aralığı/i)).toBeInTheDocument() 
-        expect(screen.getByRole('button', { name: /Filtrele/i })).toBeInTheDocument()
+        expect(screen.getByText(/Tüm Montajlar/i)).toBeInTheDocument()
     })
-
-    // Add more interaction tests if complex logic exists
 })

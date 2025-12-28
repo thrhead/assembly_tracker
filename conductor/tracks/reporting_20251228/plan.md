@@ -27,16 +27,16 @@
 - [x] Task: İş ve Performans Raporu Sayfası fac3c40
   - [ ] Subtask: Write Tests for Performance Page
   - [ ] Subtask: Implement Performance Page
-- [ ] Task: Conductor - User Manual Verification 'Rapor Sayfaları ve Entegrasyon' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Rapor Sayfaları ve Entegrasyon' (Protocol in workflow.md) [checkpoint: 7e4a9a1]
 
 ## Phase 4: Dışa Aktarma ve Finalizasyon
-- [ ] Task: Excel Export Özelliği
+- [x] Task: Excel Export Özelliği 56a113f
   - [ ] Subtask: Write Tests for Excel Generator
   - [ ] Subtask: Implement Excel Export Button & Logic
-- [ ] Task: PDF Export Özelliği
+- [x] Task: PDF Export Özelliği eb9f986
   - [ ] Subtask: Write Tests for PDF Generator
   - [ ] Subtask: Implement PDF Export Button & Logic
-- [ ] Task: E2E Testleri ve Bug Fixes
-  - [ ] Subtask: Write E2E Tests (Playwright/Cypress if available or Integration Tests)
-  - [ ] Subtask: Perform Final Polish & Bug Fixes
+- [x] Task: E2E Testleri ve Bug Fixes
+  - [x] Subtask: Write E2E Tests (Skipped - Replaced with Unit/Integration Tests)
+  - [x] Subtask: Perform Final Polish & Bug Fixes 3867799
 - [ ] Task: Conductor - User Manual Verification 'Dışa Aktarma ve Finalizasyon' (Protocol in workflow.md)
