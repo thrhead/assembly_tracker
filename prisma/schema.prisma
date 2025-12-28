@@ -109,6 +109,8 @@ model Job {
   creator          User            @relation("JobCreator", fields: [creatorId], references: [id])
   customer         Customer        @relation(fields: [customerId], references: [id])
 
+  @@index([status, createdAt])
+  @@index([status, completedDate])
   @@map("jobs")
 }
 
@@ -239,6 +241,7 @@ model CostTracking {
   createdBy       User     @relation("CostCreator", fields: [createdById], references: [id])
   job             Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
+  @@index([status, date])
   @@map("cost_tracking")
 }
 
