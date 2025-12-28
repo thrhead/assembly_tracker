@@ -39,3 +39,102 @@ export async function getReportStats() {
         completedJobs
     };
 }
+
+export async function getCostBreakdown(startDate: Date, endDate: Date) {
+    const costs = await prisma.cost.groupBy({
+        by: ['category'],
+        _sum: { amount: true },
+        where: {
+            date: {
+                gte: startDate,
+                lte: endDate
+            },
+            status: 'APPROVED'
+        }
+    });
+
+    const breakdown: Record<string, number> = {};
+    costs.forEach(cost => {
+        if (cost.category && cost._sum.amount) {
+            breakdown[cost.category] = cost._sum.amount;
+        }
+    });
+
+    return breakdown;
+}
+
+export async function getJobStatusDistribution(startDate: Date, endDate: Date) {
+    const jobs = await prisma.job.groupBy({
+        by: ['status'],
+        _count: true,
+        where: {
+            createdAt: {
+                gte: startDate,
+                lte: endDate
+            }
+        }
+    });
+
+    const distribution: Record<string, number> = {};
+    jobs.forEach(job => {
+        distribution[job.status] = job._count;
+    });
+
+    return distribution;
+}
+
+export async function getTeamPerformance(startDate: Date, endDate: Date) {
+    // Fetch completed jobs with team assignments within the date range
+    const jobs = await prisma.job.findMany({
+        where: {
+            status: 'COMPLETED',
+            completedDate: {
+                gte: startDate,
+                lte: endDate
+            },
+            startedAt: {
+                not: null
+            },
+            assignments: {
+                some: {
+                    teamId: {
+                        not: null
+                    }
+                }
+            }
+        },
+        include: {
+            assignments: {
+                include: {
+                    team: true
+                }
+            }
+        }
+    });
+
+    const teamStats: Record<string, { totalJobs: number; totalTime: number; teamName: string }> = {};
+
+    jobs.forEach(job => {
+        const teamAssignment = job.assignments.find(a => a.teamId);
+        if (teamAssignment && teamAssignment.team) {
+            const teamId = teamAssignment.team.id;
+            const teamName = teamAssignment.team.name;
+            
+            if (!teamStats[teamId]) {
+                teamStats[teamId] = { totalJobs: 0, totalTime: 0, teamName };
+            }
+
+            if (job.startedAt && job.completedDate) {
+                const durationMinutes = (job.completedDate.getTime() - job.startedAt.getTime()) / (1000 * 60);
+                teamStats[teamId].totalJobs += 1;
+                teamStats[teamId].totalTime += durationMinutes;
+            }
+        }
+    });
+
+    return Object.values(teamStats).map(stat => ({
+        teamName: stat.teamName,
+        totalJobs: stat.totalJobs,
+        avgCompletionTimeMinutes: stat.totalJobs > 0 ? stat.totalTime / stat.totalJobs : 0
+    }));
+}
