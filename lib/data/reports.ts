@@ -41,7 +41,7 @@ export async function getReportStats() {
 }
 
 export async function getCostBreakdown(startDate: Date, endDate: Date) {
-    const costs = await prisma.cost.groupBy({
+    const costs = await prisma.costTracking.groupBy({
         by: ['category'],
         _sum: { amount: true },
         where: {

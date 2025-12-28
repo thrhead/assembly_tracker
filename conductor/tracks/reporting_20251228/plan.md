@@ -18,13 +18,13 @@
   - [ ] Subtask: Implement Cost Trend Chart (Line)
   - [ ] Subtask: Implement Job Distribution Chart (Pie)
   - [ ] Subtask: Implement Team Performance Chart (Bar)
-- [ ] Task: Conductor - User Manual Verification 'UI Bileşenleri ve Görselleştirme' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'UI Bileşenleri ve Görselleştirme' (Protocol in workflow.md) [checkpoint: 2be11b2]
 
 ## Phase 3: Rapor Sayfaları ve Entegrasyon
-- [ ] Task: Maliyet Raporu Sayfası
+- [x] Task: Maliyet Raporu Sayfası 28daff0
   - [ ] Subtask: Write Tests for Cost Report Page
   - [ ] Subtask: Implement Cost Report Page (Table + Charts + Filters)
-- [ ] Task: İş ve Performans Raporu Sayfası
+- [x] Task: İş ve Performans Raporu Sayfası fac3c40
   - [ ] Subtask: Write Tests for Performance Page
   - [ ] Subtask: Implement Performance Page
 - [ ] Task: Conductor - User Manual Verification 'Rapor Sayfaları ve Entegrasyon' (Protocol in workflow.md)

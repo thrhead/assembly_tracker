@@ -13,14 +13,14 @@ describe('Report Service', () => {
                 { category: 'MATERIAL', _sum: { amount: 1000 } },
                 { category: 'TRAVEL', _sum: { amount: 500 } }
             ]
-            vi.mocked(prisma.cost.groupBy).mockResolvedValue(mockCosts as any)
+            vi.mocked(prisma.costTracking.groupBy).mockResolvedValue(mockCosts as any)
 
             const startDate = new Date('2025-01-01')
             const endDate = new Date('2025-01-31')
 
             const result = await getCostBreakdown(startDate, endDate)
 
-            expect(prisma.cost.groupBy).toHaveBeenCalledWith({
+            expect(prisma.costTracking.groupBy).toHaveBeenCalledWith({
                 by: ['category'],
                 _sum: { amount: true },
                 where: {
@@ -39,7 +39,7 @@ describe('Report Service', () => {
         })
 
         it('should return empty object if no costs found', async () => {
-            vi.mocked(prisma.cost.groupBy).mockResolvedValue([])
+            vi.mocked(prisma.costTracking.groupBy).mockResolvedValue([])
             const result = await getCostBreakdown(new Date(), new Date())
             expect(result).toEqual({})
         })

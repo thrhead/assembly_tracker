@@ -8,7 +8,7 @@ vi.mock('@/lib/db', () => ({
       findMany: vi.fn(),
       groupBy: vi.fn(),
     },
-    cost: {
+    costTracking: {
       groupBy: vi.fn(),
       findMany: vi.fn(),
     },

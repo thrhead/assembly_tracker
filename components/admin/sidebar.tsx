@@ -14,7 +14,9 @@ import {
   XIcon,
   TrendingUpIcon,
   CalendarIcon,
-  FileTextIcon
+  FileTextIcon,
+  BarChart3Icon,
+  PieChartIcon
 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -64,6 +66,16 @@ const sidebarItems = [
     title: 'Maliyetler',
     href: '/admin/costs',
     icon: TrendingUpIcon
+  },
+  {
+    title: 'Maliyet Raporu',
+    href: '/admin/reports/costs',
+    icon: BarChart3Icon
+  },
+  {
+    title: 'Performans Raporu',
+    href: '/admin/reports/performance',
+    icon: PieChartIcon
   }
 ]
 
