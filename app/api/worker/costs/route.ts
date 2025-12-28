@@ -12,7 +12,7 @@ const createCostSchema = z.object({
     amount: z.number().min(0),
     currency: z.string().default('TRY'),
     category: z.string().min(1),
-    description: z.string().min(1),
+    description: z.string().optional().default(''),
     receiptUrl: z.string().optional(),
     date: z.string().optional().transform(val => (val ? new Date(val) : new Date()))
 })

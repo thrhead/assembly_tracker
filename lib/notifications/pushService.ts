@@ -16,6 +16,8 @@ export async function sendPushNotification(pushToken: string, title: string, bod
         title: title,
         body: body,
         data: data,
+        priority: 'high',
+        channelId: 'default',
     });
 
     try {

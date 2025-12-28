@@ -1,6 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import NetInfo from '@react-native-community/netinfo';
 
 // This value is updated automatically by start_tunnel_auto.ps1
 const NGROK_URL = 'https://adjustment-wilderness-midnight-recordings.trycloudflare.com';
@@ -41,6 +42,25 @@ export const registerLogoutCallback = (callback) => {
 api.interceptors.request.use(
     async (config) => {
         try {
+            // Offline Cache Logic: Check if we are offline and have cached data for GET requests
+            if (config.method === 'get') {
+                const netState = await NetInfo.fetch();
+                if (!netState.isConnected) {
+                    const cacheKey = `cache_request_${config.url}_${JSON.stringify(config.params)}`;
+                    const cachedString = await AsyncStorage.getItem(cacheKey);
+                    if (cachedString) {
+                        const cachedData = JSON.parse(cachedString);
+                        console.log(`[API] Offline - serving from cache: ${config.url}`);
+                        // Throw a special error that carries the cached response
+                        // This will be caught by the response error interceptor
+                        throw {
+                            __isOfflineCached: true,
+                            response: cachedData
+                        };
+                    }
+                }
+            }
+
             if (!config.headers.Authorization) {
                 const token = await AsyncStorage.getItem('authToken');
                 if (token) {
@@ -51,6 +71,10 @@ api.interceptors.request.use(
                 console.log(`[API] ${config.method.toUpperCase()} ${config.url}`);
             }
         } catch (error) {
+            // Propagate special offline error immediately
+            if (error.__isOfflineCached) {
+                return Promise.reject(error);
+            }
             console.error('Error getting auth token:', error);
         }
         return config;
@@ -60,8 +84,34 @@ api.interceptors.request.use(
 
 // Response interceptor
 api.interceptors.response.use(
-    (response) => response,
+    async (response) => {
+        // Cache successful GET requests
+        if (response.config.method === 'get' && response.status >= 200 && response.status < 300) {
+            try {
+                const cacheKey = `cache_request_${response.config.url}_${JSON.stringify(response.config.params)}`;
+                // We store the whole response structure we care about
+                const dataToCache = {
+                    data: response.data,
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers,
+                };
+                await AsyncStorage.setItem(cacheKey, JSON.stringify(dataToCache));
+            } catch (e) {
+                console.warn('[API] Failed to cache response:', e);
+            }
+        }
+        return response;
+    },
     async (error) => {
+        // Handle Offline Cached Response
+        if (error.__isOfflineCached && error.response) {
+            return Promise.resolve({
+                ...error.response,
+                config: {}, // We can't easily reconstruct strict config but usually not needed for UI
+            });
+        }
+
         if (error.response) {
             const { status, data } = error.response;
 

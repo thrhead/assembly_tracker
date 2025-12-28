@@ -75,6 +75,8 @@ export async function sendJobNotification(
                     title: title,
                     body: message,
                     data: { jobId, link },
+                    priority: 'high',
+                    channelId: 'default',
                 });
             }
         }
@@ -149,6 +151,8 @@ export async function sendAdminNotification(
                     title: title,
                     body: message,
                     data: { link },
+                    priority: 'high',
+                    channelId: 'default',
                 });
             }
         }

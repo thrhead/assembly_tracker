@@ -88,125 +88,130 @@ export default function CreateJobScreen({ navigation }) {
                 <View style={{ width: 40 }} />
             </View>
 
-            <ScrollView style={styles.content}>
-                {/* Basic Info */}
-                <View style={styles.section}>
-                    <CustomInput
-                        label="İş Başlığı *"
-                        value={formData.title}
-                        onChangeText={(text) => setFormData({ ...formData, title: text })}
-                        placeholder="Örn: Klima Montajı - A Blok"
-                    />
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={{ flex: 1 }}
+            >
+                <ScrollView style={styles.content}>
+                    {/* Basic Info */}
+                    <View style={styles.section}>
+                        <CustomInput
+                            label="İş Başlığı *"
+                            value={formData.title}
+                            onChangeText={(text) => setFormData({ ...formData, title: text })}
+                            placeholder="Örn: Klima Montajı - A Blok"
+                        />
 
-                    <Text style={styles.label}>Müşteri *</Text>
-                    <TouchableOpacity
-                        style={styles.selector}
-                        onPress={() => setShowCustomerModal(true)}
-                    >
-                        <Text style={[styles.selectorText, !formData.customerId && styles.placeholderText]}>
-                            {getCustomerLabel()}
-                        </Text>
-                        <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
-                    </TouchableOpacity>
+                        <Text style={styles.label}>Müşteri *</Text>
+                        <TouchableOpacity
+                            style={styles.selector}
+                            onPress={() => setShowCustomerModal(true)}
+                        >
+                            <Text style={[styles.selectorText, !formData.customerId && styles.placeholderText]}>
+                                {getCustomerLabel()}
+                            </Text>
+                            <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
+                        </TouchableOpacity>
 
-                    <Text style={styles.label}>Atanacak Ekip</Text>
-                    <TouchableOpacity
-                        style={styles.selector}
-                        onPress={() => setShowTeamModal(true)}
-                    >
-                        <Text style={[styles.selectorText, !formData.teamId && styles.placeholderText]}>
-                            {getTeamLabel()}
-                        </Text>
-                        <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
-                    </TouchableOpacity>
+                        <Text style={styles.label}>Atanacak Ekip</Text>
+                        <TouchableOpacity
+                            style={styles.selector}
+                            onPress={() => setShowTeamModal(true)}
+                        >
+                            <Text style={[styles.selectorText, !formData.teamId && styles.placeholderText]}>
+                                {getTeamLabel()}
+                            </Text>
+                            <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
+                        </TouchableOpacity>
 
-                    <Text style={styles.label}>Öncelik</Text>
-                    <TouchableOpacity
-                        style={styles.selector}
-                        onPress={() => setShowPriorityModal(true)}
-                    >
-                        <Text style={styles.selectorText}>{formData.priority}</Text>
-                        <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
-                    </TouchableOpacity>
+                        <Text style={styles.label}>Öncelik</Text>
+                        <TouchableOpacity
+                            style={styles.selector}
+                            onPress={() => setShowPriorityModal(true)}
+                        >
+                            <Text style={styles.selectorText}>{formData.priority}</Text>
+                            <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
+                        </TouchableOpacity>
 
-                    <View style={styles.row}>
-                        <View style={styles.col}>
-                            <Text style={styles.label}>Başlangıç Tarihi</Text>
-                            <TouchableOpacity
-                                style={styles.dateSelector}
-                                onPress={() => setShowStartDatePicker(true)}
-                            >
-                                <Text style={styles.dateText}>
-                                    {formData.scheduledDate.toLocaleDateString('tr-TR')}
-                                </Text>
-                                <Text style={styles.timeText}>
-                                    {formData.scheduledDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                                </Text>
-                            </TouchableOpacity>
+                        <View style={styles.row}>
+                            <View style={styles.col}>
+                                <Text style={styles.label}>Başlangıç Tarihi</Text>
+                                <TouchableOpacity
+                                    style={styles.dateSelector}
+                                    onPress={() => setShowStartDatePicker(true)}
+                                >
+                                    <Text style={styles.dateText}>
+                                        {formData.scheduledDate.toLocaleDateString('tr-TR')}
+                                    </Text>
+                                    <Text style={styles.timeText}>
+                                        {formData.scheduledDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                            <View style={styles.col}>
+                                <Text style={styles.label}>Bitiş Tarihi</Text>
+                                <TouchableOpacity
+                                    style={styles.dateSelector}
+                                    onPress={() => setShowEndDatePicker(true)}
+                                >
+                                    <Text style={styles.dateText}>
+                                        {formData.scheduledEndDate.toLocaleDateString('tr-TR')}
+                                    </Text>
+                                    <Text style={styles.timeText}>
+                                        {formData.scheduledEndDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                        <View style={styles.col}>
-                            <Text style={styles.label}>Bitiş Tarihi</Text>
-                            <TouchableOpacity
-                                style={styles.dateSelector}
-                                onPress={() => setShowEndDatePicker(true)}
-                            >
-                                <Text style={styles.dateText}>
-                                    {formData.scheduledEndDate.toLocaleDateString('tr-TR')}
-                                </Text>
-                                <Text style={styles.timeText}>
-                                    {formData.scheduledEndDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
+
+                        <CustomInput
+                            label="Konum / Adres"
+                            value={formData.location}
+                            onChangeText={(text) => setFormData({ ...formData, location: text })}
+                            placeholder="Montaj yapılacak adres"
+                            multiline
+                        />
+
+                        <CustomInput
+                            label="Açıklama"
+                            value={formData.description}
+                            onChangeText={(text) => setFormData({ ...formData, description: text })}
+                            placeholder="İş detayları..."
+                            multiline
+                            numberOfLines={3}
+                        />
                     </View>
 
-                    <CustomInput
-                        label="Konum / Adres"
-                        value={formData.location}
-                        onChangeText={(text) => setFormData({ ...formData, location: text })}
-                        placeholder="Montaj yapılacak adres"
-                        multiline
+                    {/* Checklist Section */}
+                    <ChecklistManager
+                        steps={steps}
+                        onAddStep={addStep}
+                        onRemoveStep={removeStep}
+                        onUpdateStep={updateStep}
+                        onMoveStep={moveStep}
+                        onAddSubStep={addSubStep}
+                        onRemoveSubStep={removeSubStep}
+                        onUpdateSubStep={updateSubStep}
+                        onOpenTemplateModal={() => setShowTemplateModal(true)}
                     />
 
-                    <CustomInput
-                        label="Açıklama"
-                        value={formData.description}
-                        onChangeText={(text) => setFormData({ ...formData, description: text })}
-                        placeholder="İş detayları..."
-                        multiline
-                        numberOfLines={3}
-                    />
-                </View>
-
-                {/* Checklist Section */}
-                <ChecklistManager
-                    steps={steps}
-                    onAddStep={addStep}
-                    onRemoveStep={removeStep}
-                    onUpdateStep={updateStep}
-                    onMoveStep={moveStep}
-                    onAddSubStep={addSubStep}
-                    onRemoveSubStep={removeSubStep}
-                    onUpdateSubStep={updateSubStep}
-                    onOpenTemplateModal={() => setShowTemplateModal(true)}
-                />
-
-                <View style={styles.footer}>
-                    <CustomButton
-                        title="İptal"
-                        variant="outline"
-                        onPress={() => navigation.goBack()}
-                        style={{ flex: 1, marginRight: 8 }}
-                    />
-                    <CustomButton
-                        title="Oluştur"
-                        onPress={() => submitJob(() => navigation.goBack())}
-                        loading={loading}
-                        style={{ flex: 1 }}
-                    />
-                </View>
-                <View style={{ height: 40 }} />
-            </ScrollView>
+                    <View style={styles.footer}>
+                        <CustomButton
+                            title="İptal"
+                            variant="outline"
+                            onPress={() => navigation.goBack()}
+                            style={{ flex: 1, marginRight: 8 }}
+                        />
+                        <CustomButton
+                            title="Oluştur"
+                            onPress={() => submitJob(() => navigation.goBack())}
+                            loading={loading}
+                            style={{ flex: 1 }}
+                        />
+                    </View>
+                    <View style={{ height: 40 }} />
+                </ScrollView>
+            </KeyboardAvoidingView>
 
             {/* Modals */}
             <SelectionModal

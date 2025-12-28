@@ -8,6 +8,8 @@ import {
   ScrollView,
   Dimensions,
   StatusBar,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -91,12 +93,17 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.backgroundDark }}>
-      {showLoginForm ? (
-        <LoginForm
-          onBack={() => setShowLoginForm(false)}
-          onLoginSuccess={() => { /* Navigation handled by AuthContext */ }}
-        />
-      ) : renderLanding()}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        {showLoginForm ? (
+          <LoginForm
+            onBack={() => setShowLoginForm(false)}
+            onLoginSuccess={() => { /* Navigation handled by AuthContext */ }}
+          />
+        ) : renderLanding()}
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

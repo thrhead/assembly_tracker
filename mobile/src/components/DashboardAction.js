@@ -12,6 +12,7 @@ const DashboardAction = ({ icon, label, onPress, isActive = true, disabled = fal
             ]}
             onPress={onPress}
             disabled={disabled}
+            activeOpacity={0.7}
         >
             {typeof icon === 'string' ? <Text style={styles.icon}>{icon}</Text> : icon}
             <Text style={styles.label}>{label}</Text>

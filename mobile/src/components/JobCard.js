@@ -7,16 +7,16 @@ const { width } = Dimensions.get('window');
 
 const JobCard = ({ job, onPress }) => {
     const isInProgress = job.status === 'In Progress';
-    
+
     return (
-        <TouchableOpacity style={styles.card} onPress={onPress}>
+        <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
             <View style={styles.header}>
                 <View style={[
-                    styles.statusBadge, 
+                    styles.statusBadge,
                     isInProgress ? styles.statusInProgress : styles.statusPending
                 ]}>
                     <Text style={[
-                        styles.statusText, 
+                        styles.statusText,
                         isInProgress ? styles.textInProgress : styles.textPending
                     ]}>
                         {isInProgress ? 'Devam Ediyor' : 'Bekliyor'}
