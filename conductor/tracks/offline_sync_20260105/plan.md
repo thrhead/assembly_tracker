@@ -1,0 +1,43 @@
+# Plan: Offline Sync & Resilience (Mobile)
+
+## Phase 1: Temel Altyapı ve Bağlantı İzleme
+- [ ] Task: Network Durumu Yönetimi
+  - [ ] Subtask: Network Context için testlerin yazılması (Online/Offline tespiti)
+  - [ ] Subtask: NetInfo kullanarak NetworkProvider bileşeninin implementasyonu
+- [ ] Task: Kullanıcı Arayüzü Geri Bildirimi
+  - [ ] Subtask: OfflineBanner bileşeni için testlerin yazılması
+  - [ ] Subtask: Global OfflineBanner (Bağlantı yok uyarısı) implementasyonu
+- [ ] Task: Conductor - User Manual Verification 'Temel Altyapı ve Bağlantı İzleme' (Protocol in workflow.md)
+
+## Phase 2: İşlem Kuyruğu (Action Queue) Servisi
+- [ ] Task: Kuyruk Depolama Mantığı
+  - [ ] Subtask: QueueService (Ekleme, Listeleme, Silme) için testlerin yazılması
+  - [ ] Subtask: AsyncStorage tabanlı QueueService implementasyonu
+- [ ] Task: Kuyruk Başlatma ve Kalıcılık
+  - [ ] Subtask: Uygulama açılışında kuyruk yükleme mantığı için testlerin yazılması
+  - [ ] Subtask: Queue başlatma (initialization) mantığının kurulması
+- [ ] Task: Conductor - User Manual Verification 'İşlem Kuyruğu (Action Queue) Servisi' (Protocol in workflow.md)
+
+## Phase 3: API İstemcisi ve Interceptor Entegrasyonu
+- [ ] Task: İstek Yönlendirme Mekanizması
+  - [ ] Subtask: API Interceptor (Offline iken POST/PUT isteklerini kuyruğa yönlendirme) testlerinin yazılması
+  - [ ] Subtask: `services/api.js` dosyasının kuyruk sistemini destekleyecek şekilde güncellenmesi
+- [ ] Task: Servis Katmanı Uyumluluğu
+  - [ ] Subtask: JobService'in çevrimdışı iş kapatma senaryosu için test edilmesi
+  - [ ] Subtask: Mevcut servislerin (Job, Cost vb.) kuyruk yapısıyla uyumlu çalıştığının doğrulanması
+- [ ] Task: Conductor - User Manual Verification 'API İstemcisi ve Interceptor Entegrasyonu' (Protocol in workflow.md)
+
+## Phase 4: Senkronizasyon Motoru (Sync Engine)
+- [ ] Task: Otomatik Senkronizasyon Mantığı
+  - [ ] Subtask: SyncManager (Kuyruk işleme, FIFO, hata yönetimi) testlerinin yazılması
+  - [ ] Subtask: Bağlantı geldiğinde kuyruğu otomatik eriten SyncManager implementasyonu
+- [ ] Task: Çakışma ve Hata Yönetimi
+  - [ ] Subtask: Başarısız istekler için retry (yeniden deneme) mantığı testlerinin yazılması
+  - [ ] Subtask: Hata durumunda kullanıcıya bildirim gönderilmesi ve kuyruk yönetimi
+- [ ] Task: Conductor - User Manual Verification 'Senkronizasyon Motoru (Sync Engine)' (Protocol in workflow.md)
+
+## Phase 5: Finalizasyon ve E2E Testleri
+- [ ] Task: Uçtan Uca (E2E) Doğrulama
+  - [ ] Subtask: Manuel E2E testleri (Uçak modu -> İşlem -> Bağlantı -> Veri Doğrulama)
+  - [ ] Subtask: UI/UX cilalaması (Toast bildirimleri, yüklenme durumları)
+- [ ] Task: Conductor - User Manual Verification 'Finalizasyon ve E2E Testleri' (Protocol in workflow.md)
