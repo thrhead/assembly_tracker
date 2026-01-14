@@ -74,6 +74,23 @@ export const QueueService = {
   },
 
   /**
+   * Kuyruktaki bir işlemi günceller
+   */
+  updateItem: async (updatedItem) => {
+    try {
+      const queue = await QueueService.getItems();
+      const index = queue.findIndex(item => item.id === updatedItem.id);
+      if (index !== -1) {
+        queue[index] = updatedItem;
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+      }
+    } catch (error) {
+      console.error('Error updating queue item:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Tüm kuyruğu temizler
    */
   clearQueue: async () => {

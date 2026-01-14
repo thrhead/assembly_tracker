@@ -31,6 +31,7 @@ import * as Notifications from 'expo-notifications';
 import { SocketProvider } from './src/context/SocketContext';
 import ToastNotification from './src/components/ToastNotification';
 import { QueueService } from './src/services/QueueService';
+import { SyncManager } from './src/services/SyncManager';
 
 const Stack = createStackNavigator();
 
@@ -231,6 +232,8 @@ export default function App() {
   React.useEffect(() => {
     // Initialize Offline Queue
     QueueService.initialize();
+    // Initialize Sync Manager
+    SyncManager.init();
   }, []);
 
   return (
