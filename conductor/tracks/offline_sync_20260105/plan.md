@@ -25,10 +25,10 @@
 - [x] Task: İstek Yönlendirme Mekanizması e4b7704
   - [x] Subtask: API Interceptor (Offline iken POST/PUT isteklerini kuyruğa yönlendirme) testlerinin yazılması
   - [x] Subtask: `services/api.js` dosyasının kuyruk sistemini destekleyecek şekilde güncellenmesi
-- [~] Task: Servis Katmanı Uyumluluğu
-  - [ ] Subtask: JobService'in çevrimdışı iş kapatma senaryosu için test edilmesi
-  - [ ] Subtask: Mevcut servislerin (Job, Cost vb.) kuyruk yapısıyla uyumlu çalıştığının doğrulanması
-- [ ] Task: Conductor - User Manual Verification 'API İstemcisi ve Interceptor Entegrasyonu' (Protocol in workflow.md)
+- [x] Task: Servis Katmanı Uyumluluğu e4b7704
+  - [x] Subtask: JobService'in çevrimdışı iş kapatma senaryosu için test edilmesi
+  - [x] Subtask: Mevcut servislerin (Job, Cost vb.) kuyruk yapısıyla uyumlu çalıştığının doğrulanması
+- [~] Task: Conductor - User Manual Verification 'API İstemcisi ve Interceptor Entegrasyonu' (Protocol in workflow.md)
 
 ## Phase 4: Senkronizasyon Motoru (Sync Engine)
 - [ ] Task: Otomatik Senkronizasyon Mantığı
