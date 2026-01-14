@@ -1,6 +1,6 @@
 # Plan: Offline Sync & Resilience (Mobile)
 
-## Phase 1: Temel Altyapı ve Bağlantı İzleme
+## Phase 1: Temel Altyapı ve Bağlantı İzleme [checkpoint: 837862f]
 - [x] Task: Test Altyapısı Kurulumu
   - [x] Subtask: Jest ve Testing Library paketlerinin yüklenmesi
   - [x] Subtask: Jest yapılandırmasının oluşturulması
@@ -10,7 +10,7 @@
 - [x] Task: Kullanıcı Arayüzü Geri Bildirimi
   - [x] Subtask: OfflineBanner bileşeni için testlerin yazılması
   - [x] Subtask: Global OfflineBanner (Bağlantı yok uyarısı) implementasyonu
-- [ ] Task: Conductor - User Manual Verification 'Temel Altyapı ve Bağlantı İzleme' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Temel Altyapı ve Bağlantı İzleme' (Protocol in workflow.md) 837862f
 
 ## Phase 2: İşlem Kuyruğu (Action Queue) Servisi
 - [ ] Task: Kuyruk Depolama Mantığı
