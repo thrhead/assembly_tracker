@@ -17,7 +17,7 @@
 ## 3. Mobile (App)
 - **Navigation:** React Navigation v7
 - **Local Storage:** AsyncStorage
-- **Networking:** Axios, Socket.IO Client
+- **Networking:** Axios, Socket.IO Client, @react-native-community/netinfo
 - **UI:** React Native SVG, Expo Linear Gradient
 
 ## 4. Backend & Database
