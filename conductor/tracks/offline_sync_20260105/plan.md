@@ -22,10 +22,10 @@
 - [x] Task: Conductor - User Manual Verification 'İşlem Kuyruğu (Action Queue) Servisi' (Protocol in workflow.md) 8afffab
 
 ## Phase 3: API İstemcisi ve Interceptor Entegrasyonu
-- [ ] Task: İstek Yönlendirme Mekanizması
-  - [ ] Subtask: API Interceptor (Offline iken POST/PUT isteklerini kuyruğa yönlendirme) testlerinin yazılması
-  - [ ] Subtask: `services/api.js` dosyasının kuyruk sistemini destekleyecek şekilde güncellenmesi
-- [ ] Task: Servis Katmanı Uyumluluğu
+- [x] Task: İstek Yönlendirme Mekanizması 4492991
+  - [x] Subtask: API Interceptor (Offline iken POST/PUT isteklerini kuyruğa yönlendirme) testlerinin yazılması
+  - [x] Subtask: `services/api.js` dosyasının kuyruk sistemini destekleyecek şekilde güncellenmesi
+- [~] Task: Servis Katmanı Uyumluluğu
   - [ ] Subtask: JobService'in çevrimdışı iş kapatma senaryosu için test edilmesi
   - [ ] Subtask: Mevcut servislerin (Job, Cost vb.) kuyruk yapısıyla uyumlu çalıştığının doğrulanması
 - [ ] Task: Conductor - User Manual Verification 'API İstemcisi ve Interceptor Entegrasyonu' (Protocol in workflow.md)

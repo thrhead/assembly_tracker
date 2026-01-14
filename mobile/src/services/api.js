@@ -2,6 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
+import { QueueService } from './QueueService';
 
 // This value is updated automatically by start_tunnel_auto.ps1
 const NGROK_URL = 'https://adjustment-wilderness-midnight-recordings.trycloudflare.com';
@@ -42,23 +43,41 @@ export const registerLogoutCallback = (callback) => {
 api.interceptors.request.use(
     async (config) => {
         try {
+            const netState = await NetInfo.fetch();
+            
             // Offline Cache Logic: Check if we are offline and have cached data for GET requests
             if (config.method === 'get') {
-                const netState = await NetInfo.fetch();
                 if (!netState.isConnected) {
                     const cacheKey = `cache_request_${config.url}_${JSON.stringify(config.params)}`;
                     const cachedString = await AsyncStorage.getItem(cacheKey);
                     if (cachedString) {
                         const cachedData = JSON.parse(cachedString);
                         console.log(`[API] Offline - serving from cache: ${config.url}`);
-                        // Throw a special error that carries the cached response
-                        // This will be caught by the response error interceptor
                         throw {
                             __isOfflineCached: true,
                             response: cachedData
                         };
                     }
                 }
+            }
+            
+            // Action Queue Logic: Queue non-GET requests when offline
+            const writeMethods = ['post', 'put', 'patch', 'delete'];
+            if (writeMethods.includes(config.method.toLowerCase()) && !netState.isConnected) {
+                console.log(`[API] Offline - queueing ${config.method.toUpperCase()} request: ${config.url}`);
+                const queueItem = {
+                    type: config.method.toUpperCase(),
+                    url: config.url,
+                    payload: config.data,
+                    headers: config.headers,
+                };
+                await QueueService.addItem(queueItem);
+                
+                // Throw special error to be handled as successful (but queued) response
+                throw {
+                    __isQueued: true,
+                    config
+                };
             }
 
             if (!config.headers.Authorization) {
@@ -71,8 +90,8 @@ api.interceptors.request.use(
                 console.log(`[API] ${config.method.toUpperCase()} ${config.url}`);
             }
         } catch (error) {
-            // Propagate special offline error immediately
-            if (error.__isOfflineCached) {
+            // Propagate special offline errors immediately
+            if (error.__isOfflineCached || error.__isQueued) {
                 return Promise.reject(error);
             }
             console.error('Error getting auth token:', error);
@@ -104,6 +123,20 @@ api.interceptors.response.use(
         return response;
     },
     async (error) => {
+        // Handle Offline Queued Request
+        if (error.__isQueued) {
+            return Promise.resolve({
+                status: 202,
+                statusText: 'Accepted (Queued)',
+                data: {
+                    message: 'İşlem kuyruğa alındı ve bağlantı sağlandığında gönderilecek.',
+                    offline: true,
+                },
+                config: error.config,
+                headers: {},
+            });
+        }
+
         // Handle Offline Cached Response
         if (error.__isOfflineCached && error.response) {
             return Promise.resolve({
