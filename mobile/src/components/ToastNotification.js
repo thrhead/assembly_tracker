@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity, Platform } from 'react-native';
 import { useSocket } from '../context/SocketContext';
 import { Ionicons } from '@expo/vector-icons';
+import { ToastService } from '../services/ToastService';
 
 const ToastNotification = () => {
     const { socket } = useSocket();
@@ -9,35 +10,42 @@ const ToastNotification = () => {
     const slideAnim = useRef(new Animated.Value(-100)).current;
     const timerRef = useRef(null);
 
+    const handleNewNotification = (data) => {
+        // Clear existing timer if any
+        if (timerRef.current) {
+            clearTimeout(timerRef.current);
+        }
+
+        setNotification(data);
+
+        // Slide down
+        Animated.spring(slideAnim, {
+            toValue: Platform.OS === 'ios' ? 50 : 20, // Adjust for status bar
+            useNativeDriver: true,
+            speed: 12,
+            bounciness: 8,
+        }).start();
+
+        // Auto dismiss after 4 seconds
+        timerRef.current = setTimeout(() => {
+            dismiss();
+        }, 4000);
+    };
+
     useEffect(() => {
-        if (!socket) return;
+        // Listen to Socket events
+        if (socket) {
+            socket.on('notification:new', handleNewNotification);
+        }
 
-        const handleNewNotification = (data) => {
-            // Clear existing timer if any
-            if (timerRef.current) {
-                clearTimeout(timerRef.current);
-            }
-
-            setNotification(data);
-
-            // Slide down
-            Animated.spring(slideAnim, {
-                toValue: Platform.OS === 'ios' ? 50 : 20, // Adjust for status bar
-                useNativeDriver: true,
-                speed: 12,
-                bounciness: 8,
-            }).start();
-
-            // Auto dismiss after 4 seconds
-            timerRef.current = setTimeout(() => {
-                dismiss();
-            }, 4000);
-        };
-
-        socket.on('notification:new', handleNewNotification);
+        // Listen to Local Toast Service events
+        const unsubscribeToast = ToastService.subscribe(handleNewNotification);
 
         return () => {
-            socket.off('notification:new', handleNewNotification);
+            if (socket) {
+                socket.off('notification:new', handleNewNotification);
+            }
+            unsubscribeToast();
             if (timerRef.current) clearTimeout(timerRef.current);
         };
     }, [socket]);

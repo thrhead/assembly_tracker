@@ -1,6 +1,7 @@
 import { QueueService } from './QueueService';
 import api from './api';
 import NetInfo from '@react-native-community/netinfo';
+import { ToastService } from './ToastService';
 
 export const SyncManager = {
   isSyncing: false,
@@ -38,6 +39,7 @@ export const SyncManager = {
 
       // Sort by creation time (FIFO)
       const sortedQueue = queue.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      let successCount = 0;
 
       for (const item of sortedQueue) {
         if (item.retryCount >= 3) {
@@ -69,13 +71,23 @@ export const SyncManager = {
           if (response && (response.status >= 200 && response.status < 300)) {
              console.log(`[SyncManager] Item ${item.id} synced successfully.`);
              await QueueService.removeItem(item.id);
+             successCount++;
           }
         } catch (error) {
           console.error(`[SyncManager] Failed to sync item ${item.id}:`, error.message);
           item.retryCount += 1;
           await QueueService.updateItem(item);
+          
+          if (item.retryCount >= 3) {
+             ToastService.show('Senkronizasyon Hatası', 'Bazı veriler sunucuya gönderilemedi.', 'error');
+          }
         }
       }
+
+      if (successCount > 0) {
+          ToastService.show('Senkronizasyon Tamamlandı', `${successCount} işlem sunucuya gönderildi.`, 'success');
+      }
+
     } catch (error) {
       console.error('[SyncManager] Sync error:', error);
     } finally {

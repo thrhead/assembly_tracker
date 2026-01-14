@@ -31,13 +31,13 @@
 - [x] Task: Conductor - User Manual Verification 'API İstemcisi ve Interceptor Entegrasyonu' (Protocol in workflow.md) e1af31b
 
 ## Phase 4: Senkronizasyon Motoru (Sync Engine)
-- [x] Task: Otomatik Senkronizasyon Mantığı
+- [x] Task: Otomatik Senkronizasyon Mantığı 39d6d40
   - [x] Subtask: SyncManager (Kuyruk işleme, FIFO, hata yönetimi) testlerinin yazılması
   - [x] Subtask: Bağlantı geldiğinde kuyruğu otomatik eriten SyncManager implementasyonu
-- [~] Task: Çakışma ve Hata Yönetimi
-  - [ ] Subtask: Başarısız istekler için retry (yeniden deneme) mantığı testlerinin yazılması
-  - [ ] Subtask: Hata durumunda kullanıcıya bildirim gönderilmesi ve kuyruk yönetimi
-- [ ] Task: Conductor - User Manual Verification 'Senkronizasyon Motoru (Sync Engine)' (Protocol in workflow.md)
+- [x] Task: Çakışma ve Hata Yönetimi 39d6d40
+  - [x] Subtask: Başarısız istekler için retry (yeniden deneme) mantığı testlerinin yazılması
+  - [x] Subtask: Hata durumunda kullanıcıya bildirim gönderilmesi ve kuyruk yönetimi
+- [~] Task: Conductor - User Manual Verification 'Senkronizasyon Motoru (Sync Engine)' (Protocol in workflow.md)
 
 ## Phase 5: Finalizasyon ve E2E Testleri
 - [ ] Task: Uçtan Uca (E2E) Doğrulama
