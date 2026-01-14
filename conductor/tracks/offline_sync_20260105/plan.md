@@ -12,14 +12,14 @@
   - [x] Subtask: Global OfflineBanner (Bağlantı yok uyarısı) implementasyonu
 - [x] Task: Conductor - User Manual Verification 'Temel Altyapı ve Bağlantı İzleme' (Protocol in workflow.md) 837862f
 
-## Phase 2: İşlem Kuyruğu (Action Queue) Servisi
+## Phase 2: İşlem Kuyruğu (Action Queue) Servisi [checkpoint: 8afffab]
 - [x] Task: Kuyruk Depolama Mantığı e1b1fd9
   - [x] Subtask: QueueService (Ekleme, Listeleme, Silme) için testlerin yazılması
   - [x] Subtask: AsyncStorage tabanlı QueueService implementasyonu
 - [x] Task: Kuyruk Başlatma ve Kalıcılık 4492991
   - [x] Subtask: Uygulama açılışında kuyruk yükleme mantığı için testlerin yazılması
   - [x] Subtask: Queue başlatma (initialization) mantığının kurulması
-- [~] Task: Conductor - User Manual Verification 'İşlem Kuyruğu (Action Queue) Servisi' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'İşlem Kuyruğu (Action Queue) Servisi' (Protocol in workflow.md) 8afffab
 
 ## Phase 3: API İstemcisi ve Interceptor Entegrasyonu
 - [ ] Task: İstek Yönlendirme Mekanizması
