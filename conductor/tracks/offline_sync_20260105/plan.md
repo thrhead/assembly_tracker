@@ -13,10 +13,10 @@
 - [x] Task: Conductor - User Manual Verification 'Temel Altyapı ve Bağlantı İzleme' (Protocol in workflow.md) 837862f
 
 ## Phase 2: İşlem Kuyruğu (Action Queue) Servisi
-- [ ] Task: Kuyruk Depolama Mantığı
-  - [ ] Subtask: QueueService (Ekleme, Listeleme, Silme) için testlerin yazılması
-  - [ ] Subtask: AsyncStorage tabanlı QueueService implementasyonu
-- [ ] Task: Kuyruk Başlatma ve Kalıcılık
+- [x] Task: Kuyruk Depolama Mantığı
+  - [x] Subtask: QueueService (Ekleme, Listeleme, Silme) için testlerin yazılması
+  - [x] Subtask: AsyncStorage tabanlı QueueService implementasyonu
+- [~] Task: Kuyruk Başlatma ve Kalıcılık
   - [ ] Subtask: Uygulama açılışında kuyruk yükleme mantığı için testlerin yazılması
   - [ ] Subtask: Queue başlatma (initialization) mantığının kurulması
 - [ ] Task: Conductor - User Manual Verification 'İşlem Kuyruğu (Action Queue) Servisi' (Protocol in workflow.md)
