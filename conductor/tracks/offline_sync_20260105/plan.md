@@ -21,14 +21,14 @@
   - [x] Subtask: Queue başlatma (initialization) mantığının kurulması
 - [x] Task: Conductor - User Manual Verification 'İşlem Kuyruğu (Action Queue) Servisi' (Protocol in workflow.md) 8afffab
 
-## Phase 3: API İstemcisi ve Interceptor Entegrasyonu
+## Phase 3: API İstemcisi ve Interceptor Entegrasyonu [checkpoint: e1af31b]
 - [x] Task: İstek Yönlendirme Mekanizması e4b7704
   - [x] Subtask: API Interceptor (Offline iken POST/PUT isteklerini kuyruğa yönlendirme) testlerinin yazılması
   - [x] Subtask: `services/api.js` dosyasının kuyruk sistemini destekleyecek şekilde güncellenmesi
 - [x] Task: Servis Katmanı Uyumluluğu 4320f0d
   - [x] Subtask: JobService'in çevrimdışı iş kapatma senaryosu için test edilmesi
   - [x] Subtask: Mevcut servislerin (Job, Cost vb.) kuyruk yapısıyla uyumlu çalıştığının doğrulanması
-- [~] Task: Conductor - User Manual Verification 'API İstemcisi ve Interceptor Entegrasyonu' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'API İstemcisi ve Interceptor Entegrasyonu' (Protocol in workflow.md) e1af31b
 
 ## Phase 4: Senkronizasyon Motoru (Sync Engine)
 - [ ] Task: Otomatik Senkronizasyon Mantığı
