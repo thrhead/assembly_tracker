@@ -16,9 +16,9 @@
 - [x] Task: Kuyruk Depolama Mantığı e1b1fd9
   - [x] Subtask: QueueService (Ekleme, Listeleme, Silme) için testlerin yazılması
   - [x] Subtask: AsyncStorage tabanlı QueueService implementasyonu
-- [~] Task: Kuyruk Başlatma ve Kalıcılık
-  - [ ] Subtask: Uygulama açılışında kuyruk yükleme mantığı için testlerin yazılması
-  - [ ] Subtask: Queue başlatma (initialization) mantığının kurulması
+- [x] Task: Kuyruk Başlatma ve Kalıcılık 923ce00
+  - [x] Subtask: Uygulama açılışında kuyruk yükleme mantığı için testlerin yazılması
+  - [x] Subtask: Queue başlatma (initialization) mantığının kurulması
 - [ ] Task: Conductor - User Manual Verification 'İşlem Kuyruğu (Action Queue) Servisi' (Protocol in workflow.md)
 
 ## Phase 3: API İstemcisi ve Interceptor Entegrasyonu

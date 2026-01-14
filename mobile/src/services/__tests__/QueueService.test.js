@@ -66,4 +66,23 @@ describe('QueueService', () => {
     await QueueService.clearQueue();
     expect(AsyncStorage.removeItem).toHaveBeenCalledWith(STORAGE_KEY);
   });
+
+  describe('initialize', () => {
+    it('should return the count of items in queue', async () => {
+      AsyncStorage.getItem.mockResolvedValue(JSON.stringify([{ id: '1' }, { id: '2' }]));
+      const count = await QueueService.initialize();
+      expect(count).toBe(2);
+    });
+
+    it('should return 0 and log error if data is corrupted', async () => {
+      AsyncStorage.getItem.mockResolvedValue('invalid-json');
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      
+      const count = await QueueService.initialize();
+      
+      expect(count).toBe(0);
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+  });
 });

@@ -26,14 +26,35 @@ export const QueueService = {
   },
 
   /**
+   * Kuyruğu başlatır ve bekleyen işlem sayısını döner
+   */
+  initialize: async () => {
+    try {
+      const items = await QueueService.getItems();
+      console.log(`[QueueService] Initialized with ${items.length} pending items.`);
+      return items.length;
+    } catch (error) {
+      console.error('[QueueService] Initialization error:', error);
+      return 0;
+    }
+  },
+
+  /**
    * Kuyruktaki tüm işlemleri getirir
    */
   getItems: async () => {
     try {
       const data = await AsyncStorage.getItem(STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
+      if (!data) return [];
+      try {
+        return JSON.parse(data);
+      } catch (parseError) {
+        console.error('[QueueService] JSON parse error, clearing corrupted queue:', parseError);
+        await AsyncStorage.removeItem(STORAGE_KEY);
+        return [];
+      }
     } catch (error) {
-      console.error('Error getting queue items:', error);
+      console.error('[QueueService] Error getting queue items:', error);
       return [];
     }
   },
