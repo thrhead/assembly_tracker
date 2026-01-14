@@ -1,12 +1,15 @@
 # Plan: Offline Sync & Resilience (Mobile)
 
 ## Phase 1: Temel Altyapı ve Bağlantı İzleme
-- [ ] Task: Network Durumu Yönetimi
-  - [ ] Subtask: Network Context için testlerin yazılması (Online/Offline tespiti)
-  - [ ] Subtask: NetInfo kullanarak NetworkProvider bileşeninin implementasyonu
-- [ ] Task: Kullanıcı Arayüzü Geri Bildirimi
-  - [ ] Subtask: OfflineBanner bileşeni için testlerin yazılması
-  - [ ] Subtask: Global OfflineBanner (Bağlantı yok uyarısı) implementasyonu
+- [x] Task: Test Altyapısı Kurulumu
+  - [x] Subtask: Jest ve Testing Library paketlerinin yüklenmesi
+  - [x] Subtask: Jest yapılandırmasının oluşturulması
+- [x] Task: Network Durumu Yönetimi
+  - [x] Subtask: Network Context için testlerin yazılması (Online/Offline tespiti)
+  - [x] Subtask: NetInfo kullanarak NetworkProvider bileşeninin implementasyonu
+- [x] Task: Kullanıcı Arayüzü Geri Bildirimi
+  - [x] Subtask: OfflineBanner bileşeni için testlerin yazılması
+  - [x] Subtask: Global OfflineBanner (Bağlantı yok uyarısı) implementasyonu
 - [ ] Task: Conductor - User Manual Verification 'Temel Altyapı ve Bağlantı İzleme' (Protocol in workflow.md)
 
 ## Phase 2: İşlem Kuyruğu (Action Queue) Servisi

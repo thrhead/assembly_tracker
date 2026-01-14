@@ -6,7 +6,8 @@
     "start": "npx expo start",
     "android": "npx expo start --android",
     "ios": "npx expo start --ios",
-    "web": "npx expo start --web"
+    "web": "npx expo start --web",
+    "test": "jest"
   },
   "dependencies": {
     "@expo/ngrok": "^4.1.3",
@@ -37,5 +38,13 @@
     "react-native-web": "^0.21.0",
     "socket.io-client": "^4.8.1"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@testing-library/jest-native": "^5.4.3",
+    "@testing-library/react-native": "^13.3.3",
+    "babel-preset-expo": "^54.0.9",
+    "jest": "^30.2.0",
+    "jest-expo": "^54.0.16",
+    "react-test-renderer": "^19.1.0"
+  }
 }

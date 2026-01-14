@@ -5,6 +5,8 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { NetworkProvider } from './src/context/NetworkContext';
+import { OfflineBanner } from './src/components/OfflineBanner';
 import { COLORS } from './src/constants/theme';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
@@ -229,12 +231,15 @@ export default function App() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ErrorBoundary>
         <SafeAreaProvider>
-          <AuthProvider>
-            <SocketProvider>
-              <AppNavigator />
-              <ToastNotification />
-            </SocketProvider>
-          </AuthProvider>
+          <NetworkProvider>
+            <AuthProvider>
+              <SocketProvider>
+                <OfflineBanner />
+                <AppNavigator />
+                <ToastNotification />
+              </SocketProvider>
+            </AuthProvider>
+          </NetworkProvider>
         </SafeAreaProvider>
       </ErrorBoundary>
     </GestureHandlerRootView>
