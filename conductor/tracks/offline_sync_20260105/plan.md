@@ -40,7 +40,7 @@
 - [x] Task: Conductor - User Manual Verification 'Senkronizasyon Motoru (Sync Engine)' (Protocol in workflow.md) 7f4ecb1
 
 ## Phase 5: Finalizasyon ve E2E Testleri
-- [ ] Task: Uçtan Uca (E2E) Doğrulama
+- [~] Task: Uçtan Uca (E2E) Doğrulama
   - [ ] Subtask: Manuel E2E testleri (Uçak modu -> İşlem -> Bağlantı -> Veri Doğrulama)
   - [ ] Subtask: UI/UX cilalaması (Toast bildirimleri, yüklenme durumları)
 - [ ] Task: Conductor - User Manual Verification 'Finalizasyon ve E2E Testleri' (Protocol in workflow.md)

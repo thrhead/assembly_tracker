@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { QueueService } from './QueueService';
+import { ToastService } from './ToastService';
 
 // This value is updated automatically by start_tunnel_auto.ps1
 const NGROK_URL = 'https://adjustment-wilderness-midnight-recordings.trycloudflare.com';
@@ -73,6 +74,9 @@ api.interceptors.request.use(
                 };
                 await QueueService.addItem(queueItem);
                 
+                // Show UI feedback
+                ToastService.show('Çevrimdışı Kaydedildi', 'İşlem kuyruğa alındı ve bağlantı sağlandığında gönderilecek.', 'warning');
+
                 // Throw special error to be handled as successful (but queued) response
                 throw {
                     __isQueued: true,
