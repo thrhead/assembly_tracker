@@ -30,6 +30,7 @@ import notificationService from './src/services/notification.service';
 import * as Notifications from 'expo-notifications';
 import { SocketProvider } from './src/context/SocketContext';
 import ToastNotification from './src/components/ToastNotification';
+import { QueueService } from './src/services/QueueService';
 
 const Stack = createStackNavigator();
 
@@ -227,6 +228,11 @@ class ErrorBoundary extends React.Component {
 }
 
 export default function App() {
+  React.useEffect(() => {
+    // Initialize Offline Queue
+    QueueService.initialize();
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ErrorBoundary>
