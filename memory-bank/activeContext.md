@@ -1,7 +1,7 @@
 # Aktif Bağlam
 
-**Son Güncelleme:** 06 Aralık 2025  
-**Versiyon:** 2.5.0 (Mobile Stable & Real-time Features)
+**Son Güncelleme:** 14 Ocak 2026  
+**Versiyon:** 2.6.0 (Offline Sync & Resilience)
 
 ### Mevcut Durum
 
@@ -95,6 +95,12 @@
     - **Admin Dashboard**: Layout merge conflict sorunu çözüldü, dashboard yapısı düzeltildi.
     - **UI/UX**: Türkçe karakter sorunları giderildi, onay/red butonları modernize edildi.
 
+8.  **Offline Sync & Resilience (v2.6) ✅**:
+    - **Offline Mod**: İnternet bağlantısı koptuğunda "Bağlantı Yok" banner'ı ve salt-okunur mod.
+    - **Queue Sistemi**: Çevrimdışı yapılan işlemlerin (POST/PUT) `AsyncStorage` üzerinde kuyruklanması.
+    - **Otomatik Senkronizasyon**: Bağlantı geldiğinde kuyruğun otomatik işlenmesi (`SyncManager`).
+    - **Hata Yönetimi**: Başarısız istekler için retry mekanizması ve kullanıcı bildirimleri (Toast).
+
 ## Sonraki Adımlar
 
 ### Hemen Yapılacaklar
@@ -105,7 +111,7 @@
     - Hata yönetimi ve kullanıcı geri bildirimleri
 2.  **Mobil Uygulama - Ek Özellikler**:
     - Push Notifications (Expo)
-    - Offline Mode (AsyncStorage caching)
+    - [x] Offline Mode (AsyncStorage caching) ✅
 3.  **Web - Bakım**:
     - Küçük hata düzeltmeleri
     - Performans optimizasyonları
@@ -114,7 +120,7 @@
 
 1.  Mobil uygulama testlerini tamamla
 2.  Push notification altyapısını kur
-3.  Offline mod için POC yap
+3.  [x] Offline mod için POC yap ✅
 
 ## Aktif Kararlar ve Düşünceler
 

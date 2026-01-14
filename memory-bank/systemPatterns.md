@@ -142,10 +142,11 @@ api.interceptors.request.use(async config => {
 });
 ```
 
-#### Offline Capability Strategy (Planned)
-- **Local Storage**: AsyncStorage for caching critical data
-- **Sync Queue**: Store mutations locally when offline, replay when online
-- **Optimistic Updates**: Update UI immediately, revert on error
+#### Offline Capability Strategy (Implemented v2.6)
+- **Local Storage**: `AsyncStorage` for caching GET requests and persisting action queue.
+- **Sync Queue**: `QueueService` stores mutation requests (POST/PUT/DELETE) when offline.
+- **Sync Engine**: `SyncManager` monitors connection state (`NetInfo`) and processes the queue (FIFO) when online.
+- **Retry Logic**: Failed sync items are retried up to 3 times before alerting the user.
 
 #### Local File Upload Strategy (Implemented)
 - **Storage**: Local filesystem (`public/uploads`) instead of Cloudinary (for local dev/on-prem).

@@ -29,12 +29,13 @@
 - **HTTP Client**: Axios
 - **Real-time**: Socket.IO Client
 - **Maps**: react-native-maps
+- **Network**: @react-native-community/netinfo
 - **UI**: StyleSheet API + Custom Components
 - **Features**:
   - **Worker**: Job List, Detail, Checklist, Photo Upload, Map, Expenses
   - **Manager**: Team List, Job Assignment, Dashboard
   - **Admin**: User CRUD, Customer CRUD, Dashboard
-  - **Shared**: Auth, Profile, Settings, Notifications
+  - **Shared**: Auth, Profile, Settings, Notifications, Offline Sync
 
 ### DevOps
 - **Version Control**: Git
