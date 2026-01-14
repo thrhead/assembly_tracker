@@ -34,7 +34,7 @@
 - [x] Task: Otomatik Senkronizasyon Mantığı 39d6d40
   - [x] Subtask: SyncManager (Kuyruk işleme, FIFO, hata yönetimi) testlerinin yazılması
   - [x] Subtask: Bağlantı geldiğinde kuyruğu otomatik eriten SyncManager implementasyonu
-- [x] Task: Çakışma ve Hata Yönetimi 39d6d40
+- [x] Task: Çakışma ve Hata Yönetimi fc1f850
   - [x] Subtask: Başarısız istekler için retry (yeniden deneme) mantığı testlerinin yazılması
   - [x] Subtask: Hata durumunda kullanıcıya bildirim gönderilmesi ve kuyruk yönetimi
 - [~] Task: Conductor - User Manual Verification 'Senkronizasyon Motoru (Sync Engine)' (Protocol in workflow.md)
