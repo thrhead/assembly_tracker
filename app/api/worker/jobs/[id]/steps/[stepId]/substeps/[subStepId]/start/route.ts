@@ -2,18 +2,18 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string; stepId: string; substepId: string }> }) {
+export async function POST(request: Request, props: { params: Promise<{ id: string; stepId: string; subStepId: string }> }) {
     try {
         console.log('[DEBUG] POST request received');
-        const paramsValue = await params;
-        console.log('[DEBUG] Start Substep Params:', paramsValue);
+        const params = await props.params;
+        console.log('[DEBUG] Start Substep Params:', params);
 
         const session = await verifyAuth(request);
-        const { substepId } = paramsValue;
-        console.log('[DEBUG] SubstepId:', substepId);
+        const { subStepId } = params;
+        console.log('[DEBUG] SubstepId:', subStepId);
 
         const substep = await prisma.jobSubStep.findUnique({
-            where: { id: substepId }
+            where: { id: subStepId }
         });
         console.log('[DEBUG] Substep found:', substep ? 'Yes' : 'No');
 
@@ -27,7 +27,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
         console.log('[DEBUG] Attempting to update substep with startedAt...');
         const updatedSubstep = await prisma.jobSubStep.update({
-            where: { id: substepId },
+            where: { id: subStepId },
             data: {
                 startedAt: new Date()
             }
