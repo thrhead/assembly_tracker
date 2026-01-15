@@ -25,7 +25,14 @@
       "googleServicesFile": "./google-services.json"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "Assembly Tracker",
+      "shortName": "AssemblyTracker",
+      "description": "İş takip ve yönetim uygulaması",
+      "themeColor": "#1a365d",
+      "backgroundColor": "#ffffff"
     },
     "extra": {
       "eas": {

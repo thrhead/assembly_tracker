@@ -29,11 +29,46 @@ import ConfirmationModal from '../../components/ConfirmationModal';
 import { useAuth } from '../../context/AuthContext';
 import JobInfoCard from '../../components/job-detail/JobInfoCard';
 import CostSection from '../../components/job-detail/CostSection';
+import { WebInput } from '../../components/common/WebInput';
 
 import { COLORS } from '../../constants/theme';
 
 
 
+
+const AppModal = ({ visible, children, ...props }) => {
+    if (Platform.OS === 'web') {
+        if (!visible) return null;
+        return (
+            <View style={[StyleSheet.absoluteFill, { zIndex: 9999 }]}>
+                {children}
+            </View>
+        );
+    }
+    return (
+        <Modal visible={visible} {...props}>
+            {children}
+        </Modal>
+    );
+};
+
+const PageWrapper = ({ children }) => {
+    if (Platform.OS === 'web') {
+        return (
+            <View style={{ flex: 1 }}>
+                {children}
+            </View>
+        );
+    }
+    return (
+        <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+        >
+            {children}
+        </KeyboardAvoidingView>
+    );
+};
 
 export default function JobDetailScreen({ route, navigation }) {
     const { jobId } = route.params;
@@ -49,6 +84,7 @@ export default function JobDetailScreen({ route, navigation }) {
 
     // Cost State
     const [costModalVisible, setCostModalVisible] = useState(false);
+    const [receiptImage, setReceiptImage] = useState(null);
     const [costAmount, setCostAmount] = useState('');
     const [costCategory, setCostCategory] = useState('Yemek');
     const [costDescription, setCostDescription] = useState('');
@@ -357,15 +393,42 @@ export default function JobDetailScreen({ route, navigation }) {
     const handleCreateCost = async () => {
         try {
             setSubmittingCost(true);
-            await costService.create({
-                jobId: job.id,
-                amount: parseFloat(costAmount),
-                amount: parseFloat(costAmount),
-                category: costCategory,
-                description: costDescription,
-                date: costDate.toISOString(),
-                currency: 'TRY'
-            });
+
+            let data;
+
+            if (receiptImage) {
+                data = new FormData();
+                data.append('jobId', job.id);
+                data.append('amount', costAmount);
+                data.append('category', costCategory);
+                data.append('description', costDescription);
+                data.append('date', costDate.toISOString());
+                data.append('currency', 'TRY');
+
+                const filename = receiptImage.split('/').pop();
+                const match = /\.(\w+)$/.exec(filename);
+                const type = match ? `image/${match[1]}` : `image`;
+
+                // Expo Web fix for FormData file
+                if (Platform.OS === 'web') {
+                    const response = await fetch(receiptImage);
+                    const blob = await response.blob();
+                    data.append('receipt', blob, filename);
+                } else {
+                    data.append('receipt', { uri: receiptImage, name: filename, type });
+                }
+            } else {
+                data = {
+                    jobId: job.id,
+                    amount: parseFloat(costAmount),
+                    category: costCategory,
+                    description: costDescription,
+                    date: costDate.toISOString(),
+                    currency: 'TRY'
+                };
+            }
+
+            await costService.create(data);
 
             // Alert.alert('Başarılı', 'Masraf eklendi ve onaya gönderildi.');
             setSuccessMessage('Masraf eklendi ve onaya gönderildi');
@@ -375,6 +438,7 @@ export default function JobDetailScreen({ route, navigation }) {
             setCostDescription('');
             setCostCategory('Yemek');
             setCostDate(new Date());
+            setReceiptImage(null);
             loadJobDetails();
         } catch (error) {
             console.error('Error creating cost:', error);
@@ -443,10 +507,7 @@ export default function JobDetailScreen({ route, navigation }) {
                 <View style={{ width: 24 }} />
             </View>
 
-            <KeyboardAvoidingView
-                behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={{ flex: 1 }}
-            >
+            <PageWrapper>
                 <ScrollView style={styles.contentContainer}>
                     {/* Job Info Card */}
                     <JobInfoCard job={job} />
@@ -777,7 +838,7 @@ export default function JobDetailScreen({ route, navigation }) {
 
                     <View style={{ height: 100 }} />
                 </ScrollView>
-            </KeyboardAvoidingView>
+            </PageWrapper>
 
             {/* Footer Actions */}
             <View style={styles.footer}>
@@ -844,7 +905,7 @@ export default function JobDetailScreen({ route, navigation }) {
                 )}
             </View>
 
-            <Modal visible={modalVisible} transparent={true} onRequestClose={() => setModalVisible(false)}>
+            <AppModal visible={modalVisible} transparent={true} onRequestClose={() => setModalVisible(false)}>
                 <View style={styles.modalContainer}>
                     <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
                         <MaterialIcons name="close" size={30} color={COLORS.white} />
@@ -853,9 +914,9 @@ export default function JobDetailScreen({ route, navigation }) {
                         <Image source={{ uri: selectedImage }} style={styles.fullImage} resizeMode="contain" />
                     )}
                 </View>
-            </Modal>
+            </AppModal>
 
-            <Modal visible={costModalVisible} transparent={true} animationType="slide" onRequestClose={() => setCostModalVisible(false)}>
+            <AppModal visible={costModalVisible} transparent={true} animationType="slide" onRequestClose={() => setCostModalVisible(false)}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
                     style={styles.modalContainer}
@@ -888,13 +949,12 @@ export default function JobDetailScreen({ route, navigation }) {
                             )}
 
                             <Text style={styles.inputLabel}>Tutar (TL)</Text>
-                            <TextInput
+                            <WebInput
                                 style={styles.input}
                                 value={costAmount}
                                 onChangeText={setCostAmount}
-                                keyboardType="numeric"
+                                inputMode="decimal"
                                 placeholder="0.00"
-                                placeholderTextColor={COLORS.textGray}
                             />
                             <Text style={styles.inputLabel}>Kategori</Text>
                             <View style={styles.categoryContainer}>
@@ -909,15 +969,50 @@ export default function JobDetailScreen({ route, navigation }) {
                                 ))}
                             </View>
                             <Text style={styles.inputLabel}>Açıklama</Text>
-                            <TextInput
+                            <WebInput
                                 style={[styles.input, styles.textArea]}
                                 value={costDescription}
                                 onChangeText={setCostDescription}
+                                inputMode="text"
                                 multiline
                                 numberOfLines={3}
                                 placeholder="Masraf detayları..."
-                                placeholderTextColor={COLORS.textGray}
                             />
+
+                            <Text style={styles.inputLabel}>Fiş/Fatura Fotoğrafı</Text>
+                            <TouchableOpacity
+                                style={styles.imageUploadButton}
+                                onPress={async () => {
+                                    const result = await ImagePicker.launchImageLibraryAsync({
+                                        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                                        allowsEditing: true,
+                                        aspect: [4, 3],
+                                        quality: 0.5,
+                                    });
+
+                                    if (!result.canceled) {
+                                        setReceiptImage(result.assets[0].uri);
+                                    }
+                                }}
+                            >
+                                {receiptImage ? (
+                                    <Image source={{ uri: receiptImage }} style={styles.previewImage} />
+                                ) : (
+                                    <View style={styles.uploadPlaceholder}>
+                                        <MaterialIcons name="add-a-photo" size={32} color={COLORS.textGray} />
+                                        <Text style={styles.uploadText}>Fotoğraf Ekle</Text>
+                                    </View>
+                                )}
+                            </TouchableOpacity>
+                            {receiptImage && (
+                                <TouchableOpacity
+                                    style={styles.removeImageButton}
+                                    onPress={() => setReceiptImage(null)}
+                                >
+                                    <Text style={styles.removeImageText}>Fotoğrafı Kaldır</Text>
+                                </TouchableOpacity>
+                            )}
+
                             <View style={styles.modalButtons}>
                                 <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setCostModalVisible(false)}>
                                     <Text style={styles.cancelButtonText}>İptal</Text>
@@ -929,9 +1024,9 @@ export default function JobDetailScreen({ route, navigation }) {
                         </View>
                     </TouchableWithoutFeedback>
                 </KeyboardAvoidingView>
-            </Modal>
+            </AppModal>
 
-            <Modal visible={rejectionModalVisible} transparent={true} animationType="slide" onRequestClose={() => setRejectionModalVisible(false)}>
+            <AppModal visible={rejectionModalVisible} transparent={true} animationType="slide" onRequestClose={() => setRejectionModalVisible(false)}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === "ios" ? "padding" : "height"}
                     style={styles.modalContainer}
@@ -942,14 +1037,14 @@ export default function JobDetailScreen({ route, navigation }) {
                                 {selectedSubstepId ? 'Alt Görevi Reddet' : selectedStepId ? 'İş Adımını Reddet' : 'İşi Reddet'}
                             </Text>
                             <Text style={styles.inputLabel}>Red Sebebi</Text>
-                            <TextInput
+                            <WebInput
                                 style={[styles.input, styles.textArea]}
                                 value={rejectionReason}
                                 onChangeText={setRejectionReason}
+                                inputMode="text"
                                 multiline
                                 numberOfLines={3}
                                 placeholder="Lütfen red sebebini belirtin..."
-                                placeholderTextColor={COLORS.textGray}
                             />
                             <View style={styles.modalButtons}>
                                 <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setRejectionModalVisible(false)}>
@@ -962,7 +1057,7 @@ export default function JobDetailScreen({ route, navigation }) {
                         </View>
                     </TouchableWithoutFeedback>
                 </KeyboardAvoidingView>
-            </Modal>
+            </AppModal>
 
             {
                 uploading && (
@@ -997,6 +1092,10 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: COLORS.backgroundDark,
+        ...(Platform.OS === 'web' && {
+            height: '100vh',
+            overflow: 'hidden',
+        }),
     },
     centerContainer: {
         flex: 1,
@@ -1259,6 +1358,14 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.9)',
         justifyContent: 'center',
         padding: 20,
+        ...(Platform.OS === 'web' && {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+        }),
     },
     formCard: {
         backgroundColor: COLORS.cardDark,
@@ -1482,5 +1589,39 @@ const styles = StyleSheet.create({
         padding: 12,
         marginBottom: 16,
         gap: 8,
+    },
+    imageUploadButton: {
+        height: 200,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderWidth: 1,
+        borderColor: COLORS.cardBorder,
+        borderStyle: 'dashed',
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 12,
+        overflow: 'hidden',
+    },
+    uploadPlaceholder: {
+        alignItems: 'center',
+        gap: 8,
+    },
+    uploadText: {
+        color: COLORS.textGray,
+        fontSize: 14,
+    },
+    previewImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+    removeImageButton: {
+        alignItems: 'center',
+        padding: 8,
+        marginBottom: 16,
+    },
+    removeImageText: {
+        color: COLORS.red500,
+        fontSize: 14,
     },
 });

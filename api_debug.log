@@ -1,3 +1,166 @@
 2026-01-14T17:45:33.876Z - Mobile login request received (POST /api/mobile/login)
 2026-01-14T17:45:33.882Z - Login attempt for email: admin@montaj.com
 2026-01-14T17:45:34.173Z - Login success: admin@montaj.com (Role: ADMIN)
+2026-01-15T19:36:53.925Z - Mobile login request received (POST /api/mobile/login)
+2026-01-15T19:36:53.927Z - Login attempt for email: admin@montaj.com
+2026-01-15T19:36:54.204Z - Login success: admin@montaj.com (Role: ADMIN)
+2026-01-15T19:45:17.093Z - Mobile login request received (POST /api/mobile/login)
+2026-01-15T19:45:20.338Z - Login attempt for email: worker@montaj.com
+2026-01-15T19:45:21.872Z - Login success: worker@montaj.com (Role: WORKER)
+2026-01-15T19:45:26.615Z - Worker Jobs API: GET Request received
+2026-01-15T19:45:26.619Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T19:45:26.621Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T19:45:27.268Z - Worker Jobs API: Found 8 jobs
+2026-01-15T19:45:52.347Z - Worker Jobs API: GET Request received
+2026-01-15T19:45:54.452Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T19:45:54.453Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T19:45:55.089Z - Worker Jobs API: Found 8 jobs
+2026-01-15T19:46:00.231Z - Worker Jobs API: GET Request received
+2026-01-15T19:46:00.508Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T19:46:00.511Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T19:46:01.727Z - Worker Jobs API: Found 8 jobs
+2026-01-15T19:48:00.213Z - Worker Jobs API: GET Request received
+2026-01-15T19:48:01.860Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T19:48:01.862Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T19:48:02.225Z - Worker Jobs API: Found 8 jobs
+2026-01-15T19:48:46.696Z - Worker Jobs API: GET Request received
+2026-01-15T19:48:47.163Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T19:48:47.165Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T19:48:48.089Z - Worker Jobs API: Found 8 jobs
+2026-01-15T19:49:08.673Z - Worker Jobs API: GET Request received
+2026-01-15T19:49:11.088Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T19:49:11.090Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T19:49:11.705Z - Worker Jobs API: Found 8 jobs
+2026-01-15T19:50:33.466Z - Worker Jobs API: GET Request received
+2026-01-15T19:50:36.726Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T19:50:36.727Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T19:50:38.004Z - Worker Jobs API: Found 8 jobs
+2026-01-15T19:52:30.870Z - Worker Jobs API: GET Request received
+2026-01-15T19:52:30.876Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T19:52:30.878Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T19:52:31.238Z - Worker Jobs API: Found 8 jobs
+2026-01-15T19:53:03.354Z - [API] Cost Create Validation Error: [{"expected":"number","code":"invalid_type","path":["amount"],"message":"Invalid input: expected number, received null"}]
+2026-01-15T19:55:12.215Z - Worker Jobs API: GET Request received
+2026-01-15T19:55:14.649Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T19:55:14.652Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T19:55:19.664Z - Worker Jobs API Error: PrismaClientKnownRequestError: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].job.findMany()` invocation in
+D:\Programs\assembly_tracker\.next\dev\server\chunks\[root-of-the-server]__d924ad46._.js:490:150
+
+  487     where.status = status;
+  488 }
+  489 logToFile(`Worker Jobs API: Querying DB for user ${session.user.id}`);
+→ 490 const jobs = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].job.findMany(
+Can't reach database server at `ep-wispy-flower-agb0mk6f-pooler.c-2.eu-central-1.aws.neon.tech:5432`
+
+Please make sure your database server is running at `ep-wispy-flower-agb0mk6f-pooler.c-2.eu-central-1.aws.neon.tech:5432`.
+2026-01-15T19:55:34.730Z - Worker Jobs API: GET Request received
+2026-01-15T19:55:34.736Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T19:55:34.738Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T19:55:39.758Z - Worker Jobs API Error: PrismaClientKnownRequestError: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].job.findMany()` invocation in
+D:\Programs\assembly_tracker\.next\dev\server\chunks\[root-of-the-server]__d924ad46._.js:490:150
+
+  487     where.status = status;
+  488 }
+  489 logToFile(`Worker Jobs API: Querying DB for user ${session.user.id}`);
+→ 490 const jobs = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].job.findMany(
+Can't reach database server at `ep-wispy-flower-agb0mk6f-pooler.c-2.eu-central-1.aws.neon.tech:5432`
+
+Please make sure your database server is running at `ep-wispy-flower-agb0mk6f-pooler.c-2.eu-central-1.aws.neon.tech:5432`.
+2026-01-15T19:55:43.412Z - Worker Jobs API: GET Request received
+2026-01-15T19:55:43.691Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T19:55:43.693Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T19:55:44.813Z - Worker Jobs API: Found 8 jobs
+2026-01-15T19:59:40.393Z - Worker Jobs API: GET Request received
+2026-01-15T19:59:43.620Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T19:59:43.621Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T19:59:44.000Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:00:03.640Z - Worker Jobs API: GET Request received
+2026-01-15T20:00:04.453Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:00:04.456Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:00:05.782Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:00:32.712Z - Worker Jobs API: GET Request received
+2026-01-15T20:00:33.855Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:00:33.857Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:00:34.185Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:00:39.700Z - Worker Jobs API: GET Request received
+2026-01-15T20:00:39.912Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:00:39.914Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:00:40.237Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:00:43.040Z - Worker Jobs API: GET Request received
+2026-01-15T20:00:43.044Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:00:43.045Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:00:43.443Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:01:28.640Z - [API] Cost Create Request (Multipart: true): {"jobId":"cmitsq4l60007k2638x5cz2ux","amount":288,"currency":"TRY","category":"Yemek","description":"Yem","date":"2026-01-15T20:00:40.014Z"}
+2026-01-15T20:01:35.143Z - [API] Cost Create Request (Multipart: true): {"jobId":"cmitsq4l60007k2638x5cz2ux","amount":288,"currency":"TRY","category":"Yemek","description":"Yem","date":"2026-01-15T20:00:40.014Z"}
+2026-01-15T20:01:35.179Z - [API] Cost Create Request (Multipart: true): {"jobId":"cmitsq4l60007k2638x5cz2ux","amount":288,"currency":"TRY","category":"Yemek","description":"Yem","date":"2026-01-15T20:00:40.014Z"}
+2026-01-15T20:01:35.182Z - [API] Cost Create Request (Multipart: true): {"jobId":"cmitsq4l60007k2638x5cz2ux","amount":288,"currency":"TRY","category":"Yemek","description":"Yem","date":"2026-01-15T20:00:40.014Z"}
+2026-01-15T20:01:35.185Z - [API] Cost Create Request (Multipart: true): {"jobId":"cmitsq4l60007k2638x5cz2ux","amount":288,"currency":"TRY","category":"Yemek","description":"Yem","date":"2026-01-15T20:00:40.014Z"}
+2026-01-15T20:01:35.187Z - [API] Cost Create Request (Multipart: true): {"jobId":"cmitsq4l60007k2638x5cz2ux","amount":288,"currency":"TRY","category":"Yemek","description":"Yem","date":"2026-01-15T20:00:40.014Z"}
+2026-01-15T20:01:40.943Z - Worker Jobs API: GET Request received
+2026-01-15T20:01:41.133Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:01:41.136Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:01:41.832Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:09:51.948Z - Worker Jobs API: GET Request received
+2026-01-15T20:09:53.746Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:09:53.748Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:09:54.325Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:11:15.032Z - Worker Jobs API: GET Request received
+2026-01-15T20:11:15.043Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:11:15.045Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:11:16.328Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:13:19.410Z - Worker Jobs API: GET Request received
+2026-01-15T20:13:19.418Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:13:19.420Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:13:19.845Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:13:44.689Z - Worker Jobs API: GET Request received
+2026-01-15T20:13:46.405Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:13:46.408Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:13:46.738Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:14:03.534Z - Worker Jobs API: GET Request received
+2026-01-15T20:14:03.540Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:14:03.542Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:14:04.911Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:14:31.063Z - [API] Cost Create Request (Multipart: false): {"jobId":"cmkedtui20007d88vjuhac0wp","amount":2125,"currency":"TRY","category":"Yemek","description":"Yeg","date":"2026-01-15T20:14:09.328Z"}
+2026-01-15T20:14:51.154Z - Worker Jobs API: GET Request received
+2026-01-15T20:14:51.217Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:14:51.219Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:14:51.700Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:14:56.435Z - Worker Jobs API: GET Request received
+2026-01-15T20:14:57.319Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:14:57.321Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:14:57.663Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:15:00.474Z - Worker Jobs API: GET Request received
+2026-01-15T20:15:00.478Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:15:00.481Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:15:00.998Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:19:26.831Z - Worker Jobs API: GET Request received
+2026-01-15T20:19:30.094Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:19:30.096Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:19:30.778Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:20:20.177Z - [API] Cost Create Request (Multipart: true): {"jobId":"cmkedtui20007d88vjuhac0wp","amount":200,"currency":"TRY","category":"Yemek","description":"Yemek","date":"2026-01-15T20:19:37.733Z"}
+2026-01-15T20:20:35.779Z - Worker Jobs API: GET Request received
+2026-01-15T20:20:35.785Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:20:35.787Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:20:36.619Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:23:45.450Z - Worker Jobs API: GET Request received
+2026-01-15T20:23:45.454Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:23:45.456Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:23:45.786Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:25:01.051Z - Worker Jobs API: GET Request received
+2026-01-15T20:25:01.983Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:25:01.985Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:25:03.708Z - Worker Jobs API: GET Request received
+2026-01-15T20:25:05.017Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:25:05.020Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:25:05.359Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:25:09.924Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:25:14.949Z - Worker Jobs API: GET Request received
+2026-01-15T20:25:17.094Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:25:17.097Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:25:17.952Z - Worker Jobs API: Found 8 jobs
+2026-01-15T20:25:48.139Z - Worker Jobs API: GET Request received
+2026-01-15T20:25:49.963Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
+2026-01-15T20:25:49.965Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
+2026-01-15T20:25:51.559Z - Worker Jobs API: Found 8 jobs

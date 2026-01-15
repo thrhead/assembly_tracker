@@ -9,8 +9,16 @@ import { ToastService } from './ToastService';
 const NGROK_URL = 'https://adjustment-wilderness-midnight-recordings.trycloudflare.com';
 
 const getBaseUrl = () => {
-    // For web (react-native-web), always use localhost
+    // For web (react-native-web), use the same host that serves the app
+    // This allows it to work on both localhost and LAN IP
     if (Platform.OS === 'web') {
+        // Use window.location to get the current host
+        if (typeof window !== 'undefined' && window.location) {
+            const host = window.location.hostname;
+            // If accessed via IP, use that IP with port 3000
+            // If localhost, use localhost:3000
+            return `http://${host}:3000`;
+        }
         return 'http://localhost:3000';
     }
 
@@ -45,7 +53,7 @@ api.interceptors.request.use(
     async (config) => {
         try {
             const netState = await NetInfo.fetch();
-            
+
             // Offline Cache Logic: Check if we are offline and have cached data for GET requests
             if (config.method === 'get') {
                 if (!netState.isConnected) {
@@ -61,7 +69,7 @@ api.interceptors.request.use(
                     }
                 }
             }
-            
+
             // Action Queue Logic: Queue non-GET requests when offline
             const writeMethods = ['post', 'put', 'patch', 'delete'];
             if (writeMethods.includes(config.method.toLowerCase()) && !netState.isConnected) {
@@ -73,7 +81,7 @@ api.interceptors.request.use(
                     headers: config.headers,
                 };
                 await QueueService.addItem(queueItem);
-                
+
                 // Show UI feedback
                 ToastService.show('Çevrimdışı Kaydedildi', 'İşlem kuyruğa alındı ve bağlantı sağlandığında gönderilecek.', 'warning');
 

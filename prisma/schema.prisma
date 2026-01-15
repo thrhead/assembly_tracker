@@ -17,6 +17,7 @@ model User {
   avatarUrl          String?
   isActive           Boolean         @default(true)
   pushToken          String?
+  pushTokens         PushToken[]
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
   approvals          Approval[]      @relation("Approver")
@@ -275,4 +276,15 @@ model TemplateSubStep {
   step   TemplateStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
 
   @@map("template_sub_steps")
+}
+
+model PushToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("push_tokens")
 }

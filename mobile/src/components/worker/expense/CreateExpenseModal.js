@@ -16,6 +16,44 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../../constants/theme';
 import { CATEGORIES } from './ExpenseFilter';
 
+// Safari iOS compatible input component
+const WebInput = ({ style, value, onChangeText, placeholder, inputMode, ...props }) => {
+    if (Platform.OS === 'web') {
+        return (
+            <input
+                type={inputMode === 'decimal' ? 'number' : 'text'}
+                inputMode={inputMode}
+                step={inputMode === 'decimal' ? '0.01' : undefined}
+                value={value}
+                onChange={(e) => onChangeText(e.target.value)}
+                placeholder={placeholder}
+                style={{
+                    backgroundColor: COLORS.cardBorder,
+                    borderRadius: 12,
+                    padding: 16,
+                    color: COLORS.textLight,
+                    fontSize: 16,
+                    border: `1px solid ${COLORS.cardBorder}`,
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    outline: 'none',
+                    fontFamily: 'inherit',
+                }}
+            />
+        );
+    }
+    return (
+        <TextInput
+            style={style}
+            value={value}
+            onChangeText={onChangeText}
+            placeholder={placeholder}
+            placeholderTextColor={COLORS.textGray}
+            {...props}
+        />
+    );
+};
+
 export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defaultJobId }) => {
     const [formData, setFormData] = useState({
         title: '',
@@ -55,6 +93,165 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
         onClose();
     };
 
+    // Safari iOS fix: don't render if not visible
+    if (!visible) return null;
+
+    const formContent = (
+        <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>Yeni Masraf Ekle</Text>
+                    <TouchableOpacity onPress={handleClose}>
+                        <MaterialIcons name="close" size={24} color={COLORS.textGray} />
+                    </TouchableOpacity>
+                </View>
+
+                <ScrollView
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="none"
+                >
+                    <View style={styles.formGroup}>
+                        <Text style={styles.label}>Başlık</Text>
+                        <WebInput
+                            style={styles.input}
+                            placeholder="Örn: Öğle Yemeği"
+                            inputMode="text"
+                            value={formData.title}
+                            onChangeText={(text) => setFormData({ ...formData, title: text })}
+                        />
+                    </View>
+
+                    <View style={styles.formGroup}>
+                        <Text style={styles.label}>Tarih</Text>
+                        <TouchableOpacity
+                            style={styles.dateSelector}
+                            onPress={() => setShowDatePicker(true)}
+                        >
+                            <MaterialIcons name="event" size={24} color={COLORS.textGray} />
+                            <Text style={styles.dateText}>
+                                {formData.date.toLocaleDateString('tr-TR')}
+                            </Text>
+                        </TouchableOpacity>
+                        {showDatePicker && (
+                            <DateTimePicker
+                                value={formData.date}
+                                mode="date"
+                                display="default"
+                                onChange={(event, selectedDate) => {
+                                    setShowDatePicker(Platform.OS === 'ios');
+                                    if (selectedDate) {
+                                        setFormData({ ...formData, date: selectedDate });
+                                    }
+                                }}
+                            />
+                        )}
+                    </View>
+
+                    <View style={styles.formGroup}>
+                        <Text style={styles.label}>Tutar (₺)</Text>
+                        <WebInput
+                            style={styles.input}
+                            placeholder="0.00"
+                            inputMode="decimal"
+                            value={formData.amount}
+                            onChangeText={(text) => setFormData({ ...formData, amount: text })}
+                        />
+                    </View>
+
+                    <View style={styles.formGroup}>
+                        <Text style={styles.label}>Kategori</Text>
+                        <View style={styles.categorySelector}>
+                            {CATEGORIES.filter(c => c.id !== 'Tümü').map((cat) => (
+                                <TouchableOpacity
+                                    key={cat.id}
+                                    style={[
+                                        styles.categoryOption,
+                                        formData.category === cat.id && styles.categoryOptionSelected
+                                    ]}
+                                    onPress={() => setFormData({ ...formData, category: cat.id })}
+                                >
+                                    <MaterialIcons
+                                        name={cat.icon}
+                                        size={20}
+                                        color={formData.category === cat.id ? COLORS.backgroundDark : COLORS.textGray}
+                                    />
+                                    <Text style={[
+                                        styles.categoryOptionText,
+                                        formData.category === cat.id && styles.categoryOptionTextSelected
+                                    ]}>{cat.label}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+
+                    <View style={styles.formGroup}>
+                        <Text style={styles.label}>Açıklama</Text>
+                        <TextInput
+                            style={[styles.input, styles.textArea]}
+                            placeholder="Masraf detayı..."
+                            placeholderTextColor={COLORS.textGray}
+                            inputMode="text"
+                            autoComplete="off"
+                            multiline
+                            numberOfLines={3}
+                            value={formData.description}
+                            onChangeText={(text) => setFormData({ ...formData, description: text })}
+                        />
+                    </View>
+
+                    <View style={styles.formGroup}>
+                        <Text style={styles.label}>Fiş/Fatura Fotoğrafı</Text>
+                        <TouchableOpacity
+                            style={styles.imageUploadButton}
+                            onPress={async () => {
+                                const result = await ImagePicker.launchImageLibraryAsync({
+                                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                                    allowsEditing: true,
+                                    aspect: [4, 3],
+                                    quality: 0.5,
+                                });
+
+                                if (!result.canceled) {
+                                    setReceiptImage(result.assets[0].uri);
+                                }
+                            }}
+                        >
+                            {receiptImage ? (
+                                <Image source={{ uri: receiptImage }} style={styles.previewImage} />
+                            ) : (
+                                <View style={styles.uploadPlaceholder}>
+                                    <MaterialIcons name="add-a-photo" size={32} color={COLORS.textGray} />
+                                    <Text style={styles.uploadText}>Fotoğraf Ekle</Text>
+                                </View>
+                            )}
+                        </TouchableOpacity>
+                        {receiptImage && (
+                            <TouchableOpacity
+                                style={styles.removeImageButton}
+                                onPress={() => setReceiptImage(null)}
+                            >
+                                <Text style={styles.removeImageText}>Fotoğrafı Kaldır</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+
+                    <TouchableOpacity
+                        style={styles.submitButton}
+                        onPress={handleSubmit}
+                    >
+                        <Text style={styles.submitButtonText}>Kaydet</Text>
+                    </TouchableOpacity>
+                </ScrollView>
+            </View>
+        </View>
+    );
+
+    // For web (Safari iOS), return without Modal wrapper
+    if (Platform.OS === 'web') {
+        return formContent;
+    }
+
+    // For native, wrap in Modal
     return (
         <Modal
             visible={visible}
@@ -62,149 +259,7 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
             animationType="slide"
             onRequestClose={handleClose}
         >
-            <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Yeni Masraf Ekle</Text>
-                        <TouchableOpacity onPress={handleClose}>
-                            <MaterialIcons name="close" size={24} color={COLORS.textGray} />
-                        </TouchableOpacity>
-                    </View>
-
-                    <ScrollView>
-                        <View style={styles.formGroup}>
-                            <Text style={styles.label}>Başlık</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Örn: Öğle Yemeği"
-                                placeholderTextColor={COLORS.textGray}
-                                value={formData.title}
-                                onChangeText={(text) => setFormData({ ...formData, title: text })}
-                            />
-                        </View>
-
-                        <View style={styles.formGroup}>
-                            <Text style={styles.label}>Tarih</Text>
-                            <TouchableOpacity
-                                style={styles.dateSelector}
-                                onPress={() => setShowDatePicker(true)}
-                            >
-                                <MaterialIcons name="event" size={24} color={COLORS.textGray} />
-                                <Text style={styles.dateText}>
-                                    {formData.date.toLocaleDateString('tr-TR')}
-                                </Text>
-                            </TouchableOpacity>
-                            {showDatePicker && (
-                                <DateTimePicker
-                                    value={formData.date}
-                                    mode="date"
-                                    display="default"
-                                    onChange={(event, selectedDate) => {
-                                        setShowDatePicker(Platform.OS === 'ios');
-                                        if (selectedDate) {
-                                            setFormData({ ...formData, date: selectedDate });
-                                        }
-                                    }}
-                                />
-                            )}
-                        </View>
-
-                        <View style={styles.formGroup}>
-                            <Text style={styles.label}>Tutar (₺)</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="0.00"
-                                placeholderTextColor={COLORS.textGray}
-                                keyboardType="numeric"
-                                value={formData.amount}
-                                onChangeText={(text) => setFormData({ ...formData, amount: text })}
-                            />
-                        </View>
-
-                        <View style={styles.formGroup}>
-                            <Text style={styles.label}>Kategori</Text>
-                            <View style={styles.categorySelector}>
-                                {CATEGORIES.filter(c => c.id !== 'Tümü').map((cat) => (
-                                    <TouchableOpacity
-                                        key={cat.id}
-                                        style={[
-                                            styles.categoryOption,
-                                            formData.category === cat.id && styles.categoryOptionSelected
-                                        ]}
-                                        onPress={() => setFormData({ ...formData, category: cat.id })}
-                                    >
-                                        <MaterialIcons
-                                            name={cat.icon}
-                                            size={20}
-                                            color={formData.category === cat.id ? COLORS.backgroundDark : COLORS.textGray}
-                                        />
-                                        <Text style={[
-                                            styles.categoryOptionText,
-                                            formData.category === cat.id && styles.categoryOptionTextSelected
-                                        ]}>{cat.label}</Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </View>
-
-                        <View style={styles.formGroup}>
-                            <Text style={styles.label}>Açıklama</Text>
-                            <TextInput
-                                style={[styles.input, styles.textArea]}
-                                placeholder="Masraf detayı..."
-                                placeholderTextColor={COLORS.textGray}
-                                multiline
-                                numberOfLines={3}
-                                value={formData.description}
-                                onChangeText={(text) => setFormData({ ...formData, description: text })}
-                            />
-                        </View>
-
-                        <View style={styles.formGroup}>
-                            <Text style={styles.label}>Fiş/Fatura Fotoğrafı</Text>
-                            <TouchableOpacity
-                                style={styles.imageUploadButton}
-                                onPress={async () => {
-                                    const result = await ImagePicker.launchImageLibraryAsync({
-                                        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                                        allowsEditing: true,
-                                        aspect: [4, 3],
-                                        quality: 0.5,
-                                    });
-
-                                    if (!result.canceled) {
-                                        setReceiptImage(result.assets[0].uri);
-                                    }
-                                }}
-                            >
-                                {receiptImage ? (
-                                    <Image source={{ uri: receiptImage }} style={styles.previewImage} />
-                                ) : (
-                                    <View style={styles.uploadPlaceholder}>
-                                        <MaterialIcons name="add-a-photo" size={32} color={COLORS.textGray} />
-                                        <Text style={styles.uploadText}>Fotoğraf Ekle</Text>
-                                    </View>
-                                )}
-                            </TouchableOpacity>
-                            {receiptImage && (
-                                <TouchableOpacity
-                                    style={styles.removeImageButton}
-                                    onPress={() => setReceiptImage(null)}
-                                >
-                                    <Text style={styles.removeImageText}>Fotoğrafı Kaldır</Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
-
-                        <TouchableOpacity
-                            style={styles.submitButton}
-                            onPress={handleSubmit}
-                        >
-                            <Text style={styles.submitButtonText}>Kaydet</Text>
-                        </TouchableOpacity>
-                    </ScrollView>
-                </View>
-            </View>
+            {formContent}
         </Modal>
     );
 };
@@ -214,6 +269,15 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         justifyContent: 'flex-end',
+        // Web fix for Safari iOS
+        ...(Platform.OS === 'web' && {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+        }),
     },
     modalContent: {
         backgroundColor: COLORS.cardDark,
@@ -223,6 +287,11 @@ const styles = StyleSheet.create({
         maxHeight: '90%',
         borderWidth: 1,
         borderColor: COLORS.cardBorder,
+        // Safari iOS fix
+        ...(Platform.OS === 'web' && {
+            zIndex: 1000,
+            cursor: 'auto',
+        }),
     },
     modalHeader: {
         flexDirection: 'row',
@@ -252,6 +321,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
         borderWidth: 1,
         borderColor: COLORS.cardBorder,
+        // Web/Safari iOS fixes
+        outlineStyle: 'none',
+        ...(Platform.OS === 'web' && {
+            WebkitAppearance: 'none',
+            userSelect: 'text',
+        }),
     },
     dateSelector: {
         flexDirection: 'row',
