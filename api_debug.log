@@ -164,3 +164,18 @@ Please make sure your database server is running at `ep-wispy-flower-agb0mk6f-po
 2026-01-15T20:25:49.963Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
 2026-01-15T20:25:49.965Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
 2026-01-15T20:25:51.559Z - Worker Jobs API: Found 8 jobs
+2026-01-16T17:10:38.241Z - Mobile login request received (POST /api/mobile/login)
+2026-01-16T17:10:38.294Z - Login attempt for email: admin@montaj.com
+2026-01-16T17:10:38.619Z - Login success: admin@montaj.com (Role: ADMIN)
+2026-01-16T17:57:38.379Z - Mobile login request received (POST /api/mobile/login)
+2026-01-16T17:57:38.382Z - Login attempt for email: worker@montaj.com
+2026-01-16T17:57:38.697Z - Login success: worker@montaj.com (Role: WORKER)
+2026-01-16T17:59:43.281Z - Mobile login request received (POST /api/mobile/login)
+2026-01-16T17:59:43.284Z - Login attempt for email: admin@montaj.com
+2026-01-16T17:59:43.411Z - Login success: admin@montaj.com (Role: ADMIN)
+2026-01-16T18:27:21.175Z - Mobile login request received (POST /api/mobile/login)
+2026-01-16T18:27:21.177Z - Login attempt for email: admin@montaj.com
+2026-01-16T18:27:21.454Z - Login success: admin@montaj.com (Role: ADMIN)
+2026-01-16T18:28:31.542Z - Mobile login request received (POST /api/mobile/login)
+2026-01-16T18:28:31.545Z - Login attempt for email: admin@montaj.com
+2026-01-16T18:28:31.669Z - Login success: admin@montaj.com (Role: ADMIN)

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch, Alert, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import authService from '../services/auth.service';
 import RoleBadge from '../components/RoleBadge';
@@ -35,18 +36,43 @@ export default function ProfileScreen({ navigation }) {
     };
 
     const handleLogout = async () => {
-        Alert.alert(
-            'Çıkış Yap',
-            'Çıkmak istediğinize emin misiniz?',
-            [
-                { text: 'İptal', style: 'cancel' },
-                {
-                    text: 'Çıkış Yap',
-                    style: 'destructive',
-                    onPress: async () => await logout()
-                }
-            ]
-        );
+        if (Platform.OS === 'web') {
+            if (window.confirm('Çıkmak istediğinize emin misiniz?')) {
+                await logout();
+            }
+        } else {
+            Alert.alert(
+                'Çıkış Yap',
+                'Çıkmak istediğinize emin misiniz?',
+                [
+                    { text: 'İptal', style: 'cancel' },
+                    {
+                        text: 'Çıkış Yap',
+                        style: 'destructive',
+                        onPress: async () => await logout()
+                    }
+                ]
+            );
+        }
+    };
+
+    const handleForceLogout = async () => {
+        try {
+            await AsyncStorage.removeItem('user');
+            await AsyncStorage.removeItem('authToken');
+
+            if (Platform.OS === 'web') {
+                window.location.reload();
+            } else {
+                // For mobile, invoking logout from context usually clears state, 
+                // but if it's stuck, we manually try to clear and alert user
+                // Using simple Updates.reloadAsync() if available would be best but let's stick to auth context for now
+                // or just alert user to restart
+                Alert.alert("Önbellek Temizlendi", "Lütfen uygulamayı kapatıp tekrar açın.");
+            }
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     return (
@@ -146,6 +172,10 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.section}>
                 <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                     <Text style={styles.logoutButtonText}>🚪 Çıkış Yap</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.logoutButton, { marginTop: 12, backgroundColor: '#4B5563' }]} onPress={handleForceLogout}>
+                    <Text style={styles.logoutButtonText}>⚠️ Önbelleği Temizle (Force Logout)</Text>
                 </TouchableOpacity>
             </View>
 

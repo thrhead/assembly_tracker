@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Alert } from 'react-native';
 import api from '../services/api';
 
 export const useDashboardStats = () => {
@@ -29,6 +30,11 @@ export const useDashboardStats = () => {
             }
         } catch (error) {
             console.error('Error fetching admin dashboard data:', error);
+            // Show error to user to help debugging
+            const errorMessage = error.response ?
+                `Sunucu Hatası (${error.response.status}): ${JSON.stringify(error.response.data)}` :
+                error.message || 'Bağlantı hatası';
+            Alert.alert("Veri Hatası", errorMessage);
         } finally {
             setLoading(false);
         }
