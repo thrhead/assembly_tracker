@@ -19,16 +19,16 @@ const teamSchema = z.object({
   name: z.string().min(2, 'Ekip adı en az 2 karakter olmalıdır'),
   description: z.string().optional(),
   leadId: z.string().optional().nullable(),
-  isActive: z.boolean().default(true),
+  isActive: z.boolean(),
   memberIds: z.array(z.string()).optional()
 })
 
 type TeamFormData = z.infer<typeof teamSchema>
 
 interface User {
-    id: string
-    name: string | null
-    role: string
+  id: string
+  name: string | null
+  role: string
 }
 
 interface TeamDialogProps {
@@ -59,23 +59,23 @@ export function TeamDialog({ team, users, currentMembers = [], trigger }: TeamDi
   } = useForm<TeamFormData>({
     resolver: zodResolver(teamSchema),
     defaultValues: {
-        name: team?.name || '',
-        description: team?.description || '',
-        leadId: team?.leadId || 'none',
-        isActive: team?.isActive ?? true,
-        memberIds: currentMembers
+      name: team?.name || '',
+      description: team?.description || '',
+      leadId: team?.leadId || 'none',
+      isActive: team?.isActive ?? true,
+      memberIds: currentMembers
     }
   })
 
   // Update form when team prop changes (e.g., in a list where the same dialog instance might be reused or remounted)
   useEffect(() => {
-      if (team) {
-          setValue('name', team.name)
-          setValue('description', team.description || '')
-          setValue('leadId', team.leadId || 'none')
-          setValue('isActive', team.isActive)
-          setValue('memberIds', currentMembers)
-      }
+    if (team) {
+      setValue('name', team.name)
+      setValue('description', team.description || '')
+      setValue('leadId', team.leadId || 'none')
+      setValue('isActive', team.isActive)
+      setValue('memberIds', currentMembers)
+    }
   }, [team, currentMembers, setValue])
 
   const selectedMembers = watch('memberIds') || []
@@ -83,8 +83,8 @@ export function TeamDialog({ team, users, currentMembers = [], trigger }: TeamDi
   const toggleMember = (userId: string) => {
     const current = selectedMembers
     const updated = current.includes(userId)
-        ? current.filter(id => id !== userId)
-        : [...current, userId]
+      ? current.filter(id => id !== userId)
+      : [...current, userId]
     setValue('memberIds', updated)
   }
 
@@ -92,11 +92,11 @@ export function TeamDialog({ team, users, currentMembers = [], trigger }: TeamDi
     setLoading(true)
     try {
       if (team) {
-          await updateTeamAction(team.id, data)
-          toast.success('Ekip güncellendi')
+        await updateTeamAction(team.id, data)
+        toast.success('Ekip güncellendi')
       } else {
-          await createTeamAction(data)
-          toast.success('Ekip oluşturuldu')
+        await createTeamAction(data)
+        toast.success('Ekip oluşturuldu')
       }
 
       setOpen(false)
@@ -148,8 +148,8 @@ export function TeamDialog({ team, users, currentMembers = [], trigger }: TeamDi
           <div className="space-y-2">
             <Label htmlFor="leadId">Ekip Lideri</Label>
             <Select
-                onValueChange={(v) => setValue('leadId', v)}
-                defaultValue={team?.leadId || 'none'}
+              onValueChange={(v) => setValue('leadId', v)}
+              defaultValue={team?.leadId || 'none'}
             >
               <SelectTrigger id="leadId">
                 <SelectValue placeholder="Lider seçin (opsiyonel)" />
@@ -207,8 +207,8 @@ export function TeamDialog({ team, users, currentMembers = [], trigger }: TeamDi
           <div className="space-y-2">
             <Label htmlFor="isActive">Durum</Label>
             <Select
-                onValueChange={(v) => setValue('isActive', v === 'true')}
-                defaultValue={String(team?.isActive ?? true)}
+              onValueChange={(v) => setValue('isActive', v === 'true')}
+              defaultValue={String(team?.isActive ?? true)}
             >
               <SelectTrigger id="isActive">
                 <SelectValue />
