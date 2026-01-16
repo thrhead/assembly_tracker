@@ -47,7 +47,7 @@ export default async function ManagerJobsListPage() {
                             <p className="text-sm text-slate-500">Tüm işleri görüntüle ve filtrele</p>
                         </div>
                     </div>
-                    <Excel Down loadButton type="jobs" variant="default" />
+                    <ExcelDownloadButton type="jobs" variant="default" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
