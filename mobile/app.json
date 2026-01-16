@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Assembly Tracker",
-    "slug": "assembly-tracker",
+    "slug": "mobile",
     "version": "1.0.0",
     "sdkVersion": "54.0.0",
     "orientation": "portrait",
