@@ -84,6 +84,19 @@ export default async function ManagerJobsPage(props: {
 
     const jobs = await getJobs(searchParams.search)
 
+    // Fetch data for JobDialog
+    const [customers, teams, templates] = await Promise.all([
+        prisma.customer.findMany({
+            select: { id: true, company: true }
+        }),
+        prisma.team.findMany({
+            select: { id: true, name: true }
+        }),
+        prisma.jobTemplate.findMany({
+            select: { id: true, name: true }
+        })
+    ])
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -91,7 +104,7 @@ export default async function ManagerJobsPage(props: {
                     <h1 className="text-3xl font-bold text-gray-900">İşler</h1>
                     <p className="text-gray-500 mt-2">Montaj ve servis işlerini yönetin.</p>
                 </div>
-                <JobDialog />
+                <JobDialog customers={customers} teams={teams} templates={templates} />
             </div>
 
             <div className="bg-white rounded-lg shadow">
