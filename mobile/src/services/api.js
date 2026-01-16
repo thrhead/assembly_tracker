@@ -6,7 +6,7 @@ import { QueueService } from './QueueService';
 import { ToastService } from './ToastService';
 
 // This value is updated automatically by start_tunnel_auto.ps1
-const NGROK_URL = 'https://adjustment-wilderness-midnight-recordings.trycloudflare.com';
+const NGROK_URL = 'https://follow-ronald-multiple-strategy.trycloudflare.com';
 
 const getBaseUrl = () => {
     // For web (react-native-web), use the same host that serves the app
@@ -22,7 +22,7 @@ const getBaseUrl = () => {
         return 'http://localhost:3000';
     }
 
-    // Hardcoded LAN IP for physical device testing
+    // Hardcoded LAN IP for physical device connection (Windows)
     return 'http://192.168.1.173:3000';
 
     /* Tunnel logic disabled for now to simplify
@@ -32,7 +32,7 @@ const getBaseUrl = () => {
     */
 };
 
-export const API_BASE_URL = __DEV__ ? getBaseUrl() : 'https://your-production-url.com';
+export const API_BASE_URL = __DEV__ ? getBaseUrl() : 'https://assemblytr.vercel.app';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
