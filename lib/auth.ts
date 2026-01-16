@@ -84,7 +84,6 @@ export const authConfig: NextAuthConfig = {
     strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
-  skipCSRFCheck: true,
   trustHost: true,
 }
 
