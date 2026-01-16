@@ -99,9 +99,9 @@ export async function POST(
         })
 
         if (job) {
-            if (job.creatorId) emitToUser(job.creatorId, 'photo:uploaded', socketPayload)
+            if (job.creatorId) emitToUser(job.creatorId, 'photo:uploaded', socketPayload as unknown as Record<string, unknown>)
             // Broadcast to admins/managers
-            broadcast('photo:uploaded', socketPayload)
+            broadcast('photo:uploaded', socketPayload as unknown as Record<string, unknown>)
         }
 
         return NextResponse.json(photo)

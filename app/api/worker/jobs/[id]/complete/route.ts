@@ -102,14 +102,14 @@ export async function POST(
     try {
       // Notify job creator
       if (job.creator?.id) {
-        emitToUser(job.creator.id, 'job:completed', socketPayload)
+        emitToUser(job.creator.id, 'job:completed', socketPayload as unknown as Record<string, unknown>)
       }
 
       // Notify all admins/managers via database notification
       await notifyAdminsOfJobCompletion(jobId)
 
       // Broadcast to all admins via socket
-      broadcast('job:completed', socketPayload)
+      broadcast('job:completed', socketPayload as unknown as Record<string, unknown>)
     } catch (socketError) {
       console.error('Socket error (non-fatal):', socketError);
     }
