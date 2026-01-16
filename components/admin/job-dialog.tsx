@@ -43,7 +43,7 @@ type FormData = z.infer<typeof jobSchema>
 interface Customer {
   id: string
   company: string
-  user: { name: string }
+  user: { name: string | null }
 }
 
 interface Team {
@@ -64,9 +64,9 @@ interface Template {
 }
 
 interface JobDialogProps {
-    customers: Customer[]
-    teams: Team[]
-    templates: Template[]
+  customers: Customer[]
+  teams: Team[]
+  templates: Template[]
 }
 
 export function JobDialog({ customers, teams, templates }: JobDialogProps) {
@@ -158,8 +158,8 @@ export function JobDialog({ customers, teams, templates }: JobDialogProps) {
         }))
 
       await createJobAction({
-          ...data,
-          steps: validSteps.length > 0 ? validSteps : null
+        ...data,
+        steps: validSteps.length > 0 ? validSteps : null
       })
 
       toast.success('İş başarıyla oluşturuldu')
