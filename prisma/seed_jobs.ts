@@ -37,15 +37,19 @@ async function main() {
         })
     }
 
-    const customer = await prisma.customer.findUnique({ where: { userId: customerUser.id } })
+    const customer = await prisma.customer.findFirst()
+
+    if (!customer) {
+        console.log('No customer found, skipping job creation')
+        return
+    }
 
     // 1. Job: In Progress (Assigned to Ali)
     const job1 = await prisma.job.create({
         data: {
-            title: 'Levent Ofis Yenileme',
-            description: 'Ofis mobilyalarının sökülmesi ve yenilerinin montajı.',
-            location: 'Levent, İstanbul',
-            status: 'IN_PROGRESS',
+            title: 'Klima Montajı - A Blok',
+            description: 'Ofis binası A blok için klima montajı',
+            location: 'İstanbul, Kadıköy',
             priority: 'HIGH',
             scheduledDate: new Date(),
             customerId: customer.id,
