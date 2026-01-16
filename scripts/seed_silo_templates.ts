@@ -2,7 +2,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
-async function main() {
+async function seedSiloTemplates() {
     console.log('Seeding Silo Templates...');
 
     // --- 1 Katlı Silo Montajı ---
@@ -144,7 +144,7 @@ async function main() {
     console.log('Seeding completed.');
 }
 
-main()
+seedSiloTemplates()
     .catch((e) => {
         console.error(e);
         process.exit(1);

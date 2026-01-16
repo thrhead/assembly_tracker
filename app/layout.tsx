@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/providers/toast-provider";
@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   title: "Montaj Takip Sistemi",
   description: "Montaj ve servis ekipleri için kapsamlı takip ve yönetim sistemi",
   manifest: "/manifest.json",
-  themeColor: "#1a1a1a",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -28,12 +27,14 @@ export const metadata: Metadata = {
     icon: "/icons/icon-192.png",
     apple: "/icons/icon-192.png",
   },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#1a1a1a",
 };
 
 export default function RootLayout({

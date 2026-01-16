@@ -11,6 +11,8 @@ import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { cn } from '@/lib/utils'
 
+export const dynamic = 'force-dynamic'
+
 interface Job {
   id: string
   title: string
