@@ -21,7 +21,7 @@ async function checkPending() {
         console.log(`- Substep ${s.id} (Job: ${s.step.job.title})`)
     })
 
-    const pendingCosts = await prisma.costTracking.findMany({
+    const pendingCosts = await prisma.cost.findMany({
         where: { status: 'PENDING' },
         include: {
             job: {

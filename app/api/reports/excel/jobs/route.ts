@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
                 status: job.status,
                 priority: job.priority,
                 customerName: job.customer.company,
-                teamName: job.assignments[0]?.team?.name || 'Atanmamış',
+                teamName: job.assignments[0]?.team.name || 'Atanmamış',
                 progress,
                 totalCost,
                 scheduledDate: job.scheduledDate,

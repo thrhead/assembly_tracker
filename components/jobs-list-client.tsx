@@ -12,9 +12,9 @@ interface Job {
     title: string
     status: string
     priority: string
-    scheduledDate: Date | null
+    scheduledDate: Date
     customer: { company: string }
-    assignments: Array<{ team: { name: string } | null }>
+    assignments: Array<{ team: { name: string } }>
     steps: Array<{ id: string; isCompleted: boolean }>
 }
 
@@ -97,9 +97,9 @@ export function JobsListClient({ initialJobs, teams, customers }: JobsListClient
                                     <CardContent>
                                         <div className="grid grid-cols-2 gap-2 text-sm">
                                             <div><span className="font-medium">Müşteri:</span> {job.customer.company}</div>
-                                            <div><span className="font-medium">Ekip:</span> {job.assignments[0]?.team?.name || 'Atanmadı'}</div>
+                                            <div><span className="font-medium">Ekip:</span> {job.assignments[0]?.team.name || 'Atanmadı'}</div>
                                             <div><span className="font-medium">İlerleme:</span> {completedSteps}/{totalSteps} ({progress}%)</div>
-                                            <div><span className="font-medium">Tarih:</span> {job.scheduledDate ? new Date(job.scheduledDate).toLocaleDateString('tr-TR') : '-'}</div>
+                                            <div><span className="font-medium">Tarih:</span> {new Date(job.scheduledDate).toLocaleDateString('tr-TR')}</div>
                                         </div>
                                     </CardContent>
                                 </Card>

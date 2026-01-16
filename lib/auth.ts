@@ -48,7 +48,7 @@ export const authConfig: NextAuthConfig = {
           return {
             id: user.id,
             email: user.email,
-            name: user.name || '',
+            name: user.name,
             role: user.role,
             phone: user.phone,
           }
@@ -84,6 +84,7 @@ export const authConfig: NextAuthConfig = {
     strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
+  skipCSRFCheck: true,
   trustHost: true,
 }
 

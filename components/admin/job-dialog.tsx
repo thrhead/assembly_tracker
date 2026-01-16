@@ -43,7 +43,7 @@ type FormData = z.infer<typeof jobSchema>
 interface Customer {
   id: string
   company: string
-  user: { name: string | null }
+  user: { name: string }
 }
 
 interface Team {
@@ -206,7 +206,7 @@ export function JobDialog({ customers, teams, templates }: JobDialogProps) {
                 <SelectContent>
                   {customers.map((customer) => (
                     <SelectItem key={customer.id} value={customer.id}>
-                      {customer.company} ({customer.user.name || 'İsimsiz'})
+                      {customer.company} ({customer.user.name})
                     </SelectItem>
                   ))}
                 </SelectContent>

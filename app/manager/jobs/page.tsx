@@ -82,12 +82,7 @@ export default async function ManagerJobsPage(props: {
         redirect("/login")
     }
 
-    const [jobs, customers, teams, templates] = await Promise.all([
-        getJobs(searchParams.search),
-        prisma.customer.findMany({ include: { user: true } }),
-        prisma.team.findMany(),
-        prisma.jobTemplate.findMany({ include: { steps: { include: { subSteps: true } } } })
-    ])
+    const jobs = await getJobs(searchParams.search)
 
     return (
         <div className="space-y-6">
@@ -96,7 +91,7 @@ export default async function ManagerJobsPage(props: {
                     <h1 className="text-3xl font-bold text-gray-900">İşler</h1>
                     <p className="text-gray-500 mt-2">Montaj ve servis işlerini yönetin.</p>
                 </div>
-                <JobDialog customers={customers} teams={teams} templates={templates} />
+                <JobDialog />
             </div>
 
             <div className="bg-white rounded-lg shadow">

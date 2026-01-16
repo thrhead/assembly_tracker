@@ -1,4 +1,4 @@
-import { prisma } from '../lib/db'
+import { prisma } from './lib/db'
 
 async function main() {
     const teams = await prisma.team.findMany({

@@ -19,7 +19,7 @@ const teamSchema = z.object({
   name: z.string().min(2, 'Ekip adı en az 2 karakter olmalıdır'),
   description: z.string().optional(),
   leadId: z.string().optional().nullable(),
-  isActive: z.boolean(),
+  isActive: z.boolean().default(true),
   memberIds: z.array(z.string()).optional()
 })
 

@@ -39,11 +39,6 @@ async function main() {
 
     const customer = await prisma.customer.findUnique({ where: { userId: customerUser.id } })
 
-    if (!customer || !manager) {
-        console.error('❌ Customer or Manager not found.')
-        return
-    }
-
     // 1. Job: In Progress (Assigned to Ali)
     const job1 = await prisma.job.create({
         data: {

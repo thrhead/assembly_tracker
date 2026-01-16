@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
-import { z, ZodError } from 'zod'
+import { z } from 'zod'
 
 const updateUserSchema = z.object({
     name: z.string().min(2).optional(),
@@ -59,8 +59,8 @@ export async function PUT(
 
         return NextResponse.json(updatedUser)
     } catch (error) {
-        if (error instanceof ZodError) {
-            return NextResponse.json({ error: (error as any).errors }, { status: 400 })
+        if (error instanceof z.ZodError) {
+            return NextResponse.json({ error: error.errors }, { status: 400 })
         }
         console.error('User update error:', error)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
