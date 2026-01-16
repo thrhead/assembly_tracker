@@ -8,6 +8,7 @@
  * This file initializes both the Next.js app and Socket.IO server
  */
 
+import 'dotenv/config'
 import { createServer } from 'http'
 import { parse } from 'url'
 import next from 'next'

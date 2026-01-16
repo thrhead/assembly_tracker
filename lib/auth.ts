@@ -29,21 +29,42 @@ export const authConfig: NextAuthConfig = {
       },
       async authorize(credentials) {
         try {
-          const { email, password } = loginSchema.parse(credentials)
+          // Normalize email to lowercase
+          const rawEmail = (credentials?.email as string || "").toLowerCase()
+          const { email, password } = loginSchema.parse({
+            ...credentials,
+            email: rawEmail
+          })
+          console.log(`[Auth] Attempting login for: ${email}`)
 
           const user = await prisma.user.findUnique({
             where: { email },
           })
 
-          if (!user || !user.isActive) {
+          if (!user) {
+            console.log(`[Auth] User not found: ${email}`)
             return null
+          }
+
+          if (!user.isActive) {
+            console.log(`[Auth] User found but inactive: ${email}`)
+            return null
+          }
+
+          // Check if password hash is valid bcrypt format
+          if (!user.passwordHash || !user.passwordHash.startsWith('$2')) {
+             console.warn(`[Auth] Invalid password hash format for user: ${email}`)
+             return null
           }
 
           const isPasswordValid = await compare(password, user.passwordHash)
 
           if (!isPasswordValid) {
+            console.log(`[Auth] Invalid password for: ${email}`)
             return null
           }
+
+          console.log(`[Auth] Login successful for: ${email} (${user.role})`)
 
           return {
             id: user.id,
@@ -83,7 +104,8 @@ export const authConfig: NextAuthConfig = {
   session: {
     strategy: "jwt",
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "temp_secret_change_me_in_prod",
+  debug: process.env.NODE_ENV === 'development',
   trustHost: true,
 }
 

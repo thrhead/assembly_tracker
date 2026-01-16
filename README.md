@@ -95,6 +95,13 @@ npm test
 npm run dev
 ```
 
+### Vercel Deployment Notları
+Vercel üzerinde dağıtım yaparken aşağıdaki ortam değişkenlerini tanımlamanız gerekmektedir:
+* `DATABASE_URL`: PostgreSQL bağlantı dizesi (örn: Neon DB).
+* `NEXTAUTH_SECRET` veya `AUTH_SECRET`: Oturum güvenliği için rastgele bir anahtar.
+
+Proje, Vercel build sürecinde Prisma Client'ın otomatik oluşturulması için gerekli `postinstall` scriptine sahiptir.
+
 ### 2. Mobil Uygulama Kurulumu
 ```bash
 cd mobile
