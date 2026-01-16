@@ -87,7 +87,13 @@ export default async function ManagerJobsPage(props: {
     // Fetch data for JobDialog
     const [customers, teams, templates] = await Promise.all([
         prisma.customer.findMany({
-            select: { id: true, company: true }
+            select: {
+                id: true,
+                company: true,
+                user: {
+                    select: { name: true, email: true }
+                }
+            }
         }),
         prisma.team.findMany({
             select: { id: true, name: true }
