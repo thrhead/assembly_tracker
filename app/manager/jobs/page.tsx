@@ -99,7 +99,11 @@ export default async function ManagerJobsPage(props: {
             select: { id: true, name: true }
         }),
         prisma.jobTemplate.findMany({
-            select: { id: true, name: true }
+            select: {
+                id: true,
+                name: true,
+                steps: true
+            }
         })
     ])
 
