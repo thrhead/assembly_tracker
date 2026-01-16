@@ -1,11 +1,10 @@
-'use client'
-
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { JobStatusChart } from "@/components/charts/job-status-chart"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { TimelineChart } from "@/components/charts/timeline-chart"
+import { TeamPerformanceChart } from "@/components/charts/team-performance-chart"
 import { format, subDays, startOfDay, endOfDay } from "date-fns"
 import { tr } from "date-fns/locale"
 
@@ -113,17 +112,7 @@ export default async function ReportsPage() {
                         <CardTitle>Son 7 Gün Tamamlanan İşler</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-[300px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={timelineData}>
-                                    <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" />
-                                    <YAxis allowDecimals={false} />
-                                    <Tooltip />
-                                    <Bar dataKey="tamamlanan" name="Tamamlanan İş" fill="#10B981" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
+                        <TimelineChart data={timelineData} />
                     </CardContent>
                 </Card>
 
@@ -133,17 +122,7 @@ export default async function ReportsPage() {
                         <CardTitle>En İyi Ekipler (Tamamlanan İş)</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-[300px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={teamData} layout="vertical" margin={{ left: 20 }}>
-                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                    <XAxis type="number" allowDecimals={false} />
-                                    <YAxis dataKey="name" type="category" width={100} />
-                                    <Tooltip />
-                                    <Bar dataKey="isSayisi" name="Tamamlanan İş" fill="#6366F1" radius={[0, 4, 4, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
+                        <TeamPerformanceChart data={teamData} />
                     </CardContent>
                 </Card>
             </div>
