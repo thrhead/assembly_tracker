@@ -163,7 +163,7 @@ export function generateJobExcel(jobData: JobData) {
             .reduce((sum, c) => sum + c.amount, 0)
 
         costsData.push([])
-        costsData.push(['', '', 'TOPLAM ONAYLANAN:', totalApproved, ''])
+        costsData.push(['', '', 'TOPLAM ONAYLANAN:', totalApproved.toString(), ''])
 
         const ws3 = XLSX.utils.aoa_to_sheet(costsData)
         ws3['!cols'] = [{ wch: 12 }, { wch: 15 }, { wch: 40 }, { wch: 12 }, { wch: 15 }]
@@ -193,8 +193,8 @@ export function generateJobsListExcel(jobs: JobListItem[]) {
             priorityLabels[job.priority] || job.priority,
             job.customerName,
             job.teamName || 'Atanmamış',
-            job.progress,
-            job.totalCost,
+            job.progress.toString(),
+            job.totalCost.toString(),
             formatDate(job.scheduledDate),
         ])
     })
@@ -234,7 +234,7 @@ export function generateCostExcel(costs: CostData[]) {
             cost.jobTitle,
             cost.category,
             cost.description,
-            cost.amount,
+            cost.amount.toString(),
             statusLabels[cost.status] || cost.status,
             cost.createdBy,
         ])
@@ -246,10 +246,10 @@ export function generateCostExcel(costs: CostData[]) {
     const totalRejected = costs.filter((c) => c.status === 'REJECTED').reduce((sum, c) => sum + c.amount, 0)
 
     data.push([])
-    data.push(['', '', '', 'TOPLAM BEKLEYEN:', totalPending, '', ''])
-    data.push(['', '', '', 'TOPLAM ONAYLANAN:', totalApproved, '', ''])
-    data.push(['', '', '', 'TOPLAM REDDEDİLEN:', totalRejected, '', ''])
-    data.push(['', '', '', 'GENEL TOPLAM:', totalPending + totalApproved + totalRejected, '', ''])
+    data.push(['', '', '', 'TOPLAM BEKLEYEN:', totalPending.toString(), '', ''])
+    data.push(['', '', '', 'TOPLAM ONAYLANAN:', totalApproved.toString(), '', ''])
+    data.push(['', '', '', 'TOPLAM REDDEDİLEN:', totalRejected.toString(), '', ''])
+    data.push(['', '', '', 'GENEL TOPLAM:', (totalPending + totalApproved + totalRejected).toString(), '', ''])
 
     const ws = XLSX.utils.aoa_to_sheet(data)
     ws['!cols'] = [
