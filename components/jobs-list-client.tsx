@@ -97,7 +97,7 @@ export function JobsListClient({ initialJobs, teams, customers }: JobsListClient
                                     <CardContent>
                                         <div className="grid grid-cols-2 gap-2 text-sm">
                                             <div><span className="font-medium">Müşteri:</span> {job.customer.company}</div>
-                                            <div><span className="font-medium">Ekip:</span> {job.assignments[0]?.team.name || 'Atanmadı'}</div>
+                                            <div><span className="font-medium">Ekip:</span> {job.assignments[0]?.team?.name || 'Atanmadı'}</div>
                                             <div><span className="font-medium">İlerleme:</span> {completedSteps}/{totalSteps} ({progress}%)</div>
                                             <div><span className="font-medium">Tarih:</span> {job.scheduledDate ? new Date(job.scheduledDate).toLocaleDateString('tr-TR') : 'Belirtilmemiş'}</div>
                                         </div>
