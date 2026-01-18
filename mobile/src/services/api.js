@@ -30,7 +30,7 @@ const getBaseUrl = () => {
     }
 
     // Fallback for production if no env var is set
-    return 'https://assembly-tracker-api.vercel.app';
+    return 'https://assemblytr.vercel.app/api';
 };
 
 export const API_BASE_URL = getBaseUrl();
