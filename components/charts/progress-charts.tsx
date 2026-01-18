@@ -74,9 +74,9 @@ export function ProgressCharts({ totalSteps, completedSteps, blockedSteps, steps
                             <XAxis dataKey="name" />
                             <YAxis domain={[-100, 100]} ticks={[-50, 0, 50, 100]} />
                             <Tooltip
-                                formatter={(value: number) => {
-                                    if (value === 100) return ['Tamamlandı', 'Durum']
-                                    if (value === -50) return ['Bloklandı', 'Durum']
+                                formatter={(value: any) => {
+                                    if (Number(value) === 100) return ['Tamamlandı', 'Durum']
+                                    if (Number(value) === -50) return ['Bloklandı', 'Durum']
                                     return ['Devam Ediyor', 'Durum']
                                 }}
                             />
