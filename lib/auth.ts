@@ -19,6 +19,16 @@ declare module "next-auth" {
   }
 }
 
+// Startup diagnostic
+if (process.env.NODE_ENV === 'production') {
+  console.log("Auth Initialization Diagnostic:", {
+    hasAuthSecret: !!process.env.AUTH_SECRET,
+    hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
+    hasDbUrl: !!process.env.DATABASE_URL,
+    hasDirectUrl: !!process.env.DIRECT_URL
+  });
+}
+
 export const authConfig: NextAuthConfig = {
   providers: [
     CredentialsProvider({
