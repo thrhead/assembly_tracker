@@ -18,6 +18,7 @@ const nextConfig = {
     turbopack: {},
     experimental: {
         reactCompiler: true,
+        turbopack: {},
     },
     // CORS headers for mobile app
     async headers() {

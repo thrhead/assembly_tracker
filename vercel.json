@@ -1,0 +1,8 @@
+{
+    "buildCommand": "prisma generate && next build --webpack",
+    "installCommand": "npm install",
+    "framework": "nextjs",
+    "regions": [
+        "arn1"
+    ]
+}
