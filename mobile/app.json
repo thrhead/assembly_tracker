@@ -27,7 +27,7 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
-      "output": "static",
+      "output": "single",
       "name": "Assembly Tracker",
       "shortName": "Assembly",
       "description": "İş takip ve yönetim uygulaması",
