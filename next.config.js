@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     serverExternalPackages: ['@prisma/client', 'bcryptjs'],
-    reactCompiler: true,
+    experimental: {
+        reactCompiler: true,
+    },
     // CORS headers for mobile app
     async headers() {
         return [
