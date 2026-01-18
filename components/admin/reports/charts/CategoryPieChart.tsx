@@ -41,7 +41,7 @@ export default function CategoryPieChart({ data }: CategoryPieChartProps) {
                                 ))}
                             </Pie>
                             <Tooltip
-                                formatter={(value: number) => formatCurrency(value || 0)}
+                                formatter={(value: any) => formatCurrency(Number(value) || 0)}
                             />
                             <Legend layout="vertical" align="right" verticalAlign="middle" />
                         </PieChart>

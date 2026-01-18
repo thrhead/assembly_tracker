@@ -29,9 +29,9 @@ export default function CostTrendChart({ data, categories, title = "Maliyet Tren
                 <div className="h-[300px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={data}>
-                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                            <XAxis 
-                                dataKey="date" 
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                            <XAxis
+                                dataKey="date"
                                 stroke="#888888"
                                 fontSize={12}
                                 tickLine={false}
@@ -48,8 +48,8 @@ export default function CostTrendChart({ data, categories, title = "Maliyet Tren
                                 axisLine={false}
                                 tickFormatter={(value) => `₺${value}`}
                             />
-                            <Tooltip 
-                                formatter={(value: number) => formatCurrency(value)}
+                            <Tooltip
+                                formatter={(value: any) => formatCurrency(Number(value) || 0)}
                                 labelFormatter={(label) => `Tarih: ${new Date(label).toLocaleDateString('tr-TR')}`}
                             />
                             <Legend />

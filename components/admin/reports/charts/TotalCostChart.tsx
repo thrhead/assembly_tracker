@@ -27,13 +27,13 @@ export default function TotalCostChart({ data }: TotalCostChartProps) {
                         <AreaChart data={data}>
                             <defs>
                                 <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.1}/>
-                                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.1} />
+                                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
-                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                            <XAxis 
-                                dataKey="date" 
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                            <XAxis
+                                dataKey="date"
                                 stroke="#888888"
                                 fontSize={12}
                                 tickLine={false}
@@ -50,8 +50,8 @@ export default function TotalCostChart({ data }: TotalCostChartProps) {
                                 axisLine={false}
                                 tickFormatter={(value) => `₺${value}`}
                             />
-                            <Tooltip 
-                                formatter={(value: number) => formatCurrency(value)}
+                            <Tooltip
+                                formatter={(value: any) => formatCurrency(Number(value) || 0)}
                                 labelFormatter={(label) => `Tarih: ${new Date(label).toLocaleDateString('tr-TR')}`}
                             />
                             <Area
