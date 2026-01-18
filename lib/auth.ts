@@ -37,7 +37,14 @@ export const authConfig: NextAuthConfig = {
         email: { label: "E-posta", type: "email" },
         password: { label: "Şifre", type: "password" }
       },
-      async authorize(credentials, request) {
+      async authorize(credentials) {
+        // Runtime diagnostic
+        console.log("Runtime Auth Check:", {
+          hasAuthSecret: !!(process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET),
+          baseUrl: process.env.NEXTAUTH_URL || "not set",
+          env: process.env.NODE_ENV
+        });
+
         try {
           const { email, password } = loginSchema.parse(credentials)
 
