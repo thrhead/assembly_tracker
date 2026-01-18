@@ -39,18 +39,32 @@ export default function ProfileScreen({ navigation }) {
     };
 
     const handleLogout = async () => {
-        Alert.alert(
-            'Çıkış Yap',
-            'Çıkmak istediğinize emin misiniz?',
-            [
-                { text: 'İptal', style: 'cancel' },
-                {
-                    text: 'Çıkış Yap',
-                    style: 'destructive',
-                    onPress: async () => await logout()
-                }
-            ]
-        );
+        const performLogout = async () => {
+            try {
+                await logout();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        };
+
+        if (Platform.OS === 'web') {
+            if (window.confirm('Çıkış yapmak istediğinize emin misiniz?')) {
+                performLogout();
+            }
+        } else {
+            Alert.alert(
+                'Çıkış Yap',
+                'Çıkmak istediğinize emin misiniz?',
+                [
+                    { text: 'İptal', style: 'cancel' },
+                    {
+                        text: 'Çıkış Yap',
+                        style: 'destructive',
+                        onPress: performLogout
+                    }
+                ]
+            );
+        }
     };
 
     return (

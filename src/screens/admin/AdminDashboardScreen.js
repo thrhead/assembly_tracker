@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, StatusBar, Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
@@ -28,6 +28,35 @@ export default function AdminDashboardScreen({ navigation }) {
         setRefreshing(true);
         await fetchStats();
         setRefreshing(false);
+    };
+
+    const handleLogout = async () => {
+        const performLogout = async () => {
+            try {
+                await logout();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        };
+
+        if (Platform.OS === 'web') {
+            if (window.confirm('Çıkış yapmak istediğinize emin misiniz?')) {
+                performLogout();
+            }
+        } else {
+            Alert.alert(
+                'Çıkış Yap',
+                'Çıkmak istediğinize emin misiniz?',
+                [
+                    { text: 'İptal', style: 'cancel' },
+                    {
+                        text: 'Çıkış Yap',
+                        style: 'destructive',
+                        onPress: performLogout
+                    }
+                ]
+            );
+        }
     };
 
     // Navigation Items Data
@@ -66,7 +95,7 @@ export default function AdminDashboardScreen({ navigation }) {
                     user={user}
                     navItems={navItems}
                     onNavigate={handleNavPress}
-                    onLogout={logout}
+                    onLogout={handleLogout}
                 />
 
                 <ScrollView

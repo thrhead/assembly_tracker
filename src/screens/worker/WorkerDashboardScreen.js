@@ -11,7 +11,8 @@ import {
     Platform,
     UIManager,
     ActivityIndicator,
-    StatusBar
+    StatusBar,
+    Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -151,8 +152,32 @@ export default function WorkerDashboardScreen({ navigation }) {
                         <TouchableOpacity
                             style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}
                             onPress={() => {
-                                console.log('[WorkerDashboard] Logout pressed');
-                                logout();
+                                const performLogout = async () => {
+                                    try {
+                                        await logout();
+                                    } catch (error) {
+                                        console.error('Logout error:', error);
+                                    }
+                                };
+
+                                if (Platform.OS === 'web') {
+                                    if (window.confirm('Çıkış yapmak istediğinize emin misiniz?')) {
+                                        performLogout();
+                                    }
+                                } else {
+                                    Alert.alert(
+                                        'Çıkış Yap',
+                                        'Çıkmak istediğinize emin misiniz?',
+                                        [
+                                            { text: 'İptal', style: 'cancel' },
+                                            {
+                                                text: 'Çıkış Yap',
+                                                style: 'destructive',
+                                                onPress: performLogout
+                                            }
+                                        ]
+                                    );
+                                }
                             }}
                         >
                             <MaterialIcons name="logout" size={24} color="#ef4444" />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar, Alert, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -12,7 +12,32 @@ export default function ManagerDashboardScreen({ navigation }) {
     const { theme, toggleTheme, isDark } = useTheme();
 
     const handleLogout = async () => {
-        await logout();
+        const performLogout = async () => {
+            try {
+                await logout();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        };
+
+        if (Platform.OS === 'web') {
+            if (window.confirm('Çıkış yapmak istediğinize emin misiniz?')) {
+                performLogout();
+            }
+        } else {
+            Alert.alert(
+                'Çıkış Yap',
+                'Çıkmak istediğinize emin misiniz?',
+                [
+                    { text: 'İptal', style: 'cancel' },
+                    {
+                        text: 'Çıkış Yap',
+                        style: 'destructive',
+                        onPress: performLogout
+                    }
+                ]
+            );
+        }
     };
 
     return (
