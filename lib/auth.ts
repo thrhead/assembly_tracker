@@ -19,16 +19,6 @@ declare module "next-auth" {
   }
 }
 
-// Startup diagnostic
-if (process.env.NODE_ENV === 'production') {
-  console.log("Auth Initialization Diagnostic:", {
-    hasAuthSecret: !!process.env.AUTH_SECRET,
-    hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
-    hasDbUrl: !!process.env.DATABASE_URL,
-    hasDirectUrl: !!process.env.DIRECT_URL
-  });
-}
-
 export const authConfig: NextAuthConfig = {
   providers: [
     CredentialsProvider({
@@ -38,13 +28,6 @@ export const authConfig: NextAuthConfig = {
         password: { label: "Şifre", type: "password" }
       },
       async authorize(credentials) {
-        // Runtime diagnostic
-        console.log("Runtime Auth Check:", {
-          hasAuthSecret: !!(process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET),
-          baseUrl: process.env.NEXTAUTH_URL || "not set",
-          env: process.env.NODE_ENV
-        });
-
         try {
           const { email, password } = loginSchema.parse(credentials)
 
@@ -70,11 +53,7 @@ export const authConfig: NextAuthConfig = {
             phone: user.phone
           } as any
         } catch (error) {
-          console.error("Authorization error details:", {
-            error,
-            message: error instanceof Error ? error.message : "Unknown error",
-            stack: error instanceof Error ? error.stack : undefined
-          })
+          console.error("Authorization error:", error)
           return null
         }
       },
@@ -104,24 +83,8 @@ export const authConfig: NextAuthConfig = {
   session: {
     strategy: "jwt",
   },
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "temporary-secret-to-debug-vercel-issue",
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   trustHost: true,
-  logger: {
-    error(error) {
-      console.error("NextAuth Error:", {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-        secretLength: (process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "").length
-      });
-    },
-    warn(code) {
-      console.warn("NextAuth Warning:", code);
-    },
-    debug(code, metadata) {
-      console.log("NextAuth Debug:", { code, metadata });
-    },
-  },
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig)
