@@ -15,13 +15,13 @@ import { ProjectFilter, CategoryFilter } from '../../components/worker/expense/E
 import { ExpenseList } from '../../components/worker/expense/ExpenseList';
 import { ExpenseSummary } from '../../components/worker/expense/ExpenseSummary';
 import { CreateExpenseModal } from '../../components/worker/expense/CreateExpenseModal';
-import { COLORS } from '../../constants/theme';
+// import { COLORS } from '../../constants/theme'; // Removed legacy import
+import { useTheme } from '../../context/ThemeContext';
 
 export default function ExpenseManagementScreen({ navigation, route }) {
+    const { theme, isDark } = useTheme();
     const {
         projects,
-        // expenses, // Not directly used in render, filteredExpenses is used
-        // loading, // Could add a loader
         selectedProject,
         selectedCategory,
         searchQuery,
@@ -47,17 +47,17 @@ export default function ExpenseManagementScreen({ navigation, route }) {
     const totalAmount = filteredExpenses.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
 
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-                    <MaterialIcons name="arrow-back-ios" size={20} color={COLORS.textLight} />
+                    <MaterialIcons name="arrow-back-ios" size={20} color={theme.colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Proje Masrafları</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Proje Masrafları</Text>
                 <TouchableOpacity style={styles.iconButton}>
-                    <MaterialIcons name="more-vert" size={24} color={COLORS.textLight} />
+                    <MaterialIcons name="more-vert" size={24} color={theme.colors.text} />
                 </TouchableOpacity>
             </View>
 
@@ -67,21 +67,22 @@ export default function ExpenseManagementScreen({ navigation, route }) {
                     projects={projects}
                     selectedProject={selectedProject}
                     onSelect={setSelectedProject}
+                    theme={theme}
                 />
 
                 {/* Budget Card */}
-                <ExpenseSummary totalAmount={totalAmount} />
+                <ExpenseSummary totalAmount={totalAmount} theme={theme} />
 
                 {/* Search */}
                 <View style={styles.searchContainer}>
-                    <View style={styles.searchBar}>
+                    <View style={[styles.searchBar, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, borderWidth: 1 }]}>
                         <View style={styles.searchIconContainer}>
-                            <MaterialIcons name="search" size={24} color={COLORS.textGray} />
+                            <MaterialIcons name="search" size={24} color={theme.colors.subText} />
                         </View>
                         <TextInput
-                            style={styles.searchInput}
+                            style={[styles.searchInput, { color: theme.colors.text }]}
                             placeholder="Masraf ara"
-                            placeholderTextColor={COLORS.textGray}
+                            placeholderTextColor={theme.colors.subText}
                             value={searchQuery}
                             onChangeText={setSearchQuery}
                         />
@@ -92,12 +93,14 @@ export default function ExpenseManagementScreen({ navigation, route }) {
                 <CategoryFilter
                     selectedCategory={selectedCategory}
                     onSelect={setSelectedCategory}
+                    theme={theme}
                 />
 
                 {/* Expenses List */}
                 <ExpenseList
                     groupedExpenses={groupedExpenses}
                     filteredExpensesCount={filteredExpenses.length}
+                    theme={theme}
                 />
 
                 <View style={{ height: 100 }} />
@@ -105,10 +108,10 @@ export default function ExpenseManagementScreen({ navigation, route }) {
 
             {/* FAB */}
             <TouchableOpacity
-                style={styles.fab}
+                style={[styles.fab, { backgroundColor: theme.colors.primary, shadowColor: theme.colors.primary }]}
                 onPress={() => setModalVisible(true)}
             >
-                <MaterialIcons name="add" size={32} color={COLORS.backgroundDark} />
+                <MaterialIcons name="add" size={32} color={theme.colors.textInverse} />
             </TouchableOpacity>
 
             {/* Create Expense Modal */}
@@ -118,6 +121,7 @@ export default function ExpenseManagementScreen({ navigation, route }) {
                 onSubmit={createExpense}
                 projects={projects}
                 defaultJobId={selectedProject?.id}
+                theme={theme}
             />
         </SafeAreaView>
     );
@@ -126,7 +130,6 @@ export default function ExpenseManagementScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.backgroundDark,
     },
     header: {
         flexDirection: 'row',
@@ -134,7 +137,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.cardBorder,
     },
     iconButton: {
         width: 40,
@@ -145,7 +147,6 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.textLight,
         flex: 1,
         textAlign: 'center',
     },
@@ -159,7 +160,6 @@ const styles = StyleSheet.create({
     searchBar: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.cardBorder,
         borderRadius: 12,
         height: 48,
     },
@@ -169,7 +169,6 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        color: COLORS.textLight,
         fontSize: 16,
         height: '100%',
     },
@@ -180,10 +179,8 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: COLORS.primary,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: COLORS.primary,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,

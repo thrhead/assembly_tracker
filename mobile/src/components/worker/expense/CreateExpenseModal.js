@@ -13,11 +13,12 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS } from '../../../constants/theme';
+// Duplicate imports removed
+// import { COLORS } from '../../../constants/theme'; // Removed legacy
 import { CATEGORIES } from './ExpenseFilter';
 
 // Safari iOS compatible input component
-const WebInput = ({ style, value, onChangeText, placeholder, inputMode, ...props }) => {
+const WebInput = ({ style, value, onChangeText, placeholder, inputMode, theme, ...props }) => {
     if (Platform.OS === 'web') {
         return (
             <input
@@ -28,16 +29,17 @@ const WebInput = ({ style, value, onChangeText, placeholder, inputMode, ...props
                 onChange={(e) => onChangeText(e.target.value)}
                 placeholder={placeholder}
                 style={{
-                    backgroundColor: COLORS.cardBorder,
+                    backgroundColor: theme.colors.surface,
                     borderRadius: 12,
                     padding: 16,
-                    color: COLORS.textLight,
+                    color: theme.colors.text,
                     fontSize: 16,
-                    border: `1px solid ${COLORS.cardBorder}`,
+                    border: `1px solid ${theme.colors.border}`,
                     width: '100%',
                     boxSizing: 'border-box',
                     outline: 'none',
                     fontFamily: 'inherit',
+                    ...style // Allow overrides
                 }}
             />
         );
@@ -48,13 +50,13 @@ const WebInput = ({ style, value, onChangeText, placeholder, inputMode, ...props
             value={value}
             onChangeText={onChangeText}
             placeholder={placeholder}
-            placeholderTextColor={COLORS.textGray}
+            placeholderTextColor={theme.colors.subText}
             {...props}
         />
     );
 };
 
-export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defaultJobId }) => {
+export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defaultJobId, theme }) => {
     const [formData, setFormData] = useState({
         title: '',
         amount: '',
@@ -98,11 +100,11 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
 
     const formContent = (
         <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
+            <View style={[styles.modalContent, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
                 <View style={styles.modalHeader}>
-                    <Text style={styles.modalTitle}>Yeni Masraf Ekle</Text>
+                    <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Yeni Masraf Ekle</Text>
                     <TouchableOpacity onPress={handleClose}>
-                        <MaterialIcons name="close" size={24} color={COLORS.textGray} />
+                        <MaterialIcons name="close" size={24} color={theme.colors.text} />
                     </TouchableOpacity>
                 </View>
 
@@ -111,24 +113,25 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
                     keyboardDismissMode="none"
                 >
                     <View style={styles.formGroup}>
-                        <Text style={styles.label}>Başlık</Text>
+                        <Text style={[styles.label, { color: theme.colors.subText }]}>Başlık</Text>
                         <WebInput
-                            style={styles.input}
+                            style={[styles.input, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, color: theme.colors.text }]}
                             placeholder="Örn: Öğle Yemeği"
                             inputMode="text"
                             value={formData.title}
                             onChangeText={(text) => setFormData({ ...formData, title: text })}
+                            theme={theme}
                         />
                     </View>
 
                     <View style={styles.formGroup}>
-                        <Text style={styles.label}>Tarih</Text>
+                        <Text style={[styles.label, { color: theme.colors.subText }]}>Tarih</Text>
                         <TouchableOpacity
-                            style={styles.dateSelector}
+                            style={[styles.dateSelector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
                             onPress={() => setShowDatePicker(true)}
                         >
-                            <MaterialIcons name="event" size={24} color={COLORS.textGray} />
-                            <Text style={styles.dateText}>
+                            <MaterialIcons name="event" size={24} color={theme.colors.subText} />
+                            <Text style={[styles.dateText, { color: theme.colors.text }]}>
                                 {formData.date.toLocaleDateString('tr-TR')}
                             </Text>
                         </TouchableOpacity>
@@ -148,36 +151,39 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
                     </View>
 
                     <View style={styles.formGroup}>
-                        <Text style={styles.label}>Tutar (₺)</Text>
+                        <Text style={[styles.label, { color: theme.colors.subText }]}>Tutar (₺)</Text>
                         <WebInput
-                            style={styles.input}
+                            style={[styles.input, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, color: theme.colors.text }]}
                             placeholder="0.00"
                             inputMode="decimal"
                             value={formData.amount}
                             onChangeText={(text) => setFormData({ ...formData, amount: text })}
+                            theme={theme}
                         />
                     </View>
 
                     <View style={styles.formGroup}>
-                        <Text style={styles.label}>Kategori</Text>
+                        <Text style={[styles.label, { color: theme.colors.subText }]}>Kategori</Text>
                         <View style={styles.categorySelector}>
                             {CATEGORIES.filter(c => c.id !== 'Tümü').map((cat) => (
                                 <TouchableOpacity
                                     key={cat.id}
                                     style={[
                                         styles.categoryOption,
-                                        formData.category === cat.id && styles.categoryOptionSelected
+                                        { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+                                        formData.category === cat.id && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
                                     ]}
                                     onPress={() => setFormData({ ...formData, category: cat.id })}
                                 >
                                     <MaterialIcons
                                         name={cat.icon}
                                         size={20}
-                                        color={formData.category === cat.id ? COLORS.backgroundDark : COLORS.textGray}
+                                        color={formData.category === cat.id ? theme.colors.textInverse : theme.colors.subText}
                                     />
                                     <Text style={[
                                         styles.categoryOptionText,
-                                        formData.category === cat.id && styles.categoryOptionTextSelected
+                                        { color: theme.colors.subText },
+                                        formData.category === cat.id && { color: theme.colors.textInverse, fontWeight: 'bold' }
                                     ]}>{cat.label}</Text>
                                 </TouchableOpacity>
                             ))}
@@ -185,11 +191,11 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
                     </View>
 
                     <View style={styles.formGroup}>
-                        <Text style={styles.label}>Açıklama</Text>
+                        <Text style={[styles.label, { color: theme.colors.subText }]}>Açıklama</Text>
                         <TextInput
-                            style={[styles.input, styles.textArea]}
+                            style={[styles.input, styles.textArea, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border, color: theme.colors.text }]}
                             placeholder="Masraf detayı..."
-                            placeholderTextColor={COLORS.textGray}
+                            placeholderTextColor={theme.colors.subText}
                             inputMode="text"
                             autoComplete="off"
                             multiline
@@ -200,9 +206,9 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
                     </View>
 
                     <View style={styles.formGroup}>
-                        <Text style={styles.label}>Fiş/Fatura Fotoğrafı</Text>
+                        <Text style={[styles.label, { color: theme.colors.subText }]}>Fiş/Fatura Fotoğrafı</Text>
                         <TouchableOpacity
-                            style={styles.imageUploadButton}
+                            style={[styles.imageUploadButton, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
                             onPress={async () => {
                                 const result = await ImagePicker.launchImageLibraryAsync({
                                     mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -220,8 +226,8 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
                                 <Image source={{ uri: receiptImage }} style={styles.previewImage} />
                             ) : (
                                 <View style={styles.uploadPlaceholder}>
-                                    <MaterialIcons name="add-a-photo" size={32} color={COLORS.textGray} />
-                                    <Text style={styles.uploadText}>Fotoğraf Ekle</Text>
+                                    <MaterialIcons name="add-a-photo" size={32} color={theme.colors.subText} />
+                                    <Text style={[styles.uploadText, { color: theme.colors.subText }]}>Fotoğraf Ekle</Text>
                                 </View>
                             )}
                         </TouchableOpacity>
@@ -230,16 +236,16 @@ export const CreateExpenseModal = ({ visible, onClose, onSubmit, projects, defau
                                 style={styles.removeImageButton}
                                 onPress={() => setReceiptImage(null)}
                             >
-                                <Text style={styles.removeImageText}>Fotoğrafı Kaldır</Text>
+                                <Text style={[styles.removeImageText, { color: theme.colors.error }]}>Fotoğrafı Kaldır</Text>
                             </TouchableOpacity>
                         )}
                     </View>
 
                     <TouchableOpacity
-                        style={styles.submitButton}
+                        style={[styles.submitButton, { backgroundColor: theme.colors.primary }]}
                         onPress={handleSubmit}
                     >
-                        <Text style={styles.submitButtonText}>Kaydet</Text>
+                        <Text style={[styles.submitButtonText, { color: theme.colors.textInverse }]}>Kaydet</Text>
                     </TouchableOpacity>
                 </ScrollView>
             </View>
@@ -280,13 +286,11 @@ const styles = StyleSheet.create({
         }),
     },
     modalContent: {
-        backgroundColor: COLORS.cardDark,
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         padding: 24,
         maxHeight: '90%',
         borderWidth: 1,
-        borderColor: COLORS.cardBorder,
         // Safari iOS fix
         ...(Platform.OS === 'web' && {
             zIndex: 1000,
@@ -302,7 +306,6 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: COLORS.textLight,
     },
     formGroup: {
         marginBottom: 20,
@@ -310,17 +313,13 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '500',
-        color: COLORS.textGray,
         marginBottom: 8,
     },
     input: {
-        backgroundColor: COLORS.cardBorder,
         borderRadius: 12,
         padding: 16,
-        color: COLORS.textLight,
         fontSize: 16,
         borderWidth: 1,
-        borderColor: COLORS.cardBorder,
         // Web/Safari iOS fixes
         outlineStyle: 'none',
         ...(Platform.OS === 'web' && {
@@ -331,15 +330,12 @@ const styles = StyleSheet.create({
     dateSelector: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.cardBorder,
         borderRadius: 12,
         padding: 16,
         borderWidth: 1,
-        borderColor: COLORS.cardBorder,
         gap: 12
     },
     dateText: {
-        color: COLORS.textLight,
         fontSize: 16
     },
     textArea: {
@@ -357,25 +353,13 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 20,
-        backgroundColor: COLORS.cardBorder,
         borderWidth: 1,
-        borderColor: COLORS.cardBorder,
         gap: 8,
     },
-    categoryOptionSelected: {
-        backgroundColor: COLORS.primary,
-        borderColor: COLORS.primary,
-    },
     categoryOptionText: {
-        color: COLORS.textGray,
         fontWeight: '500',
     },
-    categoryOptionTextSelected: {
-        color: COLORS.backgroundDark,
-        fontWeight: 'bold',
-    },
     submitButton: {
-        backgroundColor: COLORS.primary,
         padding: 16,
         borderRadius: 12,
         alignItems: 'center',
@@ -384,13 +368,11 @@ const styles = StyleSheet.create({
     },
     imageUploadButton: {
         height: 150,
-        backgroundColor: COLORS.cardBorder,
         borderRadius: 12,
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: COLORS.cardBorder,
         borderStyle: 'dashed',
     },
     previewImage: {
@@ -402,7 +384,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     uploadText: {
-        color: COLORS.textGray,
         marginTop: 8,
         fontSize: 14,
     },
@@ -411,11 +392,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     removeImageText: {
-        color: COLORS.red500,
         fontSize: 14,
     },
     submitButtonText: {
-        color: COLORS.backgroundDark,
         fontSize: 16,
         fontWeight: 'bold',
     },

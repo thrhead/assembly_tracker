@@ -16,7 +16,7 @@ export default async function PerformanceReportPage(props: {
     const jobId = searchParams?.jobId || 'all';
     const category = searchParams?.category || 'all';
 
-    const from = fromStr ? new Date(fromStr) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const from = fromStr ? new Date(fromStr) : new Date(0);
     const to = toStr ? new Date(toStr) : new Date();
 
     // Set times to cover full range
@@ -27,7 +27,7 @@ export default async function PerformanceReportPage(props: {
         getJobStatusDistribution(from, to, jobStatus, jobId),
         getTeamPerformance(from, to, jobStatus, jobId),
         getReportStats(from, to),
-        getJobsListForFilter(),
+        getJobsListForFilter(jobStatus),
         getCategoriesForFilter()
     ]);
 
@@ -66,10 +66,10 @@ export default async function PerformanceReportPage(props: {
                     <JobDistributionChart data={jobData} />
                 </div>
             </div>
-            
+
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                 <div className="col-span-4">
-                   <Card>
+                <div className="col-span-4">
+                    <Card>
                         <CardHeader>
                             <CardTitle>Ekip Detayları</CardTitle>
                         </CardHeader>
@@ -88,7 +88,7 @@ export default async function PerformanceReportPage(props: {
                                 ))}
                             </div>
                         </CardContent>
-                   </Card>
+                    </Card>
                 </div>
             </div>
         </div>

@@ -4,13 +4,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../../constants/theme';
 import { CATEGORIES } from './ExpenseFilter';
 
-export const ExpenseList = ({ groupedExpenses, filteredExpensesCount }) => {
+export const ExpenseList = ({ groupedExpenses, filteredExpensesCount, theme }) => {
     const getStatusColor = (status) => {
         switch (status) {
-            case 'APPROVED': return COLORS.green500;
-            case 'PENDING': return COLORS.orange500;
-            case 'REJECTED': return COLORS.red500;
-            default: return COLORS.textGray;
+            case 'APPROVED': return theme.colors.success;
+            case 'PENDING': return theme.colors.warning;
+            case 'REJECTED': return theme.colors.error;
+            default: return theme.colors.subText;
         }
     };
 
@@ -23,10 +23,6 @@ export const ExpenseList = ({ groupedExpenses, filteredExpensesCount }) => {
         }
     };
 
-    const getIconBgColor = () => {
-        return 'rgba(148, 163, 184, 0.1)';
-    };
-
     const getCategoryIcon = (category) => {
         const cat = CATEGORIES.find(c => c.id === category);
         return cat ? cat.icon : 'attach-money';
@@ -37,19 +33,25 @@ export const ExpenseList = ({ groupedExpenses, filteredExpensesCount }) => {
             {Object.entries(groupedExpenses).map(([groupName, groupExpenses]) => (
                 groupExpenses.length > 0 && (
                     <View key={groupName}>
-                        <Text style={styles.dateHeader}>{groupName}</Text>
+                        <Text style={[styles.dateHeader, { color: theme.colors.subText }]}>{groupName}</Text>
                         {groupExpenses.map((expense) => (
-                            <View key={expense.id} style={styles.expenseCard}>
-                                <View style={[styles.expenseIconCircle, { backgroundColor: getIconBgColor() }]}>
-                                    <MaterialIcons name={getCategoryIcon(expense.category)} size={24} color={COLORS.textLight} />
+                            <View key={expense.id} style={[
+                                styles.expenseCard,
+                                { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }
+                            ]}>
+                                <View style={[
+                                    styles.expenseIconCircle,
+                                    { backgroundColor: theme.colors.background }
+                                ]}>
+                                    <MaterialIcons name={getCategoryIcon(expense.category)} size={24} color={theme.colors.text} />
                                 </View>
                                 <View style={styles.expenseInfo}>
-                                    <Text style={styles.expenseTitle}>{expense.description || expense.category}</Text>
-                                    <Text style={styles.expenseDate}>{new Date(expense.date).toLocaleDateString('tr-TR')}</Text>
-                                    {expense.job?.title && <Text style={{ fontSize: 12, color: COLORS.textGray }}>{expense.job.title}</Text>}
+                                    <Text style={[styles.expenseTitle, { color: theme.colors.text }]}>{expense.description || expense.category}</Text>
+                                    <Text style={[styles.expenseDate, { color: theme.colors.subText }]}>{new Date(expense.date).toLocaleDateString('tr-TR')}</Text>
+                                    {expense.job?.title && <Text style={{ fontSize: 12, color: theme.colors.subText }}>{expense.job.title}</Text>}
                                 </View>
                                 <View style={styles.expenseAmountContainer}>
-                                    <Text style={styles.expenseAmount}>₺{expense.amount}</Text>
+                                    <Text style={[styles.expenseAmount, { color: theme.colors.text }]}>₺{expense.amount}</Text>
                                     <View style={styles.statusContainer}>
                                         <View style={[styles.statusDot, { backgroundColor: getStatusColor(expense.status) }]} />
                                         <Text style={[styles.statusText, { color: getStatusColor(expense.status) }]}>
@@ -63,7 +65,7 @@ export const ExpenseList = ({ groupedExpenses, filteredExpensesCount }) => {
                 )
             ))}
             {filteredExpensesCount === 0 && (
-                <Text style={styles.emptyText}>Masraf bulunamadı.</Text>
+                <Text style={[styles.emptyText, { color: theme.colors.subText }]}>Masraf bulunamadı.</Text>
             )}
         </View>
     );

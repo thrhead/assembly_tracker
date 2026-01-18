@@ -3,35 +3,35 @@ import { ScrollView, StyleSheet } from 'react-native';
 import StatCard from '../StatCard';
 import { COLORS } from '../../constants/theme';
 
-const StatsSummary = ({ stats }) => {
+const StatsSummary = ({ stats, theme }) => {
     return (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.statsContainer}>
             <StatCard
                 label="Toplam Gelir"
                 value={`₺${stats.totalRevenue.toLocaleString()}`}
                 icon="attach-money"
-                iconColor={COLORS.green500}
+                iconColor={theme.colors.success}
                 style={styles.statCard}
             />
             <StatCard
                 label="Aktif İşler"
                 value={stats.active.toString()}
                 icon="work"
-                iconColor={COLORS.blue500}
+                iconColor={theme.colors.primary}
                 style={styles.statCard}
             />
             <StatCard
                 label="Tamamlanan"
                 value={stats.completed.toString()}
                 icon="check-circle"
-                iconColor={COLORS.primary}
+                iconColor={theme.colors.secondary}
                 style={styles.statCard}
             />
             <StatCard
                 label="Bekleyen"
                 value={stats.pending.toString()}
                 icon="pending"
-                iconColor={COLORS.amber500}
+                iconColor={theme.colors.warning}
                 style={styles.statCard}
             />
         </ScrollView>

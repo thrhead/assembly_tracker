@@ -25,14 +25,27 @@ import {
 import { PlusIcon, Loader2Icon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { createUserAction } from '@/lib/actions/users'
+import { updateUserAction } from '@/lib/actions/users'
+import { Switch } from "@/components/ui/switch"
 
-type FormData = z.infer<typeof registerSchema>
+// Schema for editing (password optional)
+const userEditSchema = registerSchema.extend({
+  password: z.string().optional().or(z.literal('')),
+  isActive: z.boolean().optional(),
+})
 
-export function UserDialog() {
+type FormData = z.infer<typeof userEditSchema>
+
+interface UserDialogProps {
+  user?: any
+  trigger?: React.ReactNode
+}
+
+export function UserDialog({ user, trigger }: UserDialogProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const isEditing = !!user
 
   const {
     register,
@@ -40,25 +53,47 @@ export function UserDialog() {
     formState: { errors },
     reset,
     setValue,
+    watch,
   } = useForm<FormData>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      role: 'WORKER'
+    resolver: zodResolver(isEditing ? userEditSchema : registerSchema),
+    defaultValues: user ? {
+      name: user.name || '',
+      email: user.email || '',
+      phone: user.phone || '',
+      role: user.role || 'WORKER',
+      isActive: user.isActive,
+      password: ''
+    } : {
+      role: 'WORKER',
+      isActive: true
     }
   })
+
+  // Watch role to conditionally show fields if needed, or ensuring value updates
+  const currentRole = watch('role')
+  const currentStatus = watch('isActive')
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
     try {
-      await createUserAction(data)
+      if (isEditing) {
+        await updateUserAction({
+          id: user.id,
+          ...data,
+          password: data.password || undefined
+        })
+        toast.success('Kullanıcı güncellendi')
+      } else {
+        await createUserAction(data as any)
+        toast.success('Kullanıcı başarıyla oluşturuldu')
+      }
 
-      toast.success('Kullanıcı başarıyla oluşturuldu')
       setOpen(false)
-      reset()
+      if (!isEditing) reset()
       router.refresh()
     } catch (error: any) {
       console.error(error)
-      toast.error(error.message || 'Kullanıcı oluşturulurken bir hata oluştu')
+      toast.error(error.message || 'Bir hata oluştu')
     } finally {
       setIsLoading(false)
     }
@@ -67,14 +102,16 @@ export function UserDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          <PlusIcon className="h-4 w-4" />
-          Yeni Kullanıcı
-        </Button>
+        {trigger || (
+          <Button className="gap-2">
+            <PlusIcon className="h-4 w-4" />
+            Yeni Kullanıcı
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Yeni Kullanıcı Ekle</DialogTitle>
+          <DialogTitle>{isEditing ? 'Kullanıcı Düzenle' : 'Yeni Kullanıcı Ekle'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <div className="space-y-2">
@@ -94,7 +131,7 @@ export function UserDialog() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Şifre</Label>
+            <Label htmlFor="password">Şifre {isEditing && '(Değiştirmek istemiyorsanız boş bırakın)'}</Label>
             <Input id="password" type="password" {...register('password')} />
             {errors.password && (
               <p className="text-sm text-red-500">{errors.password.message}</p>
@@ -111,7 +148,7 @@ export function UserDialog() {
 
           <div className="space-y-2">
             <Label htmlFor="role">Rol</Label>
-            <Select onValueChange={(val) => setValue('role', val as any)} defaultValue="WORKER">
+            <Select onValueChange={(val) => setValue('role', val as any)} defaultValue={user?.role || "WORKER"}>
               <SelectTrigger>
                 <SelectValue placeholder="Rol seçiniz" />
               </SelectTrigger>
@@ -128,13 +165,28 @@ export function UserDialog() {
             )}
           </div>
 
+          {isEditing && (
+            <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+              <div className="space-y-0.5">
+                <Label>Hesap Durumu</Label>
+                <div className="text-sm text-muted-foreground">
+                  {currentStatus ? 'Aktif' : 'Pasif/Engelli'}
+                </div>
+              </div>
+              <Switch
+                checked={currentStatus}
+                onCheckedChange={(checked) => setValue('isActive', checked)}
+              />
+            </div>
+          )}
+
           <div className="flex justify-end gap-3 mt-6">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               İptal
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-              Oluştur
+              {isEditing ? 'Güncelle' : 'Oluştur'}
             </Button>
           </div>
         </form>

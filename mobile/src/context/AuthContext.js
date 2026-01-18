@@ -62,12 +62,22 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            await authService.logout();
-        } catch (error) {
-            console.error('Logout error:', error);
-        } finally {
+            // 1. Set user to null immediately to update UI
+            setUser(null);
+
+            // 2. Clear local storage immediately
             await AsyncStorage.removeItem('user');
+
+            // 3. Notify server (Fire and forget - don't await to avoid blocking)
+            // We use a separate async function to handle the server call to avoid blocking the UI flow
+            // caused by potential network timeouts.
+            authService.logout().catch(err => console.log('Server logout failed (non-critical):', err));
+
+            // 4. Clear token last (after firing server request, though authService.logout internally clears it too)
             await clearAuthToken();
+        } catch (error) {
+            console.error('Local logout error:', error);
+            // Ensure state is cleared even if something above fails
             setUser(null);
         }
     };

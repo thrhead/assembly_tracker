@@ -1,42 +1,55 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
+// import { COLORS } from '../../constants/theme'; // Removed
 
-const ApprovalCard = ({ item, onApprove, onReject }) => {
+const ApprovalCard = ({ item, onApprove, onReject, theme: propTheme }) => {
+    // Ideally use context if prop not passed, or rely on prop content.
+    // Since we passed theme prop from ApprovalsScreen, we can use it, or fallback to hook.
+    const { theme: contextTheme } = useTheme();
+    const theme = propTheme || contextTheme;
+
+    const cardBg = theme.colors.card;
+    const border = theme.colors.border;
+    const textMain = theme.colors.text;
+    const textSub = theme.colors.subText;
+    const primary = theme.colors.primary;
+    const error = theme.colors.error;
+
     return (
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: cardBg, borderColor: border }]}>
             <View style={styles.cardHeader}>
-                <View style={[styles.typeBadge, { backgroundColor: item.type === 'JOB' ? 'rgba(57, 255, 20, 0.1)' : 'rgba(255, 165, 0, 0.1)' }]}>
+                <View style={[styles.typeBadge, { backgroundColor: item.type === 'JOB' ? primary + '15' : 'rgba(255, 165, 0, 0.1)' }]}>
                     <MaterialIcons
                         name={item.type === 'JOB' ? 'work' : 'receipt'}
                         size={16}
-                        color={item.type === 'JOB' ? COLORS.primary : '#FFA500'}
+                        color={item.type === 'JOB' ? primary : '#FFA500'}
                     />
-                    <Text style={[styles.typeText, { color: item.type === 'JOB' ? COLORS.primary : '#FFA500' }]}>
+                    <Text style={[styles.typeText, { color: item.type === 'JOB' ? primary : '#FFA500' }]}>
                         {item.type === 'JOB' ? 'İŞ ONAYI' : 'MASRAF ONAYI'}
                     </Text>
                 </View>
-                <Text style={styles.dateText}>{item.date}</Text>
+                <Text style={[styles.dateText, { color: textSub }]}>{item.date}</Text>
             </View>
 
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.requester}>Talep Eden: {item.requester}</Text>
+            <Text style={[styles.title, { color: textMain }]}>{item.title}</Text>
+            <Text style={[styles.requester, { color: textSub }]}>Talep Eden: {item.requester}</Text>
 
             <View style={styles.actions}>
                 <TouchableOpacity
-                    style={[styles.actionButton, styles.rejectButton]}
+                    style={[styles.actionButton, styles.rejectButton, { borderColor: error + '4D', backgroundColor: error + '15' }]}
                     onPress={() => onReject(item)}
                 >
-                    <MaterialIcons name="close" size={20} color={COLORS.red500} />
-                    <Text style={styles.rejectText}>Reddet</Text>
+                    <MaterialIcons name="close" size={20} color={error} />
+                    <Text style={[styles.rejectText, { color: error }]}>Reddet</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.actionButton, styles.approveButton]}
+                    style={[styles.actionButton, styles.approveButton, { backgroundColor: primary }]}
                     onPress={() => onApprove(item)}
                 >
-                    <MaterialIcons name="check" size={20} color={COLORS.black} />
-                    <Text style={styles.approveText}>Onayla</Text>
+                    <MaterialIcons name="check" size={20} color={theme.colors.textInverse} />
+                    <Text style={[styles.approveText, { color: theme.colors.textInverse }]}>Onayla</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -45,12 +58,10 @@ const ApprovalCard = ({ item, onApprove, onReject }) => {
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: COLORS.cardDark,
         borderRadius: 12,
         padding: 16,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: COLORS.slate800,
     },
     cardHeader: {
         flexDirection: 'row',
@@ -71,17 +82,14 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     dateText: {
-        color: COLORS.slate400,
         fontSize: 12,
     },
     title: {
-        color: COLORS.textLight,
         fontSize: 16,
         fontWeight: 'bold',
         marginBottom: 4,
     },
     requester: {
-        color: COLORS.slate400,
         fontSize: 14,
         marginBottom: 16,
     },
@@ -99,19 +107,14 @@ const styles = StyleSheet.create({
         gap: 8,
     },
     rejectButton: {
-        backgroundColor: 'rgba(255, 68, 68, 0.1)',
         borderWidth: 1,
-        borderColor: 'rgba(255, 68, 68, 0.3)',
     },
     approveButton: {
-        backgroundColor: COLORS.primary,
     },
     rejectText: {
-        color: COLORS.red500,
         fontWeight: '600',
     },
     approveText: {
-        color: COLORS.black,
         fontWeight: 'bold',
     },
 });

@@ -23,18 +23,15 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
 import jobService from '../../services/job.service';
 import costService from '../../services/cost.service';
-import authService from '../../services/auth.service';
-import SuccessModal from '../../components/SuccessModal';
-import ConfirmationModal from '../../components/ConfirmationModal';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import JobInfoCard from '../../components/job-detail/JobInfoCard';
 import CostSection from '../../components/job-detail/CostSection';
+import SuccessModal from '../../components/SuccessModal';
+import ConfirmationModal from '../../components/ConfirmationModal';
 import { WebInput } from '../../components/common/WebInput';
-
-import { COLORS } from '../../constants/theme';
-
-
-
+import GlassCard from '../../components/ui/GlassCard';
+import { COLORS } from '../../constants/theme'; // Re-imported for StyleSheet fallback
 
 const AppModal = ({ visible, children, ...props }) => {
     if (Platform.OS === 'web') {
@@ -73,8 +70,10 @@ const PageWrapper = ({ children }) => {
 export default function JobDetailScreen({ route, navigation }) {
     const { jobId } = route.params;
     const { user } = useAuth();
+    const { theme, isDark } = useTheme(); // Use Theme
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
+    // ... states
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
     const [uploading, setUploading] = useState(false);
@@ -114,8 +113,6 @@ export default function JobDetailScreen({ route, navigation }) {
         loadJobDetails();
     }, [jobId]);
 
-    // Removed checkUserRole as we use useAuth now
-
     const loadJobDetails = async () => {
         try {
             setLoading(true);
@@ -136,6 +133,8 @@ export default function JobDetailScreen({ route, navigation }) {
             setLoading(false);
         }
     };
+
+
 
     const handleSubstepToggle = async (stepId, substepId, currentStatus) => {
         try {
@@ -483,7 +482,7 @@ export default function JobDetailScreen({ route, navigation }) {
     if (loading) {
         return (
             <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
+                <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
         );
     }
@@ -491,19 +490,19 @@ export default function JobDetailScreen({ route, navigation }) {
     if (!job) {
         return (
             <View style={styles.centerContainer}>
-                <Text style={{ color: COLORS.textLight }}>İş bulunamadı.</Text>
+                <Text style={{ color: theme.colors.text }}>İş bulunamadı.</Text>
             </View>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={COLORS.backgroundDark} />
-            <View style={styles.header}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+            <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
+            <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
+                    <MaterialIcons name="arrow-back" size={24} color={theme.colors.primary} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>İş Detayı</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>İş Detayı</Text>
                 <View style={{ width: 24 }} />
             </View>
 
@@ -514,33 +513,33 @@ export default function JobDetailScreen({ route, navigation }) {
 
 
                     {/* Assignments Section */}
-                    <Text style={styles.sectionTitle}>Ekip ve Atamalar</Text>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Ekip ve Atamalar</Text>
                     {job.assignments && job.assignments.length > 0 ? (
                         job.assignments.map((assignment, index) => (
-                            <View key={index} style={styles.card}>
+                            <GlassCard key={index} style={styles.card}>
                                 <View style={styles.infoRow}>
-                                    <MaterialIcons name="group" size={20} color={COLORS.primary} />
+                                    <MaterialIcons name="group" size={20} color={theme.colors.primary} />
                                     <View style={{ marginLeft: 8 }}>
                                         {assignment.team ? (
                                             <>
-                                                <Text style={[styles.infoText, { fontWeight: 'bold' }]}>{assignment.team.name}</Text>
+                                                <Text style={[styles.infoText, { fontWeight: 'bold', color: theme.colors.text }]}>{assignment.team.name}</Text>
                                                 {assignment.team.members && assignment.team.members.length > 0 && (
-                                                    <Text style={[styles.infoText, { fontSize: 12, color: COLORS.textGray, marginTop: 4 }]}>
+                                                    <Text style={[styles.infoText, { fontSize: 12, color: theme.colors.subText, marginTop: 4 }]}>
                                                         {assignment.team.members.map(m => m.user?.name).filter(Boolean).join(', ')}
                                                     </Text>
                                                 )}
                                             </>
                                         ) : (
-                                            <Text style={styles.infoText}>{assignment.worker?.name}</Text>
+                                            <Text style={[styles.infoText, { color: theme.colors.text }]}>{assignment.worker?.name}</Text>
                                         )}
                                     </View>
                                 </View>
-                            </View>
+                            </GlassCard>
                         ))
                     ) : (
-                        <View style={styles.card}>
-                            <Text style={styles.infoText}>Atama bulunamadı.</Text>
-                        </View>
+                        <GlassCard style={styles.card}>
+                            <Text style={[styles.infoText, { color: theme.colors.subText }]}>Atama bulunamadı.</Text>
+                        </GlassCard>
                     )}
 
                     {/* Steps Section */}
@@ -549,22 +548,22 @@ export default function JobDetailScreen({ route, navigation }) {
                         const isLocked = index > 0 && !job.steps[index - 1].isCompleted;
 
                         return (
-                            <View key={step.id} style={[styles.stepCard, isLocked && styles.lockedCard]}>
+                            <GlassCard key={step.id} style={[styles.stepCard, isLocked && styles.lockedCard]} theme={theme}>
                                 <View style={styles.stepHeader}>
                                     <View style={[styles.checkbox, step.isCompleted && styles.checkedBox]}>
-                                        {step.isCompleted && <MaterialIcons name="check" size={16} color={COLORS.black} />}
+                                        {step.isCompleted && <MaterialIcons name="check" size={16} color="#FFFFFF" />}
                                     </View>
                                     <View style={{ flex: 1 }}>
-                                        <Text style={[styles.stepTitle, step.isCompleted && styles.completedText]}>
+                                        <Text style={[styles.stepTitle, step.isCompleted && styles.completedText, { color: theme.colors.text }]}>
                                             {step.title || step.name}
                                         </Text>
                                         {step.startedAt && (
-                                            <Text style={styles.dateText}>
+                                            <Text style={[styles.dateText, { color: theme.colors.subText }]}>
                                                 Başladı: {formatDate(step.startedAt)}
                                             </Text>
                                         )}
                                         {step.completedAt && (
-                                            <Text style={styles.dateText}>
+                                            <Text style={[styles.dateText, { color: theme.colors.subText }]}>
                                                 Bitti: {formatDate(step.completedAt)}
                                             </Text>
                                         )}
@@ -580,11 +579,11 @@ export default function JobDetailScreen({ route, navigation }) {
                                                 </View>
                                             )}
                                     </View>
-                                    {isLocked && <MaterialIcons name="lock" size={20} color={COLORS.textGray} />}
+                                    {isLocked && <MaterialIcons name="lock" size={20} color={theme.colors.subText} />}
                                 </View>
 
                                 {step.approvalStatus === 'REJECTED' && step.rejectionReason && (
-                                    <Text style={styles.rejectionReasonText}>Red Sebebi: {step.rejectionReason}</Text>
+                                    <Text style={[styles.rejectionReasonText, { color: theme.colors.error }]}>Red Sebebi: {step.rejectionReason}</Text>
                                 )}
 
                                 {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (step.isCompleted || step.approvalStatus !== 'PENDING') && (
@@ -614,19 +613,19 @@ export default function JobDetailScreen({ route, navigation }) {
                                             const canUpload = photoCount < 3 && substep.startedAt;
 
                                             return (
-                                                <View key={substep.id} style={[styles.substepWrapper, isSubstepLocked && styles.lockedCard]}>
+                                                <GlassCard key={substep.id} style={[styles.substepWrapper, isSubstepLocked && styles.lockedCard]} theme={theme}>
                                                     <View style={styles.substepRow}>
                                                         <View style={styles.substepInfo}>
-                                                            <Text style={[styles.substepText, substep.isCompleted && styles.completedText]}>
+                                                            <Text style={[styles.substepText, substep.isCompleted && styles.completedText, { color: theme.colors.text }]}>
                                                                 {substep.title || substep.name}
                                                             </Text>
                                                             {substep.startedAt && (
-                                                                <Text style={styles.dateText}>
+                                                                <Text style={[styles.dateText, { color: theme.colors.subText }]}>
                                                                     Başladı: {formatDate(substep.startedAt)}
                                                                 </Text>
                                                             )}
                                                             {substep.completedAt && (
-                                                                <Text style={styles.dateText}>
+                                                                <Text style={[styles.dateText, { color: theme.colors.subText }]}>
                                                                     Bitti: {formatDate(substep.completedAt)}
                                                                 </Text>
                                                             )}
@@ -644,7 +643,7 @@ export default function JobDetailScreen({ route, navigation }) {
                                                                     </Text>
                                                                 </View>
                                                             )}
-                                                            {isSubstepLocked && <Text style={styles.lockedText}>(Önceki adımı tamamlayın)</Text>}
+                                                            {isSubstepLocked && <Text style={[styles.lockedText, { color: theme.colors.subText }]}>(Önceki adımı tamamlayın)</Text>}
                                                         </View>
 
                                                         {!['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (
@@ -694,13 +693,13 @@ export default function JobDetailScreen({ route, navigation }) {
                                                                     style={[styles.miniActionButton, styles.rejectButton]}
                                                                     onPress={() => openSubstepRejectionModal(substep.id)}
                                                                 >
-                                                                    <MaterialIcons name="close" size={16} color={COLORS.white} />
+                                                                    <MaterialIcons name="close" size={16} color={theme.colors.textInverse || '#fff'} />
                                                                 </TouchableOpacity>
                                                                 <TouchableOpacity
                                                                     style={[styles.miniActionButton, styles.approveButton]}
                                                                     onPress={() => handleApproveSubstep(substep.id)}
                                                                 >
-                                                                    <MaterialIcons name="check" size={16} color={COLORS.white} />
+                                                                    <MaterialIcons name="check" size={16} color={theme.colors.textInverse || '#fff'} />
                                                                 </TouchableOpacity>
                                                             </View>
                                                         )}
@@ -708,7 +707,7 @@ export default function JobDetailScreen({ route, navigation }) {
 
                                                     {!isSubstepLocked && !substep.isCompleted && !['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (
                                                         <View style={styles.stepPhotoContainer}>
-                                                            <Text style={styles.photoCountText}>
+                                                            <Text style={[styles.photoCountText, { color: theme.colors.subText }]}>
                                                                 Fotoğraflar ({photoCount}/3)
                                                             </Text>
                                                             {canUpload ? (
@@ -717,17 +716,17 @@ export default function JobDetailScreen({ route, navigation }) {
                                                                         style={styles.photoIconBtn}
                                                                         onPress={() => pickImage(step.id, substep.id, 'camera')}
                                                                     >
-                                                                        <MaterialIcons name="camera-alt" size={20} color={COLORS.primary} />
+                                                                        <MaterialIcons name="camera-alt" size={20} color={theme.colors.primary} />
                                                                     </TouchableOpacity>
                                                                     <TouchableOpacity
                                                                         style={styles.photoIconBtn}
                                                                         onPress={() => pickImage(step.id, substep.id, 'gallery')}
                                                                     >
-                                                                        <MaterialIcons name="photo-library" size={20} color={COLORS.primary} />
+                                                                        <MaterialIcons name="photo-library" size={20} color={theme.colors.primary} />
                                                                     </TouchableOpacity>
                                                                 </View>
                                                             ) : (
-                                                                !substep.startedAt && <Text style={styles.lockedText}>Fotoğraf yüklemek için başlayın</Text>
+                                                                !substep.startedAt && <Text style={[styles.lockedText, { color: theme.colors.subText }]}>Fotoğraf yüklemek için başlayın</Text>
                                                             )}
                                                         </View>
                                                     )}
@@ -741,7 +740,7 @@ export default function JobDetailScreen({ route, navigation }) {
                                                             ))}
                                                         </ScrollView>
                                                     )}
-                                                </View>
+                                                </GlassCard>
                                             );
                                         })}
                                     </View>
@@ -790,7 +789,7 @@ export default function JobDetailScreen({ route, navigation }) {
 
                                         {!step.isCompleted && (
                                             <View style={styles.stepPhotoContainer}>
-                                                <Text style={styles.photoCountText}>
+                                                <Text style={[styles.photoCountText, { color: theme.colors.subText }]}>
                                                     Fotoğraflar ({step.photos?.length || 0}/3)
                                                 </Text>
                                                 {step.startedAt && (step.photos?.length || 0) < 3 ? (
@@ -799,17 +798,17 @@ export default function JobDetailScreen({ route, navigation }) {
                                                             style={styles.photoIconBtn}
                                                             onPress={() => pickImage(step.id, null, 'camera')}
                                                         >
-                                                            <MaterialIcons name="camera-alt" size={20} color={COLORS.primary} />
+                                                            <MaterialIcons name="camera-alt" size={20} color={theme.colors.primary} />
                                                         </TouchableOpacity>
                                                         <TouchableOpacity
                                                             style={styles.photoIconBtn}
                                                             onPress={() => pickImage(step.id, null, 'gallery')}
                                                         >
-                                                            <MaterialIcons name="photo-library" size={20} color={COLORS.primary} />
+                                                            <MaterialIcons name="photo-library" size={20} color={theme.colors.primary} />
                                                         </TouchableOpacity>
                                                     </View>
                                                 ) : (
-                                                    !step.startedAt && <Text style={styles.lockedText}>Fotoğraf yüklemek için başlayın</Text>
+                                                    !step.startedAt && <Text style={[styles.lockedText, { color: theme.colors.subText }]}>Fotoğraf yüklemek için başlayın</Text>
                                                 )}
                                             </View>
                                         )}
@@ -825,8 +824,9 @@ export default function JobDetailScreen({ route, navigation }) {
                                         )}
                                     </View>
                                 )}
-                            </View>
+                            </GlassCard>
                         );
+
                     })}
 
                     {/* Costs Section */}
@@ -841,18 +841,18 @@ export default function JobDetailScreen({ route, navigation }) {
             </PageWrapper>
 
             {/* Footer Actions */}
-            <View style={styles.footer}>
+            <View style={[styles.footer, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
                 {!['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) ? (
                     job.status === 'PENDING' ? (
                         <TouchableOpacity
-                            style={styles.mainCompleteButton}
+                            style={[styles.mainCompleteButton, { backgroundColor: theme.colors.primary }]}
                             onPress={handleStartJob}
                         >
-                            <Text style={styles.mainCompleteButtonText}>İşi Başlat</Text>
+                            <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>İşi Başlat</Text>
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity
-                            style={[styles.mainCompleteButton, (job.status === 'COMPLETED' || completing) && styles.disabledButton]}
+                            style={[styles.mainCompleteButton, (job.status === 'COMPLETED' || completing) && styles.disabledButton, { backgroundColor: (job.status === 'COMPLETED' || completing) ? theme.colors.disabled : theme.colors.primary }]}
                             onPress={() => {
                                 console.log('[MOBILE] Complete Job button pressed');
                                 handleCompleteJob();
@@ -860,9 +860,9 @@ export default function JobDetailScreen({ route, navigation }) {
                             disabled={job.status === 'COMPLETED' || completing}
                         >
                             {completing ? (
-                                <ActivityIndicator color={COLORS.black} />
+                                <ActivityIndicator color={theme.colors.textInverse} />
                             ) : (
-                                <Text style={styles.mainCompleteButtonText}>
+                                <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>
                                     {job.status === 'COMPLETED' ? "İş Tamamlandı" : "İşi Tamamla"}
                                 </Text>
                             )}
@@ -872,11 +872,11 @@ export default function JobDetailScreen({ route, navigation }) {
                     <View style={{ width: '100%', flexDirection: 'row', gap: 12 }}>
                         <View style={{ flex: 1 }}>
                             <View style={styles.acceptanceStatusContainer}>
-                                <Text style={styles.acceptanceStatusLabel}>Durum:</Text>
+                                <Text style={[styles.acceptanceStatusLabel, { color: theme.colors.text }]}>Durum:</Text>
                                 <Text style={[
                                     styles.acceptanceStatusValue,
-                                    job.acceptanceStatus === 'ACCEPTED' ? styles.statusApproved :
-                                        job.acceptanceStatus === 'REJECTED' ? styles.statusRejected : styles.statusPending
+                                    job.acceptanceStatus === 'ACCEPTED' ? { color: theme.colors.success } :
+                                        job.acceptanceStatus === 'REJECTED' ? { color: theme.colors.error } : { color: theme.colors.warning }
                                 ]}>
                                     {job.acceptanceStatus === 'ACCEPTED' ? 'KABUL' :
                                         job.acceptanceStatus === 'REJECTED' ? 'RED' : 'BEKLİYOR'}
@@ -884,20 +884,20 @@ export default function JobDetailScreen({ route, navigation }) {
                             </View>
                             <View style={{ flexDirection: 'row', gap: 8 }}>
                                 <TouchableOpacity
-                                    style={[styles.mainCompleteButton, styles.rejectButton, { flex: 1, padding: 12 }]}
+                                    style={[styles.mainCompleteButton, styles.rejectButton, { flex: 1, padding: 12, backgroundColor: theme.colors.error }]}
                                     onPress={() => {
                                         setSelectedStepId(null);
                                         setSelectedSubstepId(null);
                                         setRejectionModalVisible(true);
                                     }}
                                 >
-                                    <Text style={styles.mainCompleteButtonText}>Reddet</Text>
+                                    <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>Reddet</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
-                                    style={[styles.mainCompleteButton, styles.acceptJobButton, { flex: 1, padding: 12 }]}
+                                    style={[styles.mainCompleteButton, styles.acceptJobButton, { flex: 1, padding: 12, backgroundColor: theme.colors.success }]}
                                     onPress={handleAcceptJob}
                                 >
-                                    <Text style={styles.mainCompleteButtonText}>Kabul Et</Text>
+                                    <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>Kabul Et</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -1101,37 +1101,31 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: COLORS.backgroundDark,
+        // backgroundColor handled by theme view container
     },
     header: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: 16,
-        backgroundColor: COLORS.backgroundDark,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.cardBorder,
     },
     headerTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: COLORS.textLight,
     },
     contentContainer: {
         padding: 16,
     },
     card: {
-        backgroundColor: COLORS.cardDark,
         borderRadius: 12,
         padding: 16,
         marginBottom: 16,
-        borderWidth: 1,
-        borderColor: COLORS.cardBorder,
+        // Background and border handled by GlassCard/Theme
     },
     jobTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: COLORS.textLight,
         marginBottom: 12,
     },
     infoRow: {
@@ -1140,12 +1134,10 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     infoText: {
-        color: COLORS.textGray,
         marginLeft: 8,
         fontSize: 14,
     },
     description: {
-        color: COLORS.textGray,
         fontSize: 14,
         lineHeight: 20,
         marginTop: 8,
@@ -1153,17 +1145,14 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.textLight,
         marginBottom: 12,
         marginTop: 8,
     },
     stepCard: {
-        backgroundColor: COLORS.cardDark,
         borderRadius: 12,
         padding: 16,
         marginBottom: 16,
-        borderWidth: 1,
-        borderColor: COLORS.cardBorder,
+        // Background and border handled by GlassCard/Theme
     },
     lockedCard: {
         opacity: 0.5,
@@ -1189,7 +1178,6 @@ const styles = StyleSheet.create({
     stepTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: COLORS.textLight,
     },
     completedText: {
         color: COLORS.primary,
@@ -1213,7 +1201,6 @@ const styles = StyleSheet.create({
     },
     substepText: {
         fontSize: 15,
-        color: COLORS.textLight,
         marginBottom: 4,
     },
     actionButtons: {

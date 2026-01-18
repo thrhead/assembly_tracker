@@ -164,3 +164,56 @@ Please make sure your database server is running at `ep-wispy-flower-agb0mk6f-po
 2026-01-15T20:25:49.963Z - Worker Jobs API: Session Found (User: worker@montaj.com, Role: WORKER)
 2026-01-15T20:25:49.965Z - Worker Jobs API: Querying DB for user cmitsq0ab0002k263h6z1xneb
 2026-01-15T20:25:51.559Z - Worker Jobs API: Found 8 jobs
+2026-01-17T13:36:08.789Z - Mobile login request received (POST /api/mobile/login)
+2026-01-17T13:36:08.814Z - Login attempt for email: ali@montaj.com
+2026-01-17T13:36:09.074Z - Login success: ali@montaj.com (Role: WORKER)
+2026-01-17T13:36:10.175Z - Worker Jobs API: GET Request received
+2026-01-17T13:36:10.178Z - Worker Jobs API: Session Found (User: ali@montaj.com, Role: WORKER)
+2026-01-17T13:36:10.180Z - Worker Jobs API: Querying DB for user cmitu13ou00076kj82s96jl3l
+2026-01-17T13:36:10.713Z - Worker Jobs API: Found 6 jobs
+2026-01-17T13:44:24.089Z - Worker Jobs API: GET Request received
+2026-01-17T13:44:24.093Z - Worker Jobs API: Session Found (User: ali@montaj.com, Role: WORKER)
+2026-01-17T13:44:24.095Z - Worker Jobs API: Querying DB for user cmitu13ou00076kj82s96jl3l
+2026-01-17T13:44:25.862Z - Worker Jobs API: Found 6 jobs
+2026-01-17T13:46:17.317Z - Mobile login request received (POST /api/mobile/login)
+2026-01-17T13:46:17.319Z - Login attempt for email: ali@montaj.com
+2026-01-17T13:46:17.584Z - Login success: ali@montaj.com (Role: WORKER)
+2026-01-17T13:46:18.162Z - Worker Jobs API: GET Request received
+2026-01-17T13:46:18.167Z - Worker Jobs API: Session Found (User: ali@montaj.com, Role: WORKER)
+2026-01-17T13:46:18.169Z - Worker Jobs API: Querying DB for user cmitu13ou00076kj82s96jl3l
+2026-01-17T13:46:18.439Z - Worker Jobs API: Found 6 jobs
+2026-01-18T14:12:25.761Z - Worker Jobs API: GET Request received
+2026-01-18T14:12:25.783Z - Worker Jobs API: Session Found (User: ali@montaj.com, Role: WORKER)
+2026-01-18T14:12:25.787Z - Worker Jobs API: Querying DB for user cmitu13ou00076kj82s96jl3l
+2026-01-18T14:12:26.466Z - Worker Jobs API: Found 6 jobs
+2026-01-18T14:13:12.950Z - Mobile login request received (POST /api/mobile/login)
+2026-01-18T14:13:12.957Z - Login attempt for email: ali@montaj.com
+2026-01-18T14:13:13.230Z - Login success: ali@montaj.com (Role: WORKER)
+2026-01-18T14:13:13.405Z - Worker Jobs API: GET Request received
+2026-01-18T14:13:13.412Z - Worker Jobs API: Session Found (User: ali@montaj.com, Role: WORKER)
+2026-01-18T14:13:13.414Z - Worker Jobs API: Querying DB for user cmitu13ou00076kj82s96jl3l
+2026-01-18T14:13:13.701Z - Worker Jobs API: Found 6 jobs
+2026-01-18T14:13:27.042Z - Worker Jobs API: GET Request received
+2026-01-18T14:13:27.083Z - Worker Jobs API: Session Found (User: ali@montaj.com, Role: WORKER)
+2026-01-18T14:13:27.085Z - Worker Jobs API: Querying DB for user cmitu13ou00076kj82s96jl3l
+2026-01-18T14:13:27.362Z - Worker Jobs API: Found 6 jobs
+2026-01-18T14:13:30.155Z - Worker Jobs API: GET Request received
+2026-01-18T14:13:30.158Z - Worker Jobs API: Session Found (User: ali@montaj.com, Role: WORKER)
+2026-01-18T14:13:30.160Z - Worker Jobs API: Querying DB for user cmitu13ou00076kj82s96jl3l
+2026-01-18T14:13:30.582Z - Worker Jobs API: Found 6 jobs
+2026-01-18T14:13:45.015Z - Worker Jobs API: GET Request received
+2026-01-18T14:13:46.537Z - Worker Jobs API: Session Found (User: ali@montaj.com, Role: WORKER)
+2026-01-18T14:13:46.539Z - Worker Jobs API: Querying DB for user cmitu13ou00076kj82s96jl3l
+2026-01-18T14:13:46.974Z - Worker Jobs API: Found 6 jobs
+2026-01-18T14:13:53.831Z - Worker Jobs API: GET Request received
+2026-01-18T14:13:53.873Z - Worker Jobs API: Session Found (User: ali@montaj.com, Role: WORKER)
+2026-01-18T14:13:53.875Z - Worker Jobs API: Querying DB for user cmitu13ou00076kj82s96jl3l
+2026-01-18T14:13:54.237Z - Worker Jobs API: Found 6 jobs
+2026-01-18T14:13:57.152Z - Worker Jobs API: GET Request received
+2026-01-18T14:13:59.925Z - Worker Jobs API: Session Found (User: ali@montaj.com, Role: WORKER)
+2026-01-18T14:13:59.928Z - Worker Jobs API: Querying DB for user cmitu13ou00076kj82s96jl3l
+2026-01-18T14:13:59.967Z - Worker Jobs API: GET Request received
+2026-01-18T14:13:59.969Z - Worker Jobs API: Session Found (User: ali@montaj.com, Role: WORKER)
+2026-01-18T14:13:59.971Z - Worker Jobs API: Querying DB for user cmitu13ou00076kj82s96jl3l
+2026-01-18T14:14:00.212Z - Worker Jobs API: Found 6 jobs
+2026-01-18T14:14:02.997Z - Worker Jobs API: Found 6 jobs

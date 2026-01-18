@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS } from '../../../constants/theme';
+// import { COLORS } from '../../../constants/theme'; // Removed legacy
 
 export const CATEGORIES = [
     { id: 'Tümü', icon: 'tune', label: 'Tümü' },
@@ -14,7 +14,7 @@ export const CATEGORIES = [
     { id: 'Diğer', icon: 'more-horiz', label: 'Diğer' },
 ];
 
-export const ProjectFilter = ({ projects, selectedProject, onSelect }) => {
+export const ProjectFilter = ({ projects, selectedProject, onSelect, theme }) => {
     return (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.projectFilterContainer}>
             {projects.map((project, index) => (
@@ -22,18 +22,20 @@ export const ProjectFilter = ({ projects, selectedProject, onSelect }) => {
                     key={project.id || index}
                     style={[
                         styles.projectChip,
-                        selectedProject?.id === project.id ? styles.projectChipSelected : styles.projectChipUnselected
+                        { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+                        selectedProject?.id === project.id ? { backgroundColor: theme.colors.primary + '20', borderColor: theme.colors.primary } : {}
                     ]}
                     onPress={() => onSelect(project)}
                 >
                     <Text style={[
                         styles.projectChipText,
-                        selectedProject?.id === project.id ? styles.projectChipTextSelected : styles.projectChipTextUnselected
+                        { color: theme.colors.subText },
+                        selectedProject?.id === project.id ? { color: theme.colors.primary } : {}
                     ]}>
                         {project.title}
                     </Text>
                     {selectedProject?.id === project.id && (
-                        <MaterialIcons name="expand-more" size={20} color={COLORS.primary} />
+                        <MaterialIcons name="expand-more" size={20} color={theme.colors.primary} />
                     )}
                 </TouchableOpacity>
             ))}
@@ -41,7 +43,7 @@ export const ProjectFilter = ({ projects, selectedProject, onSelect }) => {
     );
 };
 
-export const CategoryFilter = ({ selectedCategory, onSelect }) => {
+export const CategoryFilter = ({ selectedCategory, onSelect, theme }) => {
     return (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryFilterContainer}>
             {CATEGORIES.map((cat) => (
@@ -49,18 +51,20 @@ export const CategoryFilter = ({ selectedCategory, onSelect }) => {
                     key={cat.id}
                     style={[
                         styles.categoryChip,
-                        selectedCategory === cat.id ? styles.categoryChipSelected : styles.categoryChipUnselected
+                        { backgroundColor: theme.colors.surface },
+                        selectedCategory === cat.id ? { backgroundColor: theme.colors.primary + '20', borderColor: theme.colors.primary, borderWidth: 1 } : {}
                     ]}
                     onPress={() => onSelect(cat.id)}
                 >
                     <MaterialIcons
                         name={cat.icon}
                         size={20}
-                        color={selectedCategory === cat.id ? COLORS.primary : COLORS.textGray}
+                        color={selectedCategory === cat.id ? theme.colors.primary : theme.colors.subText}
                     />
                     <Text style={[
                         styles.categoryChipText,
-                        selectedCategory === cat.id ? styles.categoryChipTextSelected : styles.categoryChipTextUnselected
+                        { color: theme.colors.subText },
+                        selectedCategory === cat.id ? { color: theme.colors.primary } : {}
                     ]}>
                         {cat.label}
                     </Text>
@@ -84,24 +88,10 @@ const styles = StyleSheet.create({
         marginRight: 12,
         borderWidth: 1,
     },
-    projectChipSelected: {
-        backgroundColor: 'rgba(204, 255, 4, 0.1)',
-        borderColor: 'rgba(204, 255, 4, 0.4)',
-    },
-    projectChipUnselected: {
-        backgroundColor: COLORS.cardBorder,
-        borderColor: COLORS.cardBorder,
-    },
     projectChipText: {
         fontSize: 14,
         fontWeight: '500',
         marginRight: 4,
-    },
-    projectChipTextSelected: {
-        color: COLORS.primary,
-    },
-    projectChipTextUnselected: {
-        color: COLORS.textGray,
     },
     categoryFilterContainer: {
         paddingHorizontal: 16,
@@ -116,23 +106,9 @@ const styles = StyleSheet.create({
         borderRadius: 18,
         marginRight: 12,
     },
-    categoryChipSelected: {
-        backgroundColor: 'rgba(204, 255, 4, 0.1)',
-        borderWidth: 1,
-        borderColor: 'rgba(204, 255, 4, 0.4)',
-    },
-    categoryChipUnselected: {
-        backgroundColor: COLORS.cardBorder,
-    },
     categoryChipText: {
         fontSize: 14,
         fontWeight: '500',
         marginLeft: 8,
-    },
-    categoryChipTextSelected: {
-        color: COLORS.primary,
-    },
-    categoryChipTextUnselected: {
-        color: COLORS.textGray,
     },
 });

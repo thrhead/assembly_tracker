@@ -12,6 +12,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '../../components/CustomDateTimePicker';
 import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import CustomInput from '../../components/CustomInput';
 import CustomButton from '../../components/CustomButton';
 import customerService from '../../services/customer.service';
@@ -22,6 +23,7 @@ import SelectionModal from '../../components/admin/SelectionModal';
 import ChecklistManager from '../../components/admin/ChecklistManager';
 
 export default function CreateJobScreen({ navigation }) {
+    const { theme, isDark } = useTheme();
     const [customers, setCustomers] = useState([]);
     const [teams, setTeams] = useState([]);
 
@@ -78,13 +80,13 @@ export default function CreateJobScreen({ navigation }) {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <MaterialIcons name="arrow-back" size={24} color={COLORS.white} />
+                    <MaterialIcons name="arrow-back" size={24} color={theme.colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Yeni İş Oluştur</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Yeni İş Oluştur</Text>
                 <View style={{ width: 40 }} />
             </View>
 
@@ -100,64 +102,65 @@ export default function CreateJobScreen({ navigation }) {
                             value={formData.title}
                             onChangeText={(text) => setFormData({ ...formData, title: text })}
                             placeholder="Örn: Klima Montajı - A Blok"
+                            theme={theme}
                         />
 
-                        <Text style={styles.label}>Müşteri *</Text>
+                        <Text style={[styles.label, { color: theme.colors.subText }]}>Müşteri *</Text>
                         <TouchableOpacity
-                            style={styles.selector}
+                            style={[styles.selector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
                             onPress={() => setShowCustomerModal(true)}
                         >
-                            <Text style={[styles.selectorText, !formData.customerId && styles.placeholderText]}>
+                            <Text style={[styles.selectorText, { color: !formData.customerId ? theme.colors.subText : theme.colors.text }]}>
                                 {getCustomerLabel()}
                             </Text>
-                            <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
+                            <MaterialIcons name="arrow-drop-down" size={24} color={theme.colors.subText} />
                         </TouchableOpacity>
 
-                        <Text style={styles.label}>Atanacak Ekip</Text>
+                        <Text style={[styles.label, { color: theme.colors.subText }]}>Atanacak Ekip</Text>
                         <TouchableOpacity
-                            style={styles.selector}
+                            style={[styles.selector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
                             onPress={() => setShowTeamModal(true)}
                         >
-                            <Text style={[styles.selectorText, !formData.teamId && styles.placeholderText]}>
+                            <Text style={[styles.selectorText, { color: !formData.teamId ? theme.colors.subText : theme.colors.text }]}>
                                 {getTeamLabel()}
                             </Text>
-                            <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
+                            <MaterialIcons name="arrow-drop-down" size={24} color={theme.colors.subText} />
                         </TouchableOpacity>
 
-                        <Text style={styles.label}>Öncelik</Text>
+                        <Text style={[styles.label, { color: theme.colors.subText }]}>Öncelik</Text>
                         <TouchableOpacity
-                            style={styles.selector}
+                            style={[styles.selector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
                             onPress={() => setShowPriorityModal(true)}
                         >
-                            <Text style={styles.selectorText}>{formData.priority}</Text>
-                            <MaterialIcons name="arrow-drop-down" size={24} color={COLORS.slate400} />
+                            <Text style={[styles.selectorText, { color: theme.colors.text }]}>{formData.priority}</Text>
+                            <MaterialIcons name="arrow-drop-down" size={24} color={theme.colors.subText} />
                         </TouchableOpacity>
 
                         <View style={styles.row}>
                             <View style={styles.col}>
-                                <Text style={styles.label}>Başlangıç Tarihi</Text>
+                                <Text style={[styles.label, { color: theme.colors.subText }]}>Başlangıç Tarihi</Text>
                                 <TouchableOpacity
-                                    style={styles.dateSelector}
+                                    style={[styles.dateSelector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
                                     onPress={() => setShowStartDatePicker(true)}
                                 >
-                                    <Text style={styles.dateText}>
+                                    <Text style={[styles.dateText, { color: theme.colors.text }]}>
                                         {formData.scheduledDate.toLocaleDateString('tr-TR')}
                                     </Text>
-                                    <Text style={styles.timeText}>
+                                    <Text style={[styles.timeText, { color: theme.colors.subText }]}>
                                         {formData.scheduledDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                                     </Text>
                                 </TouchableOpacity>
                             </View>
                             <View style={styles.col}>
-                                <Text style={styles.label}>Bitiş Tarihi</Text>
+                                <Text style={[styles.label, { color: theme.colors.subText }]}>Bitiş Tarihi</Text>
                                 <TouchableOpacity
-                                    style={styles.dateSelector}
+                                    style={[styles.dateSelector, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
                                     onPress={() => setShowEndDatePicker(true)}
                                 >
-                                    <Text style={styles.dateText}>
+                                    <Text style={[styles.dateText, { color: theme.colors.text }]}>
                                         {formData.scheduledEndDate.toLocaleDateString('tr-TR')}
                                     </Text>
-                                    <Text style={styles.timeText}>
+                                    <Text style={[styles.timeText, { color: theme.colors.subText }]}>
                                         {formData.scheduledEndDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
                                     </Text>
                                 </TouchableOpacity>
@@ -170,6 +173,7 @@ export default function CreateJobScreen({ navigation }) {
                             onChangeText={(text) => setFormData({ ...formData, location: text })}
                             placeholder="Montaj yapılacak adres"
                             multiline
+                            theme={theme}
                         />
 
                         <CustomInput
@@ -179,6 +183,7 @@ export default function CreateJobScreen({ navigation }) {
                             placeholder="İş detayları..."
                             multiline
                             numberOfLines={3}
+                            theme={theme}
                         />
                     </View>
 
@@ -193,6 +198,7 @@ export default function CreateJobScreen({ navigation }) {
                         onRemoveSubStep={removeSubStep}
                         onUpdateSubStep={updateSubStep}
                         onOpenTemplateModal={() => setShowTemplateModal(true)}
+                        theme={theme}
                     />
 
                     <View style={styles.footer}>
@@ -200,13 +206,15 @@ export default function CreateJobScreen({ navigation }) {
                             title="İptal"
                             variant="outline"
                             onPress={() => navigation.goBack()}
-                            style={{ flex: 1, marginRight: 8 }}
+                            style={{ flex: 1, marginRight: 8, borderColor: theme.colors.border }}
+                            textStyle={{ color: theme.colors.text }}
                         />
                         <CustomButton
                             title="Oluştur"
                             onPress={() => submitJob(() => navigation.goBack())}
                             loading={loading}
-                            style={{ flex: 1 }}
+                            style={{ flex: 1, backgroundColor: theme.colors.primary }}
+                            textStyle={{ color: theme.colors.textInverse }}
                         />
                     </View>
                     <View style={{ height: 40 }} />
@@ -222,6 +230,7 @@ export default function CreateJobScreen({ navigation }) {
                 onSelect={(item) => setFormData({ ...formData, customerId: item.id })}
                 selectedId={formData.customerId}
                 displayKey="complex_customer"
+                theme={theme}
             />
 
             <SelectionModal
@@ -232,6 +241,7 @@ export default function CreateJobScreen({ navigation }) {
                 onSelect={(item) => setFormData({ ...formData, teamId: item.id })}
                 selectedId={formData.teamId}
                 displayKey="name"
+                theme={theme}
             />
 
             <SelectionModal
@@ -241,6 +251,7 @@ export default function CreateJobScreen({ navigation }) {
                 items={['LOW', 'MEDIUM', 'HIGH', 'URGENT']}
                 onSelect={(item) => setFormData({ ...formData, priority: item })}
                 selectedId={formData.priority}
+                theme={theme}
             />
 
             <SelectionModal
@@ -253,6 +264,7 @@ export default function CreateJobScreen({ navigation }) {
                     setShowTemplateModal(false);
                 }}
                 displayKey="label"
+                theme={theme}
             />
 
             {/* Date Pickers */}
@@ -267,14 +279,14 @@ export default function CreateJobScreen({ navigation }) {
                         }}
                     >
                         <View style={styles.modalOverlay}>
-                            <View style={styles.modalContent}>
-                                <View style={styles.modalHeader}>
-                                    <Text style={styles.modalTitle}>Tarih Seç</Text>
+                            <View style={[styles.modalContent, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+                                <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
+                                    <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Tarih Seç</Text>
                                     <TouchableOpacity onPress={() => {
                                         setShowStartDatePicker(false);
                                         setShowEndDatePicker(false);
                                     }}>
-                                        <MaterialIcons name="close" size={24} color={COLORS.slate400} />
+                                        <MaterialIcons name="close" size={24} color={theme.colors.subText} />
                                     </TouchableOpacity>
                                 </View>
                                 <View style={{ padding: 20 }}>
@@ -283,10 +295,10 @@ export default function CreateJobScreen({ navigation }) {
                                         style={{
                                             padding: 10,
                                             fontSize: 16,
-                                            border: `1px solid ${COLORS.slate800}`,
+                                            border: `1px solid ${theme.colors.border}`,
                                             borderRadius: 8,
-                                            backgroundColor: COLORS.cardDark,
-                                            color: COLORS.textLight,
+                                            backgroundColor: theme.colors.surface,
+                                            color: theme.colors.text,
                                             width: '100%'
                                         }}
                                         onChange={(e) => {
@@ -318,6 +330,7 @@ export default function CreateJobScreen({ navigation }) {
                                 if (selectedDate) setFormData({ ...formData, scheduledEndDate: selectedDate });
                             }
                         }}
+                        theme={theme}
                     />
                 )
             )}

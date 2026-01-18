@@ -1,39 +1,41 @@
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import StatCard from '../StatCard';
-import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 const DashboardStatsGrid = ({ statsData }) => {
+    const { theme } = useTheme();
+
     const stats = [
         {
             title: 'Toplam İş',
             value: (statsData?.totalJobs || 0).toString(),
             icon: 'work',
-            color: COLORS.primary,
+            color: theme.colors.primary,
         },
         {
             title: 'Aktif Ekipler',
             value: (statsData?.activeTeams || 0).toString(),
             icon: 'groups',
-            color: COLORS.blue500,
+            color: '#3b82f6', // Keep semantic colors distinct if needed, or map to theme.secondary
         },
         {
             title: 'Tamamlanan',
             value: (statsData?.completedJobs || 0).toString(),
             icon: 'check-circle',
-            color: COLORS.green500,
+            color: '#22c55e',
         },
         {
             title: 'Bekleyen',
             value: (statsData?.pendingJobs || 0).toString(),
             icon: 'access-time',
-            color: COLORS.amber500,
+            color: '#f59e0b',
         }
     ];
 
     return (
         <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Genel Durum</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Genel Durum</Text>
             <View style={styles.statsGrid}>
                 {stats.map((stat, index) => (
                     <StatCard
@@ -59,7 +61,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: COLORS.textLight,
         marginBottom: 8,
     },
     statsGrid: {

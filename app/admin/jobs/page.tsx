@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { SearchIcon, CalendarIcon, MapPinIcon, BriefcaseIcon } from "lucide-react"
+import { SearchIcon, CalendarIcon, MapPinIcon, BriefcaseIcon, EditIcon } from "lucide-react"
+import Link from "next/link"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 import { getJobs } from "@/lib/data/jobs"
@@ -103,6 +104,7 @@ export default async function JobsPage(props: {
         </div>
       </div>
 
+
       <div className="bg-white rounded-lg shadow">
         <div className="p-4 border-b">
           <div className="relative max-w-sm">
@@ -124,98 +126,143 @@ export default async function JobsPage(props: {
               <TableHead>İş Başlığı</TableHead>
               <TableHead>Müşteri</TableHead>
               <TableHead>Atanan Ekip</TableHead>
+              <TableHead className="w-[150px]">İlerleme</TableHead>
+              <TableHead>Onaylanan Tutar</TableHead>
               <TableHead>Öncelik</TableHead>
               <TableHead>Durum</TableHead>
               <TableHead>Tarih</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {jobs.map((job) => (
-              <TableRow key={job.id}>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 bg-orange-50 rounded text-orange-600">
-                      <BriefcaseIcon className="h-4 w-4" />
+            {jobs.map((job) => {
+              // Calculate metrics
+              const totalSteps = job.steps.length;
+              const completedSteps = job.steps.filter(s => s.isCompleted).length;
+              const progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+
+              const pendingCosts = job.costs.filter(c => c.status === 'PENDING');
+              const approvedCosts = job.costs.filter(c => c.status === 'APPROVED');
+              const totalApprovedAmount = approvedCosts.reduce((sum, c) => sum + c.amount, 0);
+              const totalPendingAmount = pendingCosts.reduce((sum, c) => sum + c.amount, 0);
+
+              const hasPendingApprovals =
+                pendingCosts.length > 0 ||
+                job.steps.some(s => s.subSteps.some(ss => ss.approvalStatus === 'PENDING'));
+
+              return (
+                <TableRow key={job.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <div className="p-2 bg-orange-50 rounded text-orange-600">
+                        <BriefcaseIcon className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <Link href={`/admin/jobs/${job.id}`} className="font-medium text-gray-900 hover:underline hover:text-blue-600 block">
+                          {job.title}
+                        </Link>
+                        {job.location && (
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <MapPinIcon className="h-3 w-3" />
+                            <span className="truncate max-w-[150px]">{job.location}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <a href={`/admin/jobs/${job.id}`} className="font-medium text-gray-900 hover:underline hover:text-blue-600 block">
-                        {job.title}
-                      </a>
-                      {job.location && (
-                        <div className="flex items-center gap-1 text-xs text-gray-500">
-                          <MapPinIcon className="h-3 w-3" />
-                          <span className="truncate max-w-[150px]">{job.location}</span>
-                        </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-medium">{job.customer.company}</div>
+                    <div className="text-sm text-gray-500">{job.customer.user.name}</div>
+                    {job._count.steps === 0 && job.status === 'PENDING' && (
+                      <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                        🚫 İşe Başlanmadı
+                      </div>
+                    )}
+                    {hasPendingApprovals && (
+                      <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                        ⚠️ Onay Bekliyor
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {job.assignments.length > 0 && job.assignments[0].team ? (
+                      <div className="space-y-1">
+                        <Badge variant="outline" className="font-normal">
+                          {job.assignments[0].team.name}
+                        </Badge>
+                        {job.assignments[0].team.lead && (
+                          <div className="text-xs text-gray-500">
+                            👤 Lider: {job.assignments[0].team.lead.name}
+                          </div>
+                        )}
+                      </div>
+                    ) : job.assignments.length > 0 && job.assignments[0].worker ? (
+                      <div className="space-y-1">
+                        <Badge variant="outline" className="font-normal bg-blue-50">
+                          {job.assignments[0].worker.name}
+                        </Badge>
+                        <div className="text-xs text-gray-400">Bireysel Atama</div>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-400 italic">Atanmamış</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="w-full max-w-[140px]">
+                      <div className="flex items-center justify-between text-xs mb-1">
+                        <span className="text-gray-500">{completedSteps}/{totalSteps} Adım</span>
+                        <span className="font-medium text-gray-700">%{progress}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
+                          style={{ width: `${progress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-gray-900">
+                        {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0 }).format(totalApprovedAmount)}
+                      </span>
+                      {totalPendingAmount > 0 && (
+                        <span className="text-xs text-yellow-600 font-medium">
+                          + {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY', minimumFractionDigits: 0 }).format(totalPendingAmount)} Bekleyen
+                        </span>
                       )}
                     </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="font-medium">{job.customer.company}</div>
-                  <div className="text-sm text-gray-500">{job.customer.user.name}</div>
-                  {job._count.steps === 0 && job.status === 'PENDING' && (
-                    <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                      🚫 İşe Başlanmadı
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={priorityColors[job.priority] || "default"}>
+                      {job.priority}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={statusColors[job.status] || "default"}>
+                      {statusLabels[job.status] || job.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <CalendarIcon className="h-3 w-3" />
+                      {job.scheduledDate
+                        ? format(new Date(job.scheduledDate), 'd MMM', { locale: tr })
+                        : format(new Date(job.createdAt), 'd MMM', { locale: tr })
+                      }
                     </div>
-                  )}
-                  {(job.steps.length > 0 || job.costs.length > 0) && (
-                    <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                      ⚠️ Onay Bekliyor
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {job.assignments.length > 0 && job.assignments[0].team ? (
-                    <div className="space-y-1">
-                      <Badge variant="outline" className="font-normal">
-                        {job.assignments[0].team.name}
-                      </Badge>
-                      {job.assignments[0].team.lead && (
-                        <div className="text-xs text-gray-500">
-                          👤 Lider: {job.assignments[0].team.lead.name}
-                        </div>
-                      )}
-                      {job.assignments[0].team.members && job.assignments[0].team.members.length > 0 && (
-                        <div className="text-xs text-gray-400">
-                          👥 {job.assignments[0].team.members.map((m: any) => m.user.name).join(', ')}
-                        </div>
-                      )}
-                    </div>
-                  ) : job.assignments.length > 0 && job.assignments[0].worker ? (
-                    <div className="space-y-1">
-                      <Badge variant="outline" className="font-normal bg-blue-50">
-                        {job.assignments[0].worker.name}
-                      </Badge>
-                      <div className="text-xs text-gray-400">Bireysel Atama</div>
-                    </div>
-                  ) : (
-                    <span className="text-sm text-gray-400 italic">Atanmamış</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={priorityColors[job.priority] || "default"}>
-                    {job.priority}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={statusColors[job.status] || "default"}>
-                    {statusLabels[job.status] || job.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <CalendarIcon className="h-3 w-3" />
-                    {job.scheduledDate
-                      ? format(new Date(job.scheduledDate), 'd MMM', { locale: tr })
-                      : format(new Date(job.createdAt), 'd MMM', { locale: tr })
-                    }
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+                  </TableCell>
+                  <TableCell>
+                    <Link href={`/admin/jobs/${job.id}`} className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors">
+                      <EditIcon className="h-4 w-4" />
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
             {jobs.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                   Kayıtlı iş bulunamadı.
                 </TableCell>
               </TableRow>

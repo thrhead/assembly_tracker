@@ -20,7 +20,7 @@ interface ReportFiltersProps {
 export default function ReportFilters({ jobs = [], categories = [], onFilterChange }: ReportFiltersProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
-    
+
     const date = (() => {
         const from = searchParams.get("from");
         const to = searchParams.get("to");
@@ -33,7 +33,7 @@ export default function ReportFilters({ jobs = [], categories = [], onFilterChan
 
     const updateFilters = (updates: Record<string, string | DateRange | undefined>) => {
         const params = new URLSearchParams(searchParams.toString());
-        
+
         Object.entries(updates).forEach(([key, value]) => {
             if (key === 'date') {
                 const range = value as DateRange | undefined;
@@ -41,6 +41,11 @@ export default function ReportFilters({ jobs = [], categories = [], onFilterChan
                 else params.delete("from");
                 if (range?.to) params.set("to", range.to.toISOString());
                 else params.delete("to");
+            } else if (key === 'jobStatus') {
+                if (value && value !== "all") params.set(key, value as string);
+                else params.delete(key);
+                // Reset selected job when status changes
+                params.delete("jobId");
             } else {
                 if (value && value !== "all") params.set(key, value as string);
                 else params.delete(key);
@@ -69,7 +74,7 @@ export default function ReportFilters({ jobs = [], categories = [], onFilterChan
                                 format(date.from, "dd.MM.yy")
                             )
                         ) : (
-                            <span>Tarih Aralığı</span>
+                            <span>Tüm Zamanlar</span>
                         )}
                     </Button>
                 </PopoverTrigger>

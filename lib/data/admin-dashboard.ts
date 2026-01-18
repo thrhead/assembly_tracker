@@ -4,7 +4,9 @@ export async function getAdminDashboardData() {
   const [
     activeWorkers,
     todaysCosts,
-    pendingApprovalsCount
+    pendingApprovalsCount,
+    pendingCostsAgg,
+    approvedCostsAgg
   ] = await Promise.all([
     prisma.user.findMany({
       where: {
@@ -39,6 +41,14 @@ export async function getAdminDashboardData() {
       where: {
         status: 'PENDING'
       }
+    }),
+    prisma.costTracking.aggregate({
+      where: { status: 'PENDING' },
+      _sum: { amount: true }
+    }),
+    prisma.costTracking.aggregate({
+      where: { status: 'APPROVED' },
+      _sum: { amount: true }
     })
   ])
 
@@ -50,6 +60,8 @@ export async function getAdminDashboardData() {
     activeWorkers,
     totalCostToday,
     budgetPercentage,
-    pendingApprovalsCount
+    pendingApprovalsCount,
+    totalPendingCost: pendingCostsAgg._sum.amount || 0,
+    totalApprovedCost: approvedCostsAgg._sum.amount || 0
   }
 }

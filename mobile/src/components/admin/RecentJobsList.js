@@ -1,40 +1,42 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 const RecentJobsList = ({ jobs = [], onJobPress, onViewAll }) => {
+    const { theme, isDark } = useTheme();
     const jobsList = Array.isArray(jobs) ? jobs : [];
+
     return (
         <View style={styles.section}>
             <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Son İşler</Text>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Son İşler</Text>
                 <TouchableOpacity onPress={onViewAll}>
-                    <Text style={styles.seeAllText}>Tümünü Gör</Text>
+                    <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>Tümü</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.recentList}>
                 {jobsList.length === 0 ? (
-                    <Text style={{ color: '#aaa', fontStyle: 'italic', padding: 8 }}>Henüz iş bulunmuyor.</Text>
+                    <Text style={{ color: theme.colors.subText, fontStyle: 'italic', padding: 8 }}>Henüz iş bulunmuyor.</Text>
                 ) : (
                     jobsList.map((job) => (
                         <TouchableOpacity
                             key={job.id}
-                            style={styles.recentItem}
+                            style={[styles.recentItem, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}
                             onPress={() => onJobPress(job.id)}
                         >
-                            <View style={[styles.recentIcon, { backgroundColor: job.status === 'COMPLETED' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(204, 255, 4, 0.1)' }]}>
-                                <MaterialIcons name="work" size={20} color={job.status === 'COMPLETED' ? COLORS.green500 : COLORS.primary} />
+                            <View style={[styles.recentIcon, { backgroundColor: isDark ? 'rgba(204, 255, 4, 0.1)' : 'rgba(45, 91, 255, 0.1)' }]}>
+                                <MaterialIcons name="work" size={20} color={theme.colors.primary} />
                             </View>
                             <View style={styles.recentInfo}>
-                                <Text style={styles.recentTitle} numberOfLines={1}>
+                                <Text style={[styles.recentTitle, { color: theme.colors.text }]} numberOfLines={1}>
                                     {job.customer?.company ? `${job.customer.company} - ` : ''}{job.title}
                                 </Text>
-                                <Text style={styles.recentSubtitle}>
+                                <Text style={[styles.recentSubtitle, { color: theme.colors.subText }]}>
                                     {job.status} • {new Date(job.createdAt).toLocaleDateString('tr-TR')}
                                 </Text>
                             </View>
-                            <MaterialIcons name="chevron-right" size={20} color={COLORS.slate600} />
+                            <MaterialIcons name="chevron-right" size={20} color={theme.colors.subText} />
                         </TouchableOpacity>
                     ))
                 )}
@@ -58,11 +60,9 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: COLORS.textLight,
         marginBottom: 8,
     },
     seeAllText: {
-        color: COLORS.primary,
         fontSize: 12,
         fontWeight: '600',
     },
@@ -72,17 +72,14 @@ const styles = StyleSheet.create({
     recentItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.cardDark,
         padding: 12,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: COLORS.slate800,
     },
     recentIcon: {
         width: 36,
         height: 36,
         borderRadius: 18,
-        backgroundColor: 'rgba(204, 255, 4, 0.1)',
         alignItems: 'center',
         justifyContent: 'center',
         marginRight: 12,
@@ -91,13 +88,11 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     recentTitle: {
-        color: COLORS.textLight,
         fontSize: 14,
         fontWeight: '600',
         marginBottom: 2,
     },
     recentSubtitle: {
-        color: COLORS.slate400,
         fontSize: 12,
     },
 });

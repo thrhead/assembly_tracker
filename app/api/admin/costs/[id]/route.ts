@@ -61,3 +61,26 @@ export async function PATCH(
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
+
+export async function DELETE(
+    req: Request,
+    props: { params: Promise<{ id: string }> }
+) {
+    const params = await props.params
+    try {
+        const session = await verifyAuth(req)
+        if (!session || !['ADMIN'].includes(session.user.role)) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        await prisma.costTracking.delete({
+            where: { id: params.id }
+        })
+
+        return NextResponse.json({ success: true })
+    } catch (error) {
+        console.error('Delete cost error:', error)
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    }
+}
+

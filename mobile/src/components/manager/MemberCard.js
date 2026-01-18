@@ -2,35 +2,35 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS } from '../../constants/theme';
 
-const MemberCard = ({ item }) => {
+const MemberCard = ({ item, theme }) => {
     return (
-        <View style={styles.memberCard}>
+        <View style={[styles.memberCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
             <View style={styles.memberHeader}>
                 <View style={[
                     styles.avatar,
-                    { backgroundColor: item.user.isActive ? COLORS.primary : COLORS.slate400 }
+                    { backgroundColor: item.user.isActive ? theme.colors.primary : theme.colors.disabled }
                 ]}>
-                    <Text style={styles.avatarText}>
+                    <Text style={[styles.avatarText, { color: theme.colors.textInverse }]}>
                         {item.user.name ? item.user.name.charAt(0).toUpperCase() : 'U'}
                     </Text>
                 </View>
                 <View style={styles.memberInfo}>
                     <View style={styles.memberNameRow}>
-                        <Text style={styles.memberName}>{item.user.name}</Text>
+                        <Text style={[styles.memberName, { color: theme.colors.text }]}>{item.user.name}</Text>
                         <View style={[
                             styles.statusBadge,
-                            { backgroundColor: item.user.isActive ? 'rgba(204, 255, 4, 0.2)' : COLORS.slate700 }
+                            { backgroundColor: item.user.isActive ? theme.colors.primary + '20' : theme.colors.surface }
                         ]}>
                             <Text style={[
                                 styles.statusText,
-                                { color: item.user.isActive ? COLORS.primary : COLORS.slate400 }
+                                { color: item.user.isActive ? theme.colors.primary : theme.colors.subText }
                             ]}>
                                 {item.user.isActive ? 'Aktif' : 'Pasif'}
                             </Text>
                         </View>
                     </View>
-                    <Text style={styles.memberEmail}>{item.user.email}</Text>
-                    <Text style={styles.memberRole}>{item.user.role}</Text>
+                    <Text style={[styles.memberEmail, { color: theme.colors.subText }]}>{item.user.email}</Text>
+                    <Text style={[styles.memberRole, { color: theme.colors.subText }]}>{item.user.role}</Text>
                 </View>
             </View>
         </View>
@@ -61,7 +61,6 @@ const styles = StyleSheet.create({
     avatarText: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: COLORS.black,
     },
     memberInfo: {
         flex: 1,

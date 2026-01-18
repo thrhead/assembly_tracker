@@ -5,7 +5,9 @@ import {
   BriefcaseIcon,
   ReceiptIcon,
   TrendingUpIcon,
-  BellIcon
+  BellIcon,
+  ClockIcon,
+  CheckCircleIcon
 } from 'lucide-react'
 import { getAdminDashboardData } from "@/lib/data/admin-dashboard"
 
@@ -20,7 +22,9 @@ export default async function AdminDashboard() {
     activeWorkers,
     totalCostToday,
     budgetPercentage,
-    pendingApprovalsCount
+    pendingApprovalsCount,
+    totalPendingCost,
+    totalApprovedCost
   } = await getAdminDashboardData()
 
   return (
@@ -127,6 +131,34 @@ export default async function AdminDashboard() {
             ></div>
           </div>
           <p className="text-muted-foreground text-xs">Günlük bütçenin <span className="font-medium text-foreground">%{budgetPercentage}</span>'i kullanıldı</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 mt-4">
+          <div className="bg-card border border-border p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm font-medium mb-1">Toplam Bekleyen</p>
+                <h3 className="text-2xl font-bold text-foreground">₺{totalPendingCost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</h3>
+              </div>
+              <div className="p-2 bg-yellow-100 rounded-lg">
+                <ClockIcon className="w-5 h-5 text-yellow-600" />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">Onay bekleyen masraflar</p>
+          </div>
+
+          <div className="bg-card border border-border p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-muted-foreground text-sm font-medium mb-1">Toplam Onaylanan</p>
+                <h3 className="text-2xl font-bold text-foreground">₺{totalApprovedCost.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</h3>
+              </div>
+              <div className="p-2 bg-green-100 rounded-lg">
+                <CheckCircleIcon className="w-5 h-5 text-green-600" />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">Toplam onaylanan masraflar</p>
+          </div>
         </div>
       </div>
     </div>

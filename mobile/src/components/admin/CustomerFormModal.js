@@ -4,13 +4,17 @@ import CustomInput from '../CustomInput';
 import CustomButton from '../CustomButton';
 import { COLORS } from '../../constants/theme';
 
-const CustomerFormModal = ({ visible, onClose, initialData, onSave }) => {
+const CustomerFormModal = ({ visible, onClose, initialData, onSave, theme }) => {
+    const colors = theme ? theme.colors : COLORS;
+
     const [formData, setFormData] = useState({
         companyName: '',
         contactPerson: '',
         email: '',
         phone: '',
         address: '',
+        taxId: '',
+        notes: '',
     });
 
     useEffect(() => {
@@ -22,6 +26,8 @@ const CustomerFormModal = ({ visible, onClose, initialData, onSave }) => {
                     email: initialData.email || '',
                     phone: initialData.phone || '',
                     address: initialData.address || '',
+                    taxId: initialData.taxId || '',
+                    notes: initialData.notes || '',
                 });
             } else {
                 setFormData({
@@ -30,6 +36,8 @@ const CustomerFormModal = ({ visible, onClose, initialData, onSave }) => {
                     email: '',
                     phone: '',
                     address: '',
+                    taxId: '',
+                    notes: '',
                 });
             }
         }
@@ -47,9 +55,9 @@ const CustomerFormModal = ({ visible, onClose, initialData, onSave }) => {
             onRequestClose={onClose}
         >
             <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
+                <View style={[styles.modalContent, { backgroundColor: colors.surface, borderColor: colors.border }]}>
                     <ScrollView>
-                        <Text style={styles.modalTitle}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>
                             {initialData ? 'Müşteriyi Düzenle' : 'Yeni Müşteri Ekle'}
                         </Text>
 
@@ -58,6 +66,7 @@ const CustomerFormModal = ({ visible, onClose, initialData, onSave }) => {
                             value={formData.companyName}
                             onChangeText={(text) => setFormData({ ...formData, companyName: text })}
                             placeholder="ABC Şirketi"
+                            theme={theme}
                         />
 
                         <CustomInput
@@ -65,6 +74,7 @@ const CustomerFormModal = ({ visible, onClose, initialData, onSave }) => {
                             value={formData.contactPerson}
                             onChangeText={(text) => setFormData({ ...formData, contactPerson: text })}
                             placeholder="Ahmet Yılmaz"
+                            theme={theme}
                         />
 
                         <CustomInput
@@ -74,6 +84,7 @@ const CustomerFormModal = ({ visible, onClose, initialData, onSave }) => {
                             placeholder="info@sirket.com"
                             keyboardType="email-address"
                             autoCapitalize="none"
+                            theme={theme}
                         />
 
                         <CustomInput
@@ -82,6 +93,16 @@ const CustomerFormModal = ({ visible, onClose, initialData, onSave }) => {
                             onChangeText={(text) => setFormData({ ...formData, phone: text })}
                             placeholder="+90 555 123 4567"
                             keyboardType="phone-pad"
+                            theme={theme}
+                        />
+
+                        <CustomInput
+                            label="Vergi No / T.C."
+                            value={formData.taxId}
+                            onChangeText={(text) => setFormData({ ...formData, taxId: text })}
+                            placeholder="Vergi numarası"
+                            keyboardType="numeric"
+                            theme={theme}
                         />
 
                         <CustomInput
@@ -92,6 +113,18 @@ const CustomerFormModal = ({ visible, onClose, initialData, onSave }) => {
                             multiline
                             numberOfLines={3}
                             style={{ height: 80, textAlignVertical: 'top' }}
+                            theme={theme}
+                        />
+
+                        <CustomInput
+                            label="Notlar"
+                            value={formData.notes}
+                            onChangeText={(text) => setFormData({ ...formData, notes: text })}
+                            placeholder="Müşteri hakkında notlar..."
+                            multiline
+                            numberOfLines={3}
+                            style={{ height: 80, textAlignVertical: 'top' }}
+                            theme={theme}
                         />
 
                         <View style={styles.modalButtons}>
@@ -99,13 +132,17 @@ const CustomerFormModal = ({ visible, onClose, initialData, onSave }) => {
                                 title="İptal"
                                 onPress={onClose}
                                 variant="outline"
-                                style={{ flex: 1 }}
+                                style={{ flex: 1, borderColor: colors.border }}
+                                textStyle={{ color: colors.text }}
+                                theme={theme}
                             />
                             <CustomButton
                                 title={initialData ? 'Güncelle' : 'Ekle'}
                                 onPress={handleSave}
                                 variant="primary"
-                                style={{ flex: 1 }}
+                                style={{ flex: 1, backgroundColor: colors.primary }}
+                                textStyle={{ color: colors.textInverse }}
+                                theme={theme}
                             />
                         </View>
                     </ScrollView>
@@ -122,18 +159,15 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: COLORS.cardDark,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         padding: 20,
         maxHeight: '85%',
         borderWidth: 1,
-        borderColor: COLORS.slate800,
     },
     modalTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: COLORS.textLight,
         marginBottom: 20,
     },
     modalButtons: {

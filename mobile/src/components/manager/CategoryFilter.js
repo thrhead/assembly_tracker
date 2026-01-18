@@ -3,7 +3,8 @@ import { ScrollView, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
 
-const CategoryFilter = ({ selectedCategory, onSelect }) => {
+const CategoryFilter = ({ selectedCategory, onSelect, theme }) => {
+    const colors = theme ? theme.colors : COLORS;
     const categories = [
         { id: 'ALL', label: 'Tümü', icon: 'tune' },
         { id: 'TRAVEL', label: 'Ulaşım', icon: 'directions-car' },
@@ -17,15 +18,23 @@ const CategoryFilter = ({ selectedCategory, onSelect }) => {
             {categories.map(cat => (
                 <TouchableOpacity
                     key={cat.id}
-                    style={[styles.categoryChip, selectedCategory === cat.id && styles.categoryChipActive]}
+                    style={[
+                        styles.categoryChip,
+                        { backgroundColor: colors.surface },
+                        selectedCategory === cat.id && { backgroundColor: `${colors.primary}20`, borderWidth: 1, borderColor: `${colors.primary}60` }
+                    ]}
                     onPress={() => onSelect(cat.id)}
                 >
                     <MaterialIcons
                         name={cat.icon}
                         size={20}
-                        color={selectedCategory === cat.id ? COLORS.primary : COLORS.slate400}
+                        color={selectedCategory === cat.id ? colors.primary : (colors.subText || COLORS.slate400)}
                     />
-                    <Text style={[styles.categoryChipText, selectedCategory === cat.id && styles.categoryChipTextActive]}>
+                    <Text style={[
+                        styles.categoryChipText,
+                        { color: colors.subText },
+                        selectedCategory === cat.id && { color: colors.primary }
+                    ]}>
                         {cat.label}
                     </Text>
                 </TouchableOpacity>
@@ -45,22 +54,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 20,
-        backgroundColor: COLORS.slate800,
         marginRight: 12,
-    },
-    categoryChipActive: {
-        backgroundColor: 'rgba(206, 254, 4, 0.1)',
-        borderWidth: 1,
-        borderColor: 'rgba(206, 254, 4, 0.4)',
     },
     categoryChipText: {
         fontSize: 14,
         fontWeight: '500',
-        color: COLORS.slate400,
         marginLeft: 8,
-    },
-    categoryChipTextActive: {
-        color: COLORS.primary,
     },
 });
 

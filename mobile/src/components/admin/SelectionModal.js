@@ -3,15 +3,17 @@ import { View, Text, Modal, ScrollView, TouchableOpacity, StyleSheet } from 'rea
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
 
-const SelectionModal = ({ visible, onClose, title, items, onSelect, selectedId, displayKey = 'name' }) => {
+const SelectionModal = ({ visible, onClose, title, items, onSelect, selectedId, displayKey = 'name', theme }) => {
+    const colors = theme ? theme.colors : COLORS;
+
     return (
         <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
             <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>{title}</Text>
+                <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+                    <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>{title}</Text>
                         <TouchableOpacity onPress={onClose}>
-                            <MaterialIcons name="close" size={24} color={COLORS.slate400} />
+                            <MaterialIcons name="close" size={24} color={colors.subText || COLORS.slate400} />
                         </TouchableOpacity>
                     </View>
                     <ScrollView style={styles.modalList}>
@@ -20,19 +22,19 @@ const SelectionModal = ({ visible, onClose, title, items, onSelect, selectedId, 
                             return (
                                 <TouchableOpacity
                                     key={index}
-                                    style={styles.modalItem}
+                                    style={[styles.modalItem, { borderBottomColor: colors.border }]}
                                     onPress={() => {
                                         onSelect(item);
                                         onClose();
                                     }}
                                 >
-                                    <Text style={styles.modalItemText}>
+                                    <Text style={[styles.modalItemText, { color: colors.text }]}>
                                         {displayKey === 'complex_customer'
                                             ? `${item.company || item.companyName} (${item.user?.name || item.contactPerson})`
                                             : (typeof item === 'object' ? item[displayKey] : item)}
                                     </Text>
                                     {isSelected && (
-                                        <MaterialIcons name="check" size={20} color={COLORS.primary} />
+                                        <MaterialIcons name="check" size={20} color={colors.primary} />
                                     )}
                                 </TouchableOpacity>
                             );

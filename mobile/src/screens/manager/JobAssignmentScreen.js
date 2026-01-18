@@ -2,11 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert, RefreshControl } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import jobService from '../../services/job.service';
-import { COLORS } from '../../constants/theme';
+// import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import StatsSummary from '../../components/manager/StatsSummary';
 import JobReportList from '../../components/manager/JobReportList';
 
 export default function JobAssignmentScreen({ navigation }) {
+    const { theme, isDark } = useTheme();
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -49,45 +51,46 @@ export default function JobAssignmentScreen({ navigation }) {
 
     if (loading) {
         return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={styles.loadingText}>Yükleniyor...</Text>
+            <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <Text style={[styles.loadingText, { color: theme.colors.subText }]}>Yükleniyor...</Text>
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { backgroundColor: theme.colors.background, borderBottomColor: theme.colors.border }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <MaterialIcons name="arrow-back-ios" size={24} color={COLORS.textLight} />
+                    <MaterialIcons name="arrow-back-ios" size={24} color={theme.colors.text} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>İş Analizi & Raporlar</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>İş Analizi & Raporlar</Text>
                 <View style={{ width: 48 }} />
             </View>
 
             <ScrollView
                 style={styles.scrollView}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
                 }
             >
-                <StatsSummary stats={stats} />
+                <StatsSummary stats={stats} theme={theme} />
 
                 <JobReportList
                     jobs={jobs}
                     onJobPress={(id) => navigation.navigate('JobDetail', { jobId: id })}
+                    theme={theme}
                 />
             </ScrollView>
 
             {/* FAB */}
             <TouchableOpacity
-                style={styles.fab}
+                style={[styles.fab, { backgroundColor: theme.colors.primary }]}
                 onPress={() => navigation.navigate('CreateJob')}
                 activeOpacity={0.8}
             >
-                <MaterialIcons name="add" size={28} color={COLORS.black} />
+                <MaterialIcons name="add" size={28} color={theme.colors.textInverse} />
             </TouchableOpacity>
         </View>
     );
@@ -96,17 +99,14 @@ export default function JobAssignmentScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.backgroundDark,
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: COLORS.backgroundDark,
     },
     loadingText: {
         marginTop: 10,
-        color: COLORS.slate400,
     },
     header: {
         flexDirection: 'row',
@@ -114,14 +114,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         padding: 16,
         paddingBottom: 12,
-        backgroundColor: COLORS.backgroundDark,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.slate800,
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.textLight,
         flex: 1,
         textAlign: 'center',
     },
@@ -135,7 +132,6 @@ const styles = StyleSheet.create({
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: COLORS.primary,
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: '#000',

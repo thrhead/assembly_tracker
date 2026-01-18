@@ -2,12 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS } from '../../../constants/theme';
 
-export const ExpenseSummary = ({ totalAmount }) => {
+export const ExpenseSummary = ({ totalAmount, theme }) => {
     return (
-        <View style={styles.budgetCard}>
+        <View style={[styles.budgetCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
             <View style={styles.budgetHeader}>
-                <Text style={styles.budgetTitle}>Toplam Harcama</Text>
-                <Text style={styles.budgetAmount}>
+                <Text style={[styles.budgetTitle, { color: theme.colors.text }]}>Toplam Harcama</Text>
+                <Text style={[styles.budgetAmount, { color: theme.colors.text }]}>
                     ₺{totalAmount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </Text>
             </View>

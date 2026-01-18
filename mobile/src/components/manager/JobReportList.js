@@ -4,24 +4,24 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
 import { getStatusColor, getStatusLabel, getPriorityColor } from '../../utils/status-helper';
 
-const JobReportList = ({ jobs, onJobPress }) => {
+const JobReportList = ({ jobs, onJobPress, theme }) => {
     return (
         <View>
             <View style={styles.listHeader}>
-                <Text style={styles.sectionTitle}>Detaylı İşler</Text>
-                <Text style={styles.jobCount}>{jobs.length} İş</Text>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Detaylı İşler</Text>
+                <Text style={[styles.jobCount, { color: theme.colors.subText }]}>{jobs.length} İş</Text>
             </View>
 
             {jobs.map((job) => (
                 <TouchableOpacity
                     key={job.id}
-                    style={styles.jobCard}
+                    style={[styles.jobCard, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}
                     onPress={() => onJobPress(job.id)}
                 >
                     <View style={styles.jobCardContent}>
                         <View style={styles.jobLeft}>
-                            <Text style={styles.jobTitle}>{job.title}</Text>
-                            <Text style={styles.jobCustomer}>{job.customer?.company || 'Müşteri Bilinmiyor'}</Text>
+                            <Text style={[styles.jobTitle, { color: theme.colors.text }]}>{job.title}</Text>
+                            <Text style={[styles.jobCustomer, { color: theme.colors.subText }]}>{job.customer?.company || 'Müşteri Bilinmiyor'}</Text>
                             <View style={styles.jobMeta}>
                                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(job.status) + '20' }]}>
                                     <Text style={[styles.statusText, { color: getStatusColor(job.status) }]}>
@@ -37,15 +37,15 @@ const JobReportList = ({ jobs, onJobPress }) => {
                                 )}
                             </View>
                         </View>
-                        <MaterialIcons name="chevron-right" size={24} color={COLORS.slate500} />
+                        <MaterialIcons name="chevron-right" size={24} color={theme.colors.subText} />
                     </View>
                 </TouchableOpacity>
             ))}
 
             {jobs.length === 0 && (
                 <View style={styles.emptyState}>
-                    <MaterialIcons name="work-outline" size={64} color={COLORS.slate600} />
-                    <Text style={styles.emptyText}>Henüz iş eklenmemiş</Text>
+                    <MaterialIcons name="work-outline" size={64} color={theme.colors.subText} />
+                    <Text style={[styles.emptyText, { color: theme.colors.subText }]}>Henüz iş eklenmemiş</Text>
                 </View>
             )}
         </View>
@@ -64,16 +64,12 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.textLight,
     },
     jobCount: {
         fontSize: 14,
-        color: COLORS.slate400,
     },
     jobCard: {
-        backgroundColor: COLORS.cardDark,
         borderWidth: 1,
-        borderColor: COLORS.slate800,
         borderRadius: 12,
         marginHorizontal: 16,
         marginBottom: 12,
@@ -90,12 +86,10 @@ const styles = StyleSheet.create({
     jobTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: COLORS.textLight,
         marginBottom: 4,
     },
     jobCustomer: {
         fontSize: 14,
-        color: COLORS.slate400,
         marginBottom: 8,
     },
     jobMeta: {
@@ -128,7 +122,6 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 16,
-        color: COLORS.slate500,
         marginTop: 16,
     },
 });

@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { NetworkProvider } from './src/context/NetworkContext';
 import { OfflineBanner } from './src/components/OfflineBanner';
 import { COLORS } from './src/constants/theme';
+import { ThemeProvider } from './src/context/ThemeContext';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
@@ -91,8 +92,15 @@ function AppNavigator() {
   };
 
   return (
-    <NavigationContainer key={user?.email || 'logged-out'}>
-      <Stack.Navigator initialRouteName={getInitialRoute()}>
+    <NavigationContainer>
+      <Stack.Navigator
+        initialRouteName={getInitialRoute()}
+        detachInactiveScreens={false}
+        screenOptions={{
+          animationEnabled: false,
+          headerShown: true
+        }}
+      >
         {user ? (
           <>
             {/* Worker Screens */}
@@ -241,13 +249,15 @@ export default function App() {
       <ErrorBoundary>
         <SafeAreaProvider>
           <NetworkProvider>
-            <AuthProvider>
-              <SocketProvider>
-                <OfflineBanner />
-                <AppNavigator />
-                <ToastNotification />
-              </SocketProvider>
-            </AuthProvider>
+            <ThemeProvider>
+              <AuthProvider>
+                <SocketProvider>
+                  <OfflineBanner />
+                  <AppNavigator />
+                  <ToastNotification />
+                </SocketProvider>
+              </AuthProvider>
+            </ThemeProvider>
           </NetworkProvider>
         </SafeAreaProvider>
       </ErrorBoundary>

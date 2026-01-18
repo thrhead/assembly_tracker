@@ -2,10 +2,15 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { getStatusColor } from '../../utils/status-helper';
 
-const EventList = ({ selectedDate, events, onEventPress }) => {
+const EventList = ({ selectedDate, events, onEventPress, theme }) => {
+    // Fallback if theme prop isn't passed (though it should be)
+    const cardBg = theme ? theme.colors.card : '#1e293b';
+    const textMain = theme ? theme.colors.text : '#e2e8f0';
+    const textSub = theme ? theme.colors.subText : '#94a3b8';
+
     return (
-        <View style={styles.eventsContainer}>
-            <Text style={styles.eventsTitle}>
+        <View style={[styles.eventsContainer, { backgroundColor: theme ? theme.colors.background : '#0f172a' }]}>
+            <Text style={[styles.eventsTitle, { color: textMain }]}>
                 {new Date(selectedDate).toLocaleDateString('tr-TR', {
                     day: 'numeric',
                     month: 'long',
@@ -14,25 +19,31 @@ const EventList = ({ selectedDate, events, onEventPress }) => {
             </Text>
             <ScrollView style={styles.eventsList}>
                 {events.length === 0 ? (
-                    <Text style={styles.noEvents}>Bu tarihte planlanmış iş yok</Text>
+                    <Text style={[styles.noEvents, { color: textSub }]}>Bu tarihte planlanmış iş yok</Text>
                 ) : (
                     events.map((event, index) => (
                         <TouchableOpacity
                             key={`${event.id}-${index}`}
-                            style={[styles.eventCard, { borderLeftColor: event.color || '#39FF14' }]}
+                            style={[
+                                styles.eventCard,
+                                {
+                                    backgroundColor: cardBg,
+                                    borderLeftColor: event.color || theme.colors.primary
+                                }
+                            ]}
                             onPress={() => onEventPress(event.id)}
                         >
-                            <Text style={styles.eventTitle}>{event.title}</Text>
+                            <Text style={[styles.eventTitle, { color: textMain }]}>{event.title}</Text>
                             {event.status && (
                                 <View style={[styles.statusBadge, { backgroundColor: getStatusColor(event.status) }]}>
                                     <Text style={styles.statusText}>{event.status}</Text>
                                 </View>
                             )}
                             {event.location && (
-                                <Text style={styles.eventDetail}>📍 {event.location}</Text>
+                                <Text style={[styles.eventDetail, { color: textSub }]}>📍 {event.location}</Text>
                             )}
                             {event.assignments && (
-                                <Text style={styles.eventDetail}>👤 {event.assignments}</Text>
+                                <Text style={[styles.eventDetail, { color: textSub }]}>👤 {event.assignments}</Text>
                             )}
                         </TouchableOpacity>
                     ))
@@ -46,12 +57,10 @@ const styles = StyleSheet.create({
     eventsContainer: {
         flex: 1,
         padding: 16,
-        backgroundColor: '#0f172a',
     },
     eventsTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#e2e8f0',
         marginBottom: 12,
     },
     eventsList: {
@@ -59,11 +68,9 @@ const styles = StyleSheet.create({
     },
     noEvents: {
         textAlign: 'center',
-        color: '#64748b',
         marginTop: 24,
     },
     eventCard: {
-        backgroundColor: '#1e293b',
         borderRadius: 8,
         padding: 12,
         marginBottom: 12,
@@ -72,7 +79,6 @@ const styles = StyleSheet.create({
     eventTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#e2e8f0',
         marginBottom: 8,
     },
     statusBadge: {
@@ -89,7 +95,6 @@ const styles = StyleSheet.create({
     },
     eventDetail: {
         fontSize: 14,
-        color: '#94a3b8',
         marginTop: 4,
     },
 });

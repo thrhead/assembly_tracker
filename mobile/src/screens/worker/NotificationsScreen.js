@@ -1,9 +1,12 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../../context/ThemeContext';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationItem from '../../components/worker/NotificationItem';
 
 export default function NotificationsScreen({ navigation }) {
+    const { theme, isDark } = useTheme();
     const { notifications, loading, refreshing, onRefresh, markAsRead } = useNotifications();
 
     const handleNotificationPress = async (notification) => {
@@ -21,30 +24,32 @@ export default function NotificationsScreen({ navigation }) {
 
     if (loading) {
         return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#16A34A" />
+            <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <FlatList
                 data={notifications}
                 renderItem={({ item }) => (
                     <NotificationItem
                         item={item}
                         onPress={handleNotificationPress}
+                        theme={theme}
                     />
                 )}
                 keyExtractor={item => item.id}
                 contentContainerStyle={styles.list}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#16A34A']} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
                 }
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>Bildiriminiz yok.</Text>
+                        <MaterialIcons name="notifications-none" size={64} color={theme.colors.subText} />
+                        <Text style={[styles.emptyText, { color: theme.colors.subText }]}>Bildiriminiz yok.</Text>
                     </View>
                 }
             />
@@ -55,7 +60,6 @@ export default function NotificationsScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F3F4F6',
     },
     centerContainer: {
         flex: 1,
@@ -68,9 +72,12 @@ const styles = StyleSheet.create({
     emptyContainer: {
         padding: 32,
         alignItems: 'center',
+        justifyContent: 'center',
+        flex: 1,
+        marginTop: 100,
     },
     emptyText: {
-        color: '#6B7280',
         fontSize: 16,
+        marginTop: 16,
     },
 });

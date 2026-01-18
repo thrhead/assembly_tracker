@@ -25,7 +25,8 @@ import {
 } from '@/components/ui/select'
 import { PlusIcon, Loader2Icon, XIcon, ChevronUpIcon, ChevronDownIcon, CornerDownRightIcon } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { createJobAction } from '@/lib/actions/jobs'
+import { createJobAction, updateJobAction } from '@/lib/actions/jobs'
+import { useEffect } from 'react'
 
 const jobSchema = z.object({
   title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
@@ -36,6 +37,15 @@ const jobSchema = z.object({
   location: z.string().optional(),
   scheduledDate: z.string().optional(),
   scheduledEndDate: z.string().optional(),
+  steps: z.array(z.object({
+    id: z.string().optional(),
+    title: z.string(),
+    description: z.string().optional(),
+    subSteps: z.array(z.object({
+      id: z.string().optional(),
+      title: z.string()
+    })).optional()
+  })).optional().nullable()
 })
 
 type FormData = z.infer<typeof jobSchema>
@@ -52,9 +62,10 @@ interface Team {
 }
 
 interface ChecklistStep {
+  id?: string
   title: string
   description?: string
-  subSteps?: { title: string }[]
+  subSteps?: { id?: string, title: string }[]
 }
 
 interface Template {
@@ -67,13 +78,16 @@ interface JobDialogProps {
   customers: Customer[]
   teams: Team[]
   templates: Template[]
+  job?: any // simplified type for the job object from getJob
+  trigger?: React.ReactNode
 }
 
-export function JobDialog({ customers, teams, templates }: JobDialogProps) {
+export function JobDialog({ customers, teams, templates, job, trigger }: JobDialogProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [steps, setSteps] = useState<ChecklistStep[]>([])
   const router = useRouter()
+
 
   const {
     register,
@@ -84,9 +98,54 @@ export function JobDialog({ customers, teams, templates }: JobDialogProps) {
   } = useForm<FormData>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
-      priority: 'MEDIUM'
+      priority: 'MEDIUM',
+      ...job && {
+        title: job.title,
+        description: job.description || '',
+        customerId: job.customerId,
+        teamId: job.assignments?.[0]?.teamId || 'none', // Handle existing assignment
+        priority: job.priority,
+        location: job.location || '',
+        scheduledDate: job.scheduledDate ? new Date(job.scheduledDate).toISOString().slice(0, 16) : '',
+        scheduledEndDate: job.scheduledEndDate ? new Date(job.scheduledEndDate).toISOString().slice(0, 16) : '',
+      }
     }
   })
+
+  // Initialize steps if job provided
+  useEffect(() => {
+    if (job && job.steps) {
+      setSteps(job.steps.map((s: any) => ({
+        id: s.id,
+        title: s.title,
+        description: s.description || '',
+        subSteps: s.subSteps?.map((ss: any) => ({
+          id: ss.id,
+          title: ss.title
+        })) || []
+      })))
+    } else {
+      setSteps([])
+    }
+  }, [job])
+
+  // Also reset form values when job prop changes (in case dialog is reused)
+  useEffect(() => {
+    if (job) {
+      setValue('title', job.title)
+      setValue('description', job.description || '')
+      setValue('customerId', job.customerId)
+      setValue('teamId', job.assignments?.[0]?.teamId || job.assignments?.[0]?.workerId ? (job.assignments[0].teamId || 'none') : 'none')
+      // Note: Logic for Worker vs Team assignment in select is tricky if both supported. 
+      // Existing Select only supports Team. For now assuming Team.
+      // If workerId exists but teamId doesn't, we might need adjustments, 
+      // but current UI only shows "Atanacak Ekip" (Team) selection.
+      setValue('priority', job.priority)
+      setValue('location', job.location || '')
+      setValue('scheduledDate', job.scheduledDate ? new Date(job.scheduledDate).toISOString().slice(0, 16) : '')
+      setValue('scheduledEndDate', job.scheduledEndDate ? new Date(job.scheduledEndDate).toISOString().slice(0, 16) : '')
+    }
+  }, [job, setValue])
 
   const addStep = () => {
     setSteps([...steps, { title: '', description: '', subSteps: [] }])
@@ -157,15 +216,26 @@ export function JobDialog({ customers, teams, templates }: JobDialogProps) {
           subSteps: step.subSteps?.filter(sub => sub.title.trim() !== '')
         }))
 
-      await createJobAction({
-        ...data,
-        steps: validSteps.length > 0 ? validSteps : null
-      })
+      if (job) {
+        await updateJobAction({
+          id: job.id,
+          ...data,
+          steps: validSteps.length > 0 ? validSteps : null
+        })
+        toast.success('İş başarıyla güncellendi')
+      } else {
+        await createJobAction({
+          ...data,
+          steps: validSteps.length > 0 ? validSteps : null
+        })
+        toast.success('İş başarıyla oluşturuldu')
+      }
 
-      toast.success('İş başarıyla oluşturuldu')
       setOpen(false)
-      reset()
-      setSteps([])
+      if (!job) {
+        reset()
+        setSteps([])
+      }
       router.refresh()
     } catch (error: any) {
       console.error(error)
@@ -178,14 +248,16 @@ export function JobDialog({ customers, teams, templates }: JobDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          <PlusIcon className="h-4 w-4" />
-          Yeni İş
-        </Button>
+        {trigger || (
+          <Button className="gap-2">
+            <PlusIcon className="h-4 w-4" />
+            Yeni İş
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Yeni İş Oluştur</DialogTitle>
+          <DialogTitle>{job ? 'İş Düzenle' : 'Yeni İş Oluştur'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <div className="space-y-2">
@@ -398,7 +470,7 @@ export function JobDialog({ customers, teams, templates }: JobDialogProps) {
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-              Oluştur
+              {job ? 'Güncelle' : 'Oluştur'}
             </Button>
           </div>
         </form>

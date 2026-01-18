@@ -10,8 +10,9 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { SearchIcon } from "lucide-react"
+import { SearchIcon, PencilIcon } from "lucide-react"
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 import { getUsers } from "@/lib/data/users"
@@ -62,9 +63,9 @@ export default async function UsersPage(props: {
           <div className="relative max-w-sm">
             <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <form>
-              <Input 
-                name="search" 
-                placeholder="İsim veya e-posta ara..." 
+              <Input
+                name="search"
+                placeholder="İsim veya e-posta ara..."
                 className="pl-10"
                 defaultValue={searchParams.search}
               />
@@ -81,6 +82,7 @@ export default async function UsersPage(props: {
               <TableHead>Telefon</TableHead>
               <TableHead>Durum</TableHead>
               <TableHead>Kayıt Tarihi</TableHead>
+              <TableHead className="w-[50px]">İşlemler</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -101,6 +103,17 @@ export default async function UsersPage(props: {
                 </TableCell>
                 <TableCell>
                   {format(new Date(user.createdAt), 'd MMM yyyy', { locale: tr })}
+                </TableCell>
+                <TableCell>
+                  <UserDialog
+                    user={user}
+                    trigger={
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <span className="sr-only">Düzenle</span>
+                        <PencilIcon className="h-4 w-4 text-gray-500" />
+                      </Button>
+                    }
+                  />
                 </TableCell>
               </TableRow>
             ))}

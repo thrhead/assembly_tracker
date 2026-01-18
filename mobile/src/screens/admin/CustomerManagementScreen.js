@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Alert, Modal } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/theme';
+// import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useCustomerManagement } from '../../hooks/useCustomerManagement';
 import CustomerListItem from '../../components/admin/CustomerListItem';
 import CustomerFormModal from '../../components/admin/CustomerFormModal';
 
 export default function CustomerManagementScreen({ navigation }) {
+    const { theme, isDark } = useTheme();
     const {
         filteredCustomers,
         loading,
@@ -78,9 +80,9 @@ export default function CustomerManagementScreen({ navigation }) {
 
     const renderEmptyState = () => (
         <View style={styles.emptyContainer}>
-            <MaterialIcons name="business-center" size={48} color={COLORS.slate600} style={{ marginBottom: 16 }} />
-            <Text style={styles.emptyTitle}>Müşteri bulunamadı</Text>
-            <Text style={styles.emptyText}>
+            <MaterialIcons name="business-center" size={48} color={theme.colors.subText} style={{ marginBottom: 16 }} />
+            <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>Müşteri bulunamadı</Text>
+            <Text style={[styles.emptyText, { color: theme.colors.subText }]}>
                 {searchQuery ? 'Arama kriterlerinize uygun müşteri bulunamadı.' : 'Henüz müşteri eklenmemiş.'}
             </Text>
         </View>
@@ -88,29 +90,29 @@ export default function CustomerManagementScreen({ navigation }) {
 
     if (loading) {
         return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
-                <Text style={styles.loadingText}>Müşteriler yükleniyor...</Text>
+            <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
+                <Text style={[styles.loadingText, { color: theme.colors.subText }]}>Müşteriler yükleniyor...</Text>
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
-            <View style={styles.headerContainer}>
+        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+            <View style={[styles.headerContainer, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}>
                 {/* Search Bar */}
-                <View style={styles.searchContainer}>
-                    <MaterialIcons name="search" size={20} color={COLORS.primary} style={{ marginRight: 8 }} />
+                <View style={[styles.searchContainer, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+                    <MaterialIcons name="search" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
                     <TextInput
-                        style={styles.searchInput}
+                        style={[styles.searchInput, { color: theme.colors.text }]}
                         placeholder="Müşteri ara..."
-                        placeholderTextColor={COLORS.slate400}
+                        placeholderTextColor={theme.colors.subText}
                         value={searchQuery}
                         onChangeText={setSearchQuery}
                     />
                     {searchQuery.length > 0 && (
                         <TouchableOpacity onPress={() => setSearchQuery('')}>
-                            <MaterialIcons name="close" size={20} color={COLORS.slate400} />
+                            <MaterialIcons name="close" size={20} color={theme.colors.subText} />
                         </TouchableOpacity>
                     )}
                 </View>
@@ -123,6 +125,7 @@ export default function CustomerManagementScreen({ navigation }) {
                         item={item}
                         onEdit={handleEditCustomer}
                         onDelete={handleDeleteCustomer}
+                        theme={theme}
                     />
                 )}
                 keyExtractor={item => item.id.toString()}
@@ -133,14 +136,18 @@ export default function CustomerManagementScreen({ navigation }) {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        colors={[COLORS.primary]}
-                        tintColor={COLORS.primary}
+                        colors={[theme.colors.primary]}
+                        tintColor={theme.colors.primary}
                     />
                 }
             />
 
-            <TouchableOpacity style={styles.fab} onPress={handleAddCustomer} activeOpacity={0.8}>
-                <MaterialIcons name="add" size={32} color={COLORS.black} />
+            <TouchableOpacity
+                style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+                onPress={handleAddCustomer}
+                activeOpacity={0.8}
+            >
+                <MaterialIcons name="add" size={32} color={theme.colors.textInverse} />
             </TouchableOpacity>
 
             <CustomerFormModal
@@ -148,6 +155,7 @@ export default function CustomerManagementScreen({ navigation }) {
                 onClose={() => setModalVisible(false)}
                 initialData={editingCustomer}
                 onSave={handleSaveCustomer}
+                theme={theme}
             />
         </View>
     );
@@ -156,7 +164,6 @@ export default function CustomerManagementScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.backgroundDark,
     },
     centerContainer: {
         flex: 1,
@@ -165,29 +172,25 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         marginTop: 10,
-        color: COLORS.slate400,
     },
     headerContainer: {
-        backgroundColor: COLORS.cardDark,
         paddingBottom: 12,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.slate800,
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.slate800,
         marginHorizontal: 16,
         marginTop: 16,
         marginBottom: 12,
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 8,
+        borderWidth: 1,
     },
     searchInput: {
         flex: 1,
         fontSize: 14,
-        color: COLORS.textLight,
     },
     listContainer: {
         padding: 16,
@@ -202,12 +205,10 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.textLight,
         marginBottom: 8,
     },
     emptyText: {
         fontSize: 14,
-        color: COLORS.slate400,
         textAlign: 'center',
         paddingHorizontal: 32,
     },
@@ -218,7 +219,6 @@ const styles = StyleSheet.create({
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: COLORS.primary,
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 8,

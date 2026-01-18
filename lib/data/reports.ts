@@ -45,7 +45,7 @@ export async function getReportStats(startDate: Date, endDate: Date, jobStatus?:
     if (jobStatus && jobStatus !== 'all') costWhere.job = { status: jobStatus };
     if (jobId && jobId !== 'all') costWhere.jobId = jobId;
     if (category && category !== 'all') costWhere.category = category;
-    
+
     // Total APPROVED costs for the specific filters
     const approvedCosts = await prisma.costTracking.aggregate({
         _sum: { amount: true },
@@ -133,7 +133,7 @@ export async function getCostTrend(startDate: Date, endDate: Date, status?: stri
         const dateStr = cost.date.toISOString().split('T')[0];
         const cat = cost.category || 'Diğer';
         categoriesSet.add(cat);
-        
+
         if (!trendMap[dateStr]) trendMap[dateStr] = {};
         trendMap[dateStr][cat] = (trendMap[dateStr][cat] || 0) + cost.amount;
     });
@@ -197,8 +197,14 @@ export async function getPendingCostsList(startDate: Date, endDate: Date, jobSta
     });
 }
 
-export async function getJobsListForFilter() {
+export async function getJobsListForFilter(jobStatus?: string) {
+    const where: any = {};
+    if (jobStatus && jobStatus !== 'all') {
+        where.status = jobStatus;
+    }
+
     return await prisma.job.findMany({
+        where,
         select: { id: true, title: true },
         orderBy: { title: 'asc' }
     });
@@ -287,7 +293,7 @@ export async function getTeamPerformance(startDate: Date, endDate: Date, jobStat
         if (teamAssignment && teamAssignment.team) {
             const teamId = teamAssignment.team.id;
             const teamName = teamAssignment.team.name;
-            
+
             if (!teamStats[teamId]) {
                 teamStats[teamId] = { totalJobs: 0, totalTime: 0, teamName };
             }
@@ -305,4 +311,30 @@ export async function getTeamPerformance(startDate: Date, endDate: Date, jobStat
         totalJobs: stat.totalJobs,
         avgCompletionTimeMinutes: stat.totalJobs > 0 ? stat.totalTime / stat.totalJobs : 0
     }));
+}
+
+export async function getCostList(startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) {
+    const where: any = {
+        date: { gte: startDate, lte: endDate }
+    };
+
+    if (status && status !== 'all') where.status = status;
+    else where.status = { not: 'REJECTED' };
+
+    if (jobStatus && jobStatus !== 'all') where.job = { ...where.job, status: jobStatus };
+    if (jobId && jobId !== 'all') where.jobId = jobId;
+    if (category && category !== 'all') where.category = category;
+
+    return await prisma.costTracking.findMany({
+        where,
+        include: {
+            job: {
+                select: { title: true }
+            },
+            createdBy: {
+                select: { name: true }
+            }
+        },
+        orderBy: { date: 'desc' }
+    });
 }

@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
-import DashboardAction from '../../components/DashboardAction';
-import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import GlassCard from '../../components/ui/GlassCard';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import CustomDrawer from '../../components/admin/CustomDrawer';
-import DashboardStatsGrid from '../../components/admin/DashboardStatsGrid';
-import RecentJobsList from '../../components/admin/RecentJobsList';
+import DashboardStatsGrid from '../../components/admin/DashboardStatsGrid'; // You might need to check if this component supports theme props or styling
+import RecentJobsList from '../../components/admin/RecentJobsList'; // Same here
 import DashboardBottomNav from '../../components/admin/DashboardBottomNav';
 
 export default function AdminDashboardScreen({ navigation }) {
     const { user, logout } = useAuth();
+    const { theme, toggleTheme, isDark } = useTheme();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -30,13 +32,13 @@ export default function AdminDashboardScreen({ navigation }) {
 
     // Navigation Items Data
     const navItems = [
-        { id: 'users', title: 'Kullanıcılar', icon: 'people', route: 'UserManagement', color: COLORS.blue500 },
-        { id: 'customers', title: 'Müşteriler', icon: 'business', route: 'CustomerManagement', color: COLORS.purple500 },
-        { id: 'teams', title: 'Ekipler', icon: 'groups', route: 'TeamList', color: COLORS.indigo500 },
-        { id: 'jobs', title: 'İşler', icon: 'work', route: 'Jobs', color: COLORS.orange500 },
-        { id: 'approvals', title: 'Onaylar', icon: 'fact-check', route: 'Approvals', color: COLORS.teal500 },
-        { id: 'costs', title: 'Maliyetler', icon: 'attach-money', route: 'CostManagement', color: COLORS.green500 },
-        { id: 'calendar', title: 'Takvim', icon: 'calendar-today', route: 'Calendar', color: COLORS.purple500 },
+        { id: 'users', title: 'Kullanıcılar', icon: 'people', route: 'UserManagement', color: theme.colors.primary },
+        { id: 'customers', title: 'Müşteriler', icon: 'business', route: 'CustomerManagement', color: theme.colors.tertiary },
+        { id: 'teams', title: 'Ekipler', icon: 'groups', route: 'TeamList', color: theme.colors.secondary },
+        { id: 'jobs', title: 'İşler', icon: 'work', route: 'Jobs', color: '#f97316' }, // Orange
+        { id: 'approvals', title: 'Onaylar', icon: 'fact-check', route: 'Approvals', color: '#14b8a6' }, // Teal
+        { id: 'costs', title: 'Maliyetler', icon: 'attach-money', route: 'CostManagement', color: '#22c55e' }, // Green
+        { id: 'calendar', title: 'Takvim', icon: 'calendar-today', route: 'Calendar', color: '#a855f7' }, // Purple
     ];
 
     const handleNavPress = (route) => {
@@ -45,106 +47,126 @@ export default function AdminDashboardScreen({ navigation }) {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
-            <CustomDrawer
-                visible={isDrawerOpen}
-                onClose={() => setIsDrawerOpen(false)}
-                user={user}
-                navItems={navItems}
-                onNavigate={handleNavPress}
-                onLogout={logout}
-            />
+        <LinearGradient
+            colors={theme.colors.gradient}
+            start={theme.colors.gradientStart}
+            end={theme.colors.gradientEnd}
+            style={{ flex: 1 }}
+        >
+            <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
+                <StatusBar
+                    barStyle={isDark ? "light-content" : "dark-content"}
+                    backgroundColor="transparent"
+                    translucent
+                />
 
-            <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollContent}
-                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
-            >
-                {/* Header Container */}
-                <View style={styles.headerContainer}>
-                    <View style={styles.headerContent}>
-                        <View style={styles.userInfo}>
-                            <Text style={styles.welcomeLabel}>Hoşgeldiniz,</Text>
-                            <Text style={styles.userName}>{user?.name || 'Admin'}</Text>
-                        </View>
-                        <TouchableOpacity
-                            style={styles.profileButton}
-                            onPress={() => navigation.navigate('Profile')}
-                        >
-                            <View style={styles.avatarCircle}>
-                                <Text style={styles.avatarText}>
-                                    {user?.name?.charAt(0) || 'A'}
-                                </Text>
+                <CustomDrawer
+                    visible={isDrawerOpen}
+                    onClose={() => setIsDrawerOpen(false)}
+                    user={user}
+                    navItems={navItems}
+                    onNavigate={handleNavPress}
+                    onLogout={logout}
+                />
+
+                <ScrollView
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.scrollContent}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Header Container */}
+                    <View style={styles.headerContainer}>
+                        <View style={styles.headerContent}>
+                            <View style={styles.userInfo}>
+                                <Text style={[styles.welcomeLabel, { color: theme.colors.subText }]}>Hoşgeldiniz,</Text>
+                                <Text style={[styles.userName, { color: theme.colors.text }]}>{user?.name || 'Admin'}</Text>
                             </View>
-                        </TouchableOpacity>
-                    </View>
 
-                    {/* Stats Summary Row if needed, or just spacing */}
-                </View>
+                            <View style={{ flexDirection: 'row', gap: 12 }}>
+                                <TouchableOpacity
+                                    style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}
+                                    onPress={toggleTheme}
+                                >
+                                    <MaterialIcons name={isDark ? "light-mode" : "dark-mode"} size={24} color={theme.colors.icon} />
+                                </TouchableOpacity>
 
-                {/* Main Content Container - overlaps header slightly for depth if we add negative margin, 
-                    but for now keeping clean flow */}
-                <View style={styles.mainContent}>
-
-                    {/* Stats Grid */}
-                    <DashboardStatsGrid statsData={statsData} />
-
-                    {/* Navigation Grid */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Menü</Text>
-                        <View style={styles.navGrid}>
-                            {navItems.map((item) => (
-                                <View key={item.id} style={styles.navItemWrapper}>
-                                    <DashboardAction
-                                        label={item.title}
-                                        icon={<MaterialIcons name={item.icon} size={32} color={item.color} />}
-                                        onPress={() => handleNavPress(item.route)}
-                                        isActive={true}
-                                        style={styles.navAction}
-                                    />
-                                </View>
-                            ))}
+                                <TouchableOpacity
+                                    style={styles.profileButton}
+                                    onPress={() => navigation.navigate('Profile')}
+                                >
+                                    <View style={[styles.avatarCircle, { backgroundColor: theme.colors.primary }]}>
+                                        <Text style={[styles.avatarText, { color: isDark ? '#000' : '#fff' }]}>
+                                            {user?.name?.charAt(0) || 'A'}
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     </View>
 
-                    {/* Quick Actions */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Hızlı İşlemler</Text>
-                        <View style={styles.quickActions}>
-                            <DashboardAction
-                                label="Yeni İş"
-                                icon={<MaterialIcons name="add-task" size={32} color={COLORS.cyan500} />}
-                                onPress={() => navigation.navigate('CreateJob')}
-                                style={{ flex: 1 }}
-                            />
-                            <DashboardAction
-                                label="Yeni Kullanıcı"
-                                icon={<MaterialIcons name="person-add" size={32} color={COLORS.pink500} />}
-                                onPress={() => navigation.navigate('UserManagement', { openCreate: true })}
-                                style={{ flex: 1 }}
-                            />
+                    <View style={styles.mainContent}>
+
+                        {/* Recent Jobs wrapped in a view purely for layout order if needed, but keeping original order */}
+                        <DashboardStatsGrid statsData={statsData} />
+
+                        {/* Navigation Grid */}
+                        <View style={styles.section}>
+                            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Menü</Text>
+                            <View style={styles.navGrid}>
+                                {navItems.map((item) => (
+                                    <View key={item.id} style={styles.navItemWrapper}>
+                                        <GlassCard
+                                            theme={theme}
+                                            onPress={() => handleNavPress(item.route)}
+                                            style={styles.navActionCard}
+                                        >
+                                            <MaterialIcons name={item.icon} size={32} color={item.color} />
+                                            <Text style={[styles.navActionLabel, { color: theme.colors.text }]}>{item.title}</Text>
+                                        </GlassCard>
+                                    </View>
+                                ))}
+                            </View>
                         </View>
+
+                        {/* Quick Actions */}
+                        <View style={styles.section}>
+                            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Hızlı İşlemler</Text>
+                            <View style={styles.quickActions}>
+                                <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('CreateJob')}>
+                                    <View style={{ padding: 12, borderRadius: 12, backgroundColor: 'rgba(6, 182, 212, 0.1)' }}>
+                                        <MaterialIcons name="add-task" size={28} color="#06b6d4" />
+                                    </View>
+                                    <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Yeni İş</Text>
+                                </GlassCard>
+
+                                <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('UserManagement', { openCreate: true })}>
+                                    <View style={{ padding: 12, borderRadius: 12, backgroundColor: 'rgba(236, 72, 153, 0.1)' }}>
+                                        <MaterialIcons name="person-add" size={28} color="#ec4899" />
+                                    </View>
+                                    <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Yeni Kullanıcı</Text>
+                                </GlassCard>
+                            </View>
+                        </View>
+
+                        <RecentJobsList
+                            jobs={recentJobs}
+                            onJobPress={(id) => navigation.navigate('JobDetail', { jobId: id })}
+                            onViewAll={() => navigation.navigate('Jobs')}
+                        />
+
                     </View>
+                </ScrollView>
 
-                    {/* Recent Jobs */}
-                    <RecentJobsList
-                        jobs={recentJobs}
-                        onJobPress={(id) => navigation.navigate('JobDetail', { jobId: id })}
-                        onViewAll={() => navigation.navigate('Jobs')}
-                    />
-
-                </View>
-            </ScrollView>
-
-            <DashboardBottomNav navigation={navigation} />
-        </SafeAreaView>
+                <DashboardBottomNav navigation={navigation} />
+            </SafeAreaView>
+        </LinearGradient>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.backgroundDark,
     },
     scrollView: {
         flex: 1,
@@ -155,12 +177,7 @@ const styles = StyleSheet.create({
     headerContainer: {
         padding: 20,
         paddingTop: 24,
-        paddingBottom: 32,
-        backgroundColor: COLORS.cardDark,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-        marginBottom: -24, // Overlap effect
-        zIndex: 1,
+        paddingBottom: 24,
     },
     headerContent: {
         flexDirection: 'row',
@@ -172,29 +189,30 @@ const styles = StyleSheet.create({
     },
     welcomeLabel: {
         fontSize: 14,
-        color: COLORS.slate400,
         fontWeight: '500',
     },
     userName: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: COLORS.white,
         letterSpacing: -0.5,
     },
     profileButton: {
         padding: 4,
     },
+    iconButton: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+    },
     avatarCircle: {
         width: 48,
         height: 48,
         borderRadius: 24,
-        backgroundColor: COLORS.primary,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 2,
-        borderColor: 'rgba(255,255,255,0.1)',
-        shadowColor: COLORS.primary,
-        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
         elevation: 4,
@@ -202,12 +220,10 @@ const styles = StyleSheet.create({
     avatarText: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: COLORS.backgroundDark,
     },
     mainContent: {
         flex: 1,
         zIndex: 2,
-        paddingTop: 12, // Space after overlap
     },
     section: {
         padding: 16,
@@ -217,7 +233,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: COLORS.textLight,
         marginBottom: 8,
     },
     navGrid: {
@@ -229,11 +244,16 @@ const styles = StyleSheet.create({
         width: '50%',
         padding: 6,
     },
-    navAction: {
-        height: 100,
+    navActionCard: {
+        height: 110,
         justifyContent: 'center',
-        backgroundColor: COLORS.cardDark,
-        borderColor: COLORS.slate800,
+        alignItems: 'center',
+        gap: 12,
+        padding: 16,
+    },
+    navActionLabel: {
+        fontSize: 14,
+        fontWeight: '600',
     },
     quickActions: {
         flexDirection: 'row',

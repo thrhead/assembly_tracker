@@ -1,10 +1,17 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { COLORS } from '../../constants/theme';
 
-const NotificationItem = ({ item, onPress }) => {
+const NotificationItem = ({ item, onPress, theme }) => {
+    const colors = theme ? theme.colors : COLORS;
+
     return (
         <TouchableOpacity
-            style={[styles.card, !item.isRead && styles.unreadCard]}
+            style={[
+                styles.card,
+                { backgroundColor: colors.surface, shadowColor: colors.shadow },
+                !item.isRead && [styles.unreadCard, { borderLeftColor: colors.primary, backgroundColor: colors.primary + '10' }]
+            ]}
             onPress={() => onPress(item)}
         >
             <View style={styles.iconContainer}>
@@ -13,9 +20,11 @@ const NotificationItem = ({ item, onPress }) => {
                 </Text>
             </View>
             <View style={styles.content}>
-                <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.message}>{item.message}</Text>
-                <Text style={styles.date}>{new Date(item.createdAt).toLocaleDateString()} {new Date(item.createdAt).toLocaleTimeString()}</Text>
+                <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
+                <Text style={[styles.message, { color: colors.subText }]}>{item.message}</Text>
+                <Text style={[styles.date, { color: colors.subText + '80' }]}>
+                    {new Date(item.createdAt).toLocaleDateString()} {new Date(item.createdAt).toLocaleTimeString()}
+                </Text>
             </View>
         </TouchableOpacity>
     );
@@ -23,12 +32,10 @@ const NotificationItem = ({ item, onPress }) => {
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: '#fff',
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
         flexDirection: 'row',
-        shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.05,
         shadowRadius: 2,
@@ -36,8 +43,6 @@ const styles = StyleSheet.create({
     },
     unreadCard: {
         borderLeftWidth: 4,
-        borderLeftColor: '#16A34A',
-        backgroundColor: '#F0FDF4',
     },
     iconContainer: {
         marginRight: 12,
@@ -52,17 +57,14 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#111827',
         marginBottom: 4,
     },
     message: {
         fontSize: 14,
-        color: '#4B5563',
         marginBottom: 8,
     },
     date: {
         fontSize: 12,
-        color: '#9CA3AF',
     },
 });
 

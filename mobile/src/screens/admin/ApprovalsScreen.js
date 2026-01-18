@@ -3,9 +3,10 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, 
 import { MaterialIcons } from '@expo/vector-icons';
 import { useApprovals } from '../../hooks/useApprovals';
 import ApprovalCard from '../../components/admin/ApprovalCard';
-import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 export default function ApprovalsScreen({ navigation }) {
+    const { theme } = useTheme();
     const {
         filteredApprovals,
         filter,
@@ -19,22 +20,34 @@ export default function ApprovalsScreen({ navigation }) {
 
     if (loading) {
         return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
+            <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             <View style={styles.filterContainer}>
                 {['ALL', 'JOB', 'COST'].map(f => (
                     <TouchableOpacity
                         key={f}
-                        style={[styles.filterButton, filter === f && styles.activeFilter]}
+                        style={[
+                            styles.filterButton,
+                            {
+                                backgroundColor: filter === f ? theme.colors.primary : theme.colors.card,
+                                borderColor: filter === f ? theme.colors.primary : theme.colors.border
+                            }
+                        ]}
                         onPress={() => setFilter(f)}
                     >
-                        <Text style={[styles.filterText, filter === f && styles.activeFilterText]}>
+                        <Text style={[
+                            styles.filterText,
+                            {
+                                color: filter === f ? theme.colors.textInverse : theme.colors.subText,
+                                fontWeight: filter === f ? 'bold' : '500'
+                            }
+                        ]}>
                             {f === 'ALL' ? 'Tümü' : f === 'JOB' ? 'İşler' : 'Masraflar'}
                         </Text>
                     </TouchableOpacity>
@@ -48,17 +61,18 @@ export default function ApprovalsScreen({ navigation }) {
                         item={item}
                         onApprove={handleApprove}
                         onReject={handleReject}
+                        theme={theme}
                     />
                 )}
                 keyExtractor={item => `${item.type}-${item.id}`}
                 contentContainerStyle={styles.listContent}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />
                 }
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        <MaterialIcons name="check-circle" size={64} color={COLORS.slate600} />
-                        <Text style={styles.emptyText}>Bekleyen onay bulunmuyor</Text>
+                        <MaterialIcons name="check-circle" size={64} color={theme.colors.subText} />
+                        <Text style={[styles.emptyText, { color: theme.colors.subText }]}>Bekleyen onay bulunmuyor</Text>
                     </View>
                 }
             />
@@ -69,13 +83,11 @@ export default function ApprovalsScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.backgroundDark,
     },
     centerContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: COLORS.backgroundDark,
     },
     filterContainer: {
         flexDirection: 'row',
@@ -86,21 +98,10 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderRadius: 20,
-        backgroundColor: COLORS.cardDark,
         borderWidth: 1,
-        borderColor: COLORS.slate800,
-    },
-    activeFilter: {
-        backgroundColor: COLORS.primary,
-        borderColor: COLORS.primary,
     },
     filterText: {
-        color: COLORS.slate400,
-        fontWeight: '500',
-    },
-    activeFilterText: {
-        color: COLORS.black,
-        fontWeight: 'bold',
+        fontSize: 14,
     },
     listContent: {
         padding: 16,
@@ -113,7 +114,6 @@ const styles = StyleSheet.create({
         gap: 16,
     },
     emptyText: {
-        color: COLORS.slate400,
         fontSize: 16,
     },
 });

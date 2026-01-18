@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 const JobSearchHeader = ({ searchQuery, setSearchQuery, title = "Görevler" }) => {
+    const { theme, isDark } = useTheme();
     const [showSearch, setShowSearch] = useState(false);
 
     const toggleSearch = () => {
@@ -15,37 +16,40 @@ const JobSearchHeader = ({ searchQuery, setSearchQuery, title = "Görevler" }) =
     };
 
     return (
-        <View style={styles.header}>
+        <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
             <View style={styles.headerLeft}>
-                <MaterialIcons name="assignment" size={30} color={COLORS.neonGreen} />
+                <MaterialIcons name="assignment" size={30} color={theme.colors.primary} />
             </View>
             {showSearch ? (
                 <TextInput
-                    style={styles.searchInput}
+                    style={[styles.searchInput, {
+                        color: theme.colors.text,
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
+                    }]}
                     placeholder="İş ara..."
-                    placeholderTextColor={COLORS.textGray}
+                    placeholderTextColor={theme.colors.subText}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     autoFocus
                 />
             ) : (
-                <Text style={styles.headerTitle}>{title}</Text>
+                <Text style={[styles.headerTitle, { color: theme.colors.text }]}>{title}</Text>
             )}
             <TouchableOpacity
                 style={styles.searchButton}
                 onPress={toggleSearch}
             >
-                <MaterialIcons name={showSearch ? "close" : "search"} size={24} color={COLORS.neonGreen} />
+                <MaterialIcons name={showSearch ? "close" : "search"} size={24} color={theme.colors.primary} />
             </TouchableOpacity>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, backgroundColor: 'rgba(0,0,0,0.8)', borderBottomWidth: 1, borderBottomColor: COLORS.cardBorder },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, paddingBottom: 8, borderBottomWidth: 1 }, // Removed bg color
     headerLeft: { width: 40, alignItems: 'flex-start' },
-    headerTitle: { fontSize: 20, fontWeight: 'bold', color: COLORS.textLight, flex: 1, textAlign: 'center' },
-    searchInput: { flex: 1, color: COLORS.textLight, fontSize: 16, paddingHorizontal: 12, height: 40, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 8, marginHorizontal: 12 },
+    headerTitle: { fontSize: 20, fontWeight: 'bold', flex: 1, textAlign: 'center' },
+    searchInput: { flex: 1, fontSize: 16, paddingHorizontal: 12, height: 40, borderRadius: 8, marginHorizontal: 12 },
     searchButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
 });
 

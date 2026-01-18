@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, RefreshControl, ActivityIndicator, FlatList, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useUserManagement } from '../../hooks/useUserManagement';
 import UserListItem from '../../components/admin/UserListItem';
 import UserFormModal from '../../components/admin/UserFormModal';
 
 export default function UserManagementScreen({ navigation, route }) {
+    const { theme, isDark } = useTheme();
     const {
         filteredUsers,
         loading,
@@ -75,19 +76,19 @@ export default function UserManagementScreen({ navigation, route }) {
     };
 
     const renderHeader = () => (
-        <View style={styles.headerContainer}>
-            <View style={styles.searchContainer}>
-                <MaterialIcons name="search" size={20} color={COLORS.primary} style={{ marginRight: 8 }} />
+        <View style={[styles.headerContainer, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}>
+            <View style={[styles.searchContainer, { backgroundColor: theme.colors.background }]}>
+                <MaterialIcons name="search" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
                 <TextInput
-                    style={styles.searchInput}
+                    style={[styles.searchInput, { color: theme.colors.text }]}
                     placeholder="Kullanıcı ara..."
-                    placeholderTextColor={COLORS.slate400}
+                    placeholderTextColor={theme.colors.subText}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                 />
                 {searchQuery.length > 0 && (
                     <TouchableOpacity onPress={() => setSearchQuery('')}>
-                        <MaterialIcons name="close" size={20} color={COLORS.slate400} />
+                        <MaterialIcons name="close" size={20} color={theme.colors.subText} />
                     </TouchableOpacity>
                 )}
             </View>
@@ -98,12 +99,14 @@ export default function UserManagementScreen({ navigation, route }) {
                         key={role}
                         style={[
                             styles.tab,
+                            { backgroundColor: activeTab === role ? theme.colors.primary : theme.colors.background },
                             activeTab === role && styles.activeTab
                         ]}
                         onPress={() => setActiveTab(role)}
                     >
                         <Text style={[
                             styles.tabText,
+                            { color: activeTab === role ? theme.colors.textInverse : theme.colors.subText },
                             activeTab === role && styles.activeTabText
                         ]}>
                             {role === 'ALL' ? 'Tümü' : role}
@@ -116,9 +119,9 @@ export default function UserManagementScreen({ navigation, route }) {
 
     const renderEmptyState = () => (
         <View style={styles.emptyContainer}>
-            <MaterialIcons name="person-off" size={64} color={COLORS.slate600} style={{ marginBottom: 16 }} />
-            <Text style={styles.emptyTitle}>Kullanıcı Bulunamadı</Text>
-            <Text style={styles.emptyText}>
+            <MaterialIcons name="person-off" size={64} color={theme.colors.subText} style={{ marginBottom: 16 }} />
+            <Text style={[styles.emptyTitle, { color: theme.colors.text }]}>Kullanıcı Bulunamadı</Text>
+            <Text style={[styles.emptyText, { color: theme.colors.subText }]}>
                 {searchQuery ? 'Arama kriterlerinize uygun kullanıcı yok.' : 'Henüz kullanıcı eklenmemiş.'}
             </Text>
         </View>
@@ -126,14 +129,14 @@ export default function UserManagementScreen({ navigation, route }) {
 
     if (loading) {
         return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
+            <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             {renderHeader()}
             <FlatList
                 data={filteredUsers}
@@ -142,6 +145,7 @@ export default function UserManagementScreen({ navigation, route }) {
                         item={item}
                         onEdit={handleEditUser}
                         onDelete={handleDeleteUser}
+                        theme={theme}
                     />
                 )}
                 keyExtractor={item => item.id}
@@ -150,19 +154,19 @@ export default function UserManagementScreen({ navigation, route }) {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={onRefresh}
-                        colors={[COLORS.primary]}
-                        tintColor={COLORS.primary}
+                        colors={[theme.colors.primary]}
+                        tintColor={theme.colors.primary}
                     />
                 }
                 ListEmptyComponent={renderEmptyState}
             />
 
             <TouchableOpacity
-                style={styles.fab}
+                style={[styles.fab, { backgroundColor: theme.colors.primary, shadowColor: theme.colors.primary }]}
                 onPress={handleAddUser}
                 activeOpacity={0.8}
             >
-                <MaterialIcons name="add" size={32} color={COLORS.black} />
+                <MaterialIcons name="add" size={32} color={theme.colors.textInverse} />
             </TouchableOpacity>
 
             <UserFormModal
@@ -170,6 +174,7 @@ export default function UserManagementScreen({ navigation, route }) {
                 onClose={() => setModalVisible(false)}
                 initialData={editingUser}
                 onSave={handleSaveUser}
+                theme={theme}
             />
         </View>
     );
@@ -178,7 +183,6 @@ export default function UserManagementScreen({ navigation, route }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.backgroundDark,
     },
     centerContainer: {
         flex: 1,
@@ -186,15 +190,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     headerContainer: {
-        backgroundColor: COLORS.cardDark,
         paddingBottom: 12,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.slate800,
     },
     searchContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.slate800,
         marginHorizontal: 16,
         marginTop: 16,
         marginBottom: 12,
@@ -205,7 +206,6 @@ const styles = StyleSheet.create({
     searchInput: {
         flex: 1,
         fontSize: 14,
-        color: COLORS.textLight,
     },
     tabsContainer: {
         flexDirection: 'row',
@@ -216,18 +216,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 16,
         paddingVertical: 6,
         borderRadius: 20,
-        backgroundColor: COLORS.slate800,
     },
     activeTab: {
-        backgroundColor: COLORS.primary,
     },
     tabText: {
         fontSize: 12,
         fontWeight: '600',
-        color: COLORS.slate400,
     },
     activeTabText: {
-        color: COLORS.black,
     },
     listContainer: {
         padding: 16,
@@ -240,10 +236,8 @@ const styles = StyleSheet.create({
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: COLORS.primary,
         justifyContent: 'center',
         alignItems: 'center',
-        shadowColor: 'black',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 4,
@@ -257,12 +251,10 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.textLight,
         marginTop: 16,
     },
     emptyText: {
         fontSize: 14,
-        color: COLORS.slate500,
         textAlign: 'center',
         marginTop: 8,
     },

@@ -31,12 +31,26 @@ const customerSchema = z.object({
   notes: z.string().optional(),
 })
 
-type FormData = z.infer<typeof customerSchema>
 
-export function CustomerDialog() {
+// Schema for editing (password optional)
+const customerEditSchema = customerSchema.extend({
+  password: z.string().optional().or(z.literal('')),
+})
+
+type FormData = z.infer<typeof customerEditSchema>
+
+import { updateCustomerAction } from '@/lib/actions/customers'
+
+interface CustomerDialogProps {
+  customer?: any
+  trigger?: React.ReactNode
+}
+
+export function CustomerDialog({ customer, trigger }: CustomerDialogProps) {
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const isEditing = !!customer
 
   const {
     register,
@@ -44,17 +58,36 @@ export function CustomerDialog() {
     formState: { errors },
     reset,
   } = useForm<FormData>({
-    resolver: zodResolver(customerSchema)
+    resolver: zodResolver(isEditing ? customerEditSchema : customerSchema),
+    defaultValues: customer ? {
+      name: customer.user.name || '',
+      email: customer.user.email || '',
+      phone: customer.user.phone || '',
+      company: customer.company || '',
+      address: customer.address || '',
+      taxId: customer.taxId || '',
+      notes: customer.notes || '',
+      password: ''
+    } : undefined
   })
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
     try {
-      await createCustomerAction(data)
+      if (isEditing) {
+        await updateCustomerAction({
+          id: customer.id,
+          ...data,
+          password: data.password || undefined
+        })
+        toast.success('Müşteri güncellendi')
+      } else {
+        await createCustomerAction(data as any)
+        toast.success('Müşteri başarıyla oluşturuldu')
+      }
 
-      toast.success('Müşteri başarıyla oluşturuldu')
       setOpen(false)
-      reset()
+      if (!isEditing) reset()
       router.refresh()
     } catch (error: any) {
       console.error(error)
@@ -67,14 +100,16 @@ export function CustomerDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
-          <PlusIcon className="h-4 w-4" />
-          Yeni Müşteri
-        </Button>
+        {trigger || (
+          <Button className="gap-2">
+            <PlusIcon className="h-4 w-4" />
+            Yeni Müşteri
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Yeni Müşteri Ekle</DialogTitle>
+          <DialogTitle>{isEditing ? 'Müşteri Düzenle' : 'Yeni Müşteri Ekle'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
           <div className="grid grid-cols-2 gap-4">
@@ -97,7 +132,7 @@ export function CustomerDialog() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Şifre</Label>
+              <Label htmlFor="password">Şifre {isEditing && '(Değiştirmek istemiyorsanız boş bırakın)'}</Label>
               <Input id="password" type="password" {...register('password')} />
               {errors.password && (
                 <p className="text-sm text-red-500">{errors.password.message}</p>
@@ -144,7 +179,7 @@ export function CustomerDialog() {
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />}
-              Oluştur
+              {isEditing ? 'Güncelle' : 'Oluştur'}
             </Button>
           </div>
         </form>

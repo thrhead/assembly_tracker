@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 const CustomButton = ({
     onPress,
@@ -10,27 +11,41 @@ const CustomButton = ({
     disabled = false,
     style,
     textStyle,
-    icon
+    icon,
+    // theme prop is no longer strictly necessary but kept for backward compatibility if passed explicitly
+    theme: propTheme
 }) => {
+    const { theme: contextTheme } = useTheme();
+    const theme = propTheme || contextTheme;
+
+    // Fallback values
+    const primaryColor = theme ? theme.colors.primary : COLORS.primary;
+    const errorColor = theme ? theme.colors.error : COLORS.red500;
+    const slate700 = theme ? theme.colors.border || COLORS.slate700 : COLORS.slate700;
+    const slate500 = theme ? theme.colors.subText || COLORS.slate500 : COLORS.slate500;
+    const slate400 = theme ? theme.colors.subText || COLORS.slate400 : COLORS.slate400;
+    const white = theme ? theme.colors.textInverse || COLORS.white : COLORS.white;
+    const black = theme ? theme.colors.textInverse || COLORS.black : COLORS.black;
+
     const getBackgroundColor = () => {
-        if (disabled) return COLORS.slate700;
+        if (disabled) return slate700;
         switch (variant) {
-            case 'primary': return COLORS.primary;
+            case 'primary': return primaryColor;
             case 'outline': return 'transparent';
-            case 'danger': return COLORS.red500;
+            case 'danger': return errorColor;
             case 'ghost': return 'transparent';
-            default: return COLORS.primary;
+            default: return primaryColor;
         }
     };
 
     const getTextColor = () => {
-        if (disabled) return COLORS.slate500;
+        if (disabled) return slate500;
         switch (variant) {
-            case 'primary': return COLORS.black;
-            case 'outline': return COLORS.primary;
-            case 'danger': return COLORS.white;
-            case 'ghost': return COLORS.slate400;
-            default: return COLORS.black;
+            case 'primary': return theme?.id === 'dark' ? COLORS.black : COLORS.textLight; // Dark mode primary is usually bright, so black text. Light mode primary is blue, so white text.
+            case 'outline': return primaryColor;
+            case 'danger': return white;
+            case 'ghost': return slate400;
+            default: return theme?.id === 'dark' ? COLORS.black : COLORS.textLight;
         }
     };
 
@@ -38,7 +53,7 @@ const CustomButton = ({
         if (variant === 'outline') {
             return {
                 borderWidth: 1,
-                borderColor: disabled ? COLORS.slate700 : COLORS.primary
+                borderColor: disabled ? slate700 : primaryColor
             };
         }
         return {};

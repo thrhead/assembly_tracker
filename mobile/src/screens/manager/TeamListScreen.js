@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Modal, Alert, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/theme';
+// import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useTeamManagement } from '../../hooks/useTeamManagement';
 import CustomButton from '../../components/CustomButton';
 import TeamCard from '../../components/manager/TeamCard';
@@ -9,6 +10,7 @@ import MemberCard from '../../components/manager/MemberCard';
 import TeamFormModal from '../../components/manager/TeamFormModal';
 
 export default function TeamListScreen({ navigation }) {
+    const { theme, isDark } = useTheme();
     const {
         teams,
         members,
@@ -71,14 +73,14 @@ export default function TeamListScreen({ navigation }) {
 
     if (loading) {
         return (
-            <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
+            <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             {isAdmin ? (
                 <>
                     <FlatList
@@ -89,28 +91,29 @@ export default function TeamListScreen({ navigation }) {
                                 onEdit={handleEditTeam}
                                 onDelete={handleDeleteTeam}
                                 isAdmin={isAdmin}
+                                theme={theme}
                             />
                         )}
                         keyExtractor={item => item.id}
                         contentContainerStyle={styles.listContainer}
                         style={{ flex: 1 }}
-                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+                        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
                     />
-                    <TouchableOpacity style={styles.fab} onPress={handleAddTeam} activeOpacity={0.8}>
-                        <MaterialIcons name="add" size={32} color={COLORS.black} />
+                    <TouchableOpacity style={[styles.fab, { backgroundColor: theme.colors.primary }]} onPress={handleAddTeam} activeOpacity={0.8}>
+                        <MaterialIcons name="add" size={32} color={theme.colors.textInverse} />
                     </TouchableOpacity>
                 </>
             ) : (
                 <FlatList
                     data={members}
-                    renderItem={({ item }) => <MemberCard item={item} />}
+                    renderItem={({ item }) => <MemberCard item={item} theme={theme} />}
                     keyExtractor={item => item.id}
                     contentContainerStyle={styles.listContainer}
                     style={{ flex: 1 }}
-                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
                     ListEmptyComponent={
                         <View style={styles.centerContainer}>
-                            <Text style={styles.emptyText}>Ekip bulunamadı.</Text>
+                            <Text style={[styles.emptyText, { color: theme.colors.subText }]}>Ekip bulunamadı.</Text>
                         </View>
                     }
                 />
@@ -122,6 +125,7 @@ export default function TeamListScreen({ navigation }) {
                 initialData={editingTeam}
                 onSave={handleSaveTeam}
                 availableUsers={availableUsers}
+                theme={theme}
             />
 
             {/* Delete Confirmation Modal */}
@@ -132,12 +136,12 @@ export default function TeamListScreen({ navigation }) {
                 onRequestClose={() => setDeleteModalVisible(false)}
             >
                 <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Ekibi Sil</Text>
-                        <Text style={styles.deleteConfirmationText}>
+                    <View style={[styles.modalContent, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+                        <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Ekibi Sil</Text>
+                        <Text style={[styles.deleteConfirmationText, { color: theme.colors.text }]}>
                             "{teamToDelete?.name}" ekibini silmek istediğinizden emin misiniz?
                         </Text>
-                        <Text style={styles.deleteWarningText}>
+                        <Text style={[styles.deleteWarningText, { color: theme.colors.subText }]}>
                             Bu işlem geri alınamaz.
                         </Text>
 
@@ -149,13 +153,15 @@ export default function TeamListScreen({ navigation }) {
                                     setTeamToDelete(null);
                                 }}
                                 variant="outline"
-                                style={{ flex: 1 }}
+                                style={{ flex: 1, borderColor: theme.colors.border }}
+                                textStyle={{ color: theme.colors.text }}
                             />
                             <CustomButton
                                 title="Sil"
                                 onPress={confirmDelete}
                                 variant="primary"
-                                style={{ flex: 1, backgroundColor: COLORS.error || '#FF4444' }}
+                                style={{ flex: 1, backgroundColor: theme.colors.error }}
+                                textStyle={{ color: theme.colors.textInverse }}
                             />
                         </View>
                     </View>
@@ -168,7 +174,6 @@ export default function TeamListScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.backgroundDark,
     },
     centerContainer: {
         flex: 1,
@@ -185,13 +190,11 @@ const styles = StyleSheet.create({
         width: 56,
         height: 56,
         borderRadius: 28,
-        backgroundColor: COLORS.primary,
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 8,
     },
     emptyText: {
-        color: COLORS.slate400,
         fontSize: 14,
         fontStyle: 'italic',
     },
@@ -202,16 +205,13 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     modalContent: {
-        backgroundColor: COLORS.cardDark,
         borderRadius: 16,
         padding: 20,
         borderWidth: 1,
-        borderColor: COLORS.slate800,
     },
     modalTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: COLORS.textLight,
         marginBottom: 20,
         textAlign: 'center',
     },
@@ -221,13 +221,11 @@ const styles = StyleSheet.create({
         marginTop: 10,
     },
     deleteConfirmationText: {
-        color: COLORS.textLight,
         fontSize: 16,
         textAlign: 'center',
         marginBottom: 12,
     },
     deleteWarningText: {
-        color: COLORS.slate400,
         fontSize: 14,
         textAlign: 'center',
         marginBottom: 24,

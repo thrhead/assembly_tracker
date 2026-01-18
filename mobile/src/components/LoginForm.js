@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
-import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 import CustomInput from './CustomInput';
 import CustomButton from './CustomButton';
 import { API_BASE_URL } from '../services/api';
@@ -13,6 +13,7 @@ const LoginForm = ({ onBack, onLoginSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const { login } = useAuth();
+    const { theme, isDark } = useTheme();
 
     const handleLogin = async () => {
         if (!email || !password) {
@@ -38,11 +39,11 @@ const LoginForm = ({ onBack, onLoginSuccess }) => {
     return (
         <View style={styles.loginFormContainer}>
             <TouchableOpacity onPress={onBack} style={styles.backButton}>
-                <MaterialIcons name="arrow-back" size={24} color={COLORS.primary} />
-                <Text style={{ color: COLORS.primary, marginLeft: 5 }}>Geri</Text>
+                <MaterialIcons name="arrow-back" size={24} color={theme.colors.primary} />
+                <Text style={{ color: theme.colors.primary, marginLeft: 5 }}>Geri</Text>
             </TouchableOpacity>
 
-            <Text style={styles.loginTitle}>Giriş Yap</Text>
+            <Text style={[styles.loginTitle, { color: isDark ? theme.colors.text : theme.colors.primary }]}>Giriş Yap</Text>
             {__DEV__ && (
                 <Text style={styles.debugText}>API: {API_BASE_URL}</Text>
             )}
@@ -75,8 +76,8 @@ const LoginForm = ({ onBack, onLoginSuccess }) => {
 
             {__DEV__ && (
                 <View style={styles.hintContainer}>
-                    <Text style={styles.hint}>Admin: admin@montaj.com / admin123</Text>
-                    <Text style={styles.hint}>Worker: worker@montaj.com / worker123</Text>
+                    <Text style={[styles.hint, { color: theme.colors.subText }]}>Admin: admin@montaj.com / admin123</Text>
+                    <Text style={[styles.hint, { color: theme.colors.subText }]}>Worker: worker@montaj.com / worker123</Text>
                 </View>
             )}
         </View>
@@ -100,7 +101,6 @@ const styles = StyleSheet.create({
     loginTitle: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: COLORS.white,
         marginBottom: 30,
         textAlign: 'center',
     },
@@ -116,7 +116,6 @@ const styles = StyleSheet.create({
     },
     hint: {
         textAlign: 'center',
-        color: COLORS.slate500,
         fontSize: 12,
     },
 });

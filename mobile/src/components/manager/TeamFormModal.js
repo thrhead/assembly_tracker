@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import CustomInput from '../CustomInput';
 import CustomButton from '../CustomButton';
-import { COLORS } from '../../constants/theme';
+// import { COLORS } from '../../constants/theme';
 
-const TeamFormModal = ({ visible, onClose, initialData, onSave, availableUsers }) => {
+const TeamFormModal = ({ visible, onClose, initialData, onSave, availableUsers, theme }) => {
     const [formData, setFormData] = useState({ name: '', description: '', leadId: '', memberIds: [] });
 
     useEffect(() => {
@@ -34,8 +34,8 @@ const TeamFormModal = ({ visible, onClose, initialData, onSave, availableUsers }
             onRequestClose={onClose}
         >
             <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                    <Text style={styles.modalTitle}>{initialData ? 'Ekibi Düzenle' : 'Yeni Ekip Ekle'}</Text>
+                <View style={[styles.modalContent, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+                    <Text style={[styles.modalTitle, { color: theme.colors.text }]}>{initialData ? 'Ekibi Düzenle' : 'Yeni Ekip Ekle'}</Text>
 
                     <ScrollView style={{ maxHeight: 500 }} showsVerticalScrollIndicator={false}>
                         <CustomInput
@@ -43,6 +43,7 @@ const TeamFormModal = ({ visible, onClose, initialData, onSave, availableUsers }
                             value={formData.name}
                             onChangeText={(text) => setFormData({ ...formData, name: text })}
                             placeholder="Montaj Ekibi A"
+                            theme={theme}
                         />
 
                         <CustomInput
@@ -53,29 +54,34 @@ const TeamFormModal = ({ visible, onClose, initialData, onSave, availableUsers }
                             multiline
                             numberOfLines={3}
                             style={{ height: 80, textAlignVertical: 'top' }}
+                            theme={theme}
                         />
 
-                        <Text style={styles.label}>Ekip Lideri</Text>
-                        <View style={styles.selectionBox}>
+                        <Text style={[styles.label, { color: theme.colors.text }]}>Ekip Lideri</Text>
+                        <View style={[styles.selectionBox, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}>
                             {availableUsers.filter(u => u.role === 'TEAM_LEAD' || u.role === 'MANAGER').map(u => (
                                 <TouchableOpacity
                                     key={u.id}
                                     style={styles.checkboxItem}
                                     onPress={() => setFormData({ ...formData, leadId: formData.leadId === u.id ? '' : u.id })}
                                 >
-                                    <View style={[styles.checkbox, formData.leadId === u.id && styles.checkboxChecked]}>
-                                        {formData.leadId === u.id && <Text style={styles.checkmark}>✓</Text>}
+                                    <View style={[
+                                        styles.checkbox,
+                                        { borderColor: theme.colors.subText },
+                                        formData.leadId === u.id && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
+                                    ]}>
+                                        {formData.leadId === u.id && <Text style={[styles.checkmark, { color: theme.colors.textInverse }]}>✓</Text>}
                                     </View>
-                                    <Text style={styles.checkboxLabel}>{u.name} ({u.role === 'TEAM_LEAD' ? 'Ekip Lideri' : 'Yönetici'})</Text>
+                                    <Text style={[styles.checkboxLabel, { color: theme.colors.text }]}>{u.name} ({u.role === 'TEAM_LEAD' ? 'Ekip Lideri' : 'Yönetici'})</Text>
                                 </TouchableOpacity>
                             ))}
                             {availableUsers.filter(u => u.role === 'TEAM_LEAD' || u.role === 'MANAGER').length === 0 && (
-                                <Text style={styles.emptyText}>Henüz ekip lideri veya yönetici yok</Text>
+                                <Text style={[styles.emptyText, { color: theme.colors.subText }]}>Henüz ekip lideri veya yönetici yok</Text>
                             )}
                         </View>
 
-                        <Text style={styles.label}>Ekip Üyeleri</Text>
-                        <View style={styles.selectionBox}>
+                        <Text style={[styles.label, { color: theme.colors.text }]}>Ekip Üyeleri</Text>
+                        <View style={[styles.selectionBox, { backgroundColor: theme.colors.background, borderColor: theme.colors.border }]}>
                             {availableUsers.filter(u => u.role === 'WORKER' || u.role === 'TEAM_LEAD').map(u => (
                                 <TouchableOpacity
                                     key={u.id}
@@ -90,14 +96,18 @@ const TeamFormModal = ({ visible, onClose, initialData, onSave, availableUsers }
                                         });
                                     }}
                                 >
-                                    <View style={[styles.checkbox, formData.memberIds?.includes(u.id) && styles.checkboxChecked]}>
-                                        {formData.memberIds?.includes(u.id) && <Text style={styles.checkmark}>✓</Text>}
+                                    <View style={[
+                                        styles.checkbox,
+                                        { borderColor: theme.colors.subText },
+                                        formData.memberIds?.includes(u.id) && { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary }
+                                    ]}>
+                                        {formData.memberIds?.includes(u.id) && <Text style={[styles.checkmark, { color: theme.colors.textInverse }]}>✓</Text>}
                                     </View>
-                                    <Text style={styles.checkboxLabel}>{u.name} ({u.role === 'WORKER' ? 'İşçi' : 'Ekip Lideri'})</Text>
+                                    <Text style={[styles.checkboxLabel, { color: theme.colors.text }]}>{u.name} ({u.role === 'WORKER' ? 'İşçi' : 'Ekip Lideri'})</Text>
                                 </TouchableOpacity>
                             ))}
                             {availableUsers.filter(u => u.role === 'WORKER' || u.role === 'TEAM_LEAD').length === 0 && (
-                                <Text style={styles.emptyText}>Henüz işçi yok</Text>
+                                <Text style={[styles.emptyText, { color: theme.colors.subText }]}>Henüz işçi yok</Text>
                             )}
                         </View>
                     </ScrollView>
@@ -107,13 +117,15 @@ const TeamFormModal = ({ visible, onClose, initialData, onSave, availableUsers }
                             title="İptal"
                             onPress={onClose}
                             variant="outline"
-                            style={{ flex: 1 }}
+                            style={{ flex: 1, borderColor: theme.colors.border }}
+                            textStyle={{ color: theme.colors.text }}
                         />
                         <CustomButton
                             title="Kaydet"
                             onPress={handleSave}
                             variant="primary"
-                            style={{ flex: 1 }}
+                            style={{ flex: 1, backgroundColor: theme.colors.primary }}
+                            textStyle={{ color: theme.colors.textInverse }}
                         />
                     </View>
                 </View>
@@ -130,29 +142,23 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     modalContent: {
-        backgroundColor: COLORS.cardDark,
         borderRadius: 16,
         padding: 20,
         borderWidth: 1,
-        borderColor: COLORS.slate800,
     },
     modalTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: COLORS.textLight,
         marginBottom: 20,
         textAlign: 'center',
     },
     label: {
-        color: COLORS.textLight,
         marginBottom: 8,
         fontWeight: '600',
     },
     selectionBox: {
-        backgroundColor: COLORS.slate800,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: COLORS.slate600,
         padding: 12,
         marginBottom: 16,
         maxHeight: 200,
@@ -168,28 +174,20 @@ const styles = StyleSheet.create({
         height: 24,
         borderRadius: 4,
         borderWidth: 2,
-        borderColor: COLORS.slate500,
         marginRight: 12,
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'transparent',
     },
-    checkboxChecked: {
-        borderColor: COLORS.primary,
-        backgroundColor: COLORS.primary,
-    },
     checkmark: {
-        color: COLORS.black,
         fontSize: 16,
         fontWeight: 'bold',
     },
     checkboxLabel: {
-        color: COLORS.textLight,
         fontSize: 14,
         flex: 1,
     },
     emptyText: {
-        color: COLORS.slate400,
         fontSize: 14,
         fontStyle: 'italic',
         textAlign: 'center',

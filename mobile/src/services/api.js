@@ -9,30 +9,31 @@ import { ToastService } from './ToastService';
 const NGROK_URL = 'https://adjustment-wilderness-midnight-recordings.trycloudflare.com';
 
 const getBaseUrl = () => {
+    // Check if we have a production URL defined in environment variables (for EAS builds)
+    const prodUrl = process.env.EXPO_PUBLIC_API_URL;
+    if (prodUrl && !__DEV__) {
+        return prodUrl;
+    }
+
     // For web (react-native-web), use the same host that serves the app
-    // This allows it to work on both localhost and LAN IP
     if (Platform.OS === 'web') {
-        // Use window.location to get the current host
         if (typeof window !== 'undefined' && window.location) {
             const host = window.location.hostname;
-            // If accessed via IP, use that IP with port 3000
-            // If localhost, use localhost:3000
             return `http://${host}:3000`;
         }
         return 'http://localhost:3000';
     }
 
-    // Hardcoded LAN IP for physical device testing
-    return 'http://192.168.1.173:3000';
+    // Hardcoded LAN IP for physical device testing in development
+    if (__DEV__) {
+        return 'http://192.168.1.173:3000';
+    }
 
-    /* Tunnel logic disabled for now to simplify
-    if (NGROK_URL) return NGROK_URL;
-    if (Platform.OS === 'android') return 'http://10.0.2.2:3000';
-    return 'http://localhost:3000';
-    */
+    // Fallback for production if no env var is set
+    return 'https://assembly-tracker-api.vercel.app';
 };
 
-export const API_BASE_URL = __DEV__ ? getBaseUrl() : 'https://your-production-url.com';
+export const API_BASE_URL = getBaseUrl();
 
 const api = axios.create({
     baseURL: API_BASE_URL,

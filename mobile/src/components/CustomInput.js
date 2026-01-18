@@ -2,6 +2,7 @@ import React from 'react';
 import { View, TextInput, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { COLORS } from '../constants/theme';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 const CustomInput = ({
     value,
@@ -16,26 +17,31 @@ const CustomInput = ({
     keyboardType,
     autoCapitalize,
     editable = true,
-    style
+    style,
+    theme: propTheme
 }) => {
+    const { theme: contextTheme } = useTheme();
+    const theme = propTheme || contextTheme;
+    const colors = theme ? theme.colors : COLORS;
+
     return (
         <View style={[styles.container, style]}>
-            {label && <Text style={styles.label}>{label}</Text>}
-            <View style={[styles.inputContainer, error && styles.errorBorder]}>
+            {label && <Text style={[styles.label, { color: colors.subText || colors.slate400 }]}>{label}</Text>}
+            <View style={[styles.inputContainer, { backgroundColor: theme ? colors.card : 'rgba(255,255,255,0.05)', borderColor: theme ? colors.border : colors.slate700 }, error && styles.errorBorder]}>
                 {icon && (
                     <MaterialIcons
                         name={icon}
                         size={20}
-                        color={COLORS.slate500}
+                        color={colors.subText || colors.slate500}
                         style={styles.icon}
                     />
                 )}
                 <TextInput
-                    style={styles.input}
+                    style={[styles.input, { color: colors.text || colors.white }]}
                     value={value}
                     onChangeText={onChangeText}
                     placeholder={placeholder}
-                    placeholderTextColor={COLORS.slate500}
+                    placeholderTextColor={colors.subText || colors.slate500}
                     secureTextEntry={secureTextEntry}
                     keyboardType={keyboardType}
                     autoCapitalize={autoCapitalize}
@@ -46,12 +52,12 @@ const CustomInput = ({
                         <MaterialIcons
                             name={rightIcon}
                             size={20}
-                            color={COLORS.slate500}
+                            color={colors.subText || colors.slate500}
                         />
                     </TouchableOpacity>
                 )}
             </View>
-            {error && <Text style={styles.errorText}>{error}</Text>}
+            {error && <Text style={[styles.errorText, { color: colors.error || colors.red500 }]}>{error}</Text>}
         </View>
     );
 };

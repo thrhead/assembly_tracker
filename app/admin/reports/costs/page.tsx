@@ -1,7 +1,9 @@
-import { getCostBreakdown, getReportStats, getJobsListForFilter, getCategoriesForFilter, getCostTrend, getTotalCostTrend, getPendingCostsList } from "@/lib/data/reports";
+import { getCostBreakdown, getReportStats, getJobsListForFilter, getCategoriesForFilter, getCostTrend, getTotalCostTrend, getPendingCostsList, getCostList } from "@/lib/data/reports";
 import KPICards from "@/components/admin/reports/KPICards";
 import CostTrendChart from "@/components/admin/reports/charts/CostTrendChart";
 import TotalCostChart from "@/components/admin/reports/charts/TotalCostChart";
+import CategoryPieChart from "@/components/admin/reports/charts/CategoryPieChart";
+import CostListTable from "@/components/admin/reports/CostListTable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExcelDownloadButton } from "@/components/excel-download-button";
 import { PDFDownloadButton } from "@/components/pdf-download-button";
@@ -21,32 +23,36 @@ export default async function CostReportPage(props: {
     const jobStatus = searchParams?.jobStatus || 'all';
     const jobId = searchParams?.jobId || 'all';
     const category = searchParams?.category || 'all';
-    
-    const from = fromStr ? new Date(fromStr) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+    const from = fromStr ? new Date(fromStr) : new Date(0);
     const to = toStr ? new Date(toStr) : new Date();
 
     from.setHours(0, 0, 0, 0);
     to.setHours(23, 59, 59, 999);
 
-    const [costBreakdown, stats, filterJobs, filterCategories, costTrend, totalTrend, pendingCostsList] = await Promise.all([
+    const [costBreakdown, stats, filterJobs, filterCategories, costTrend, totalTrend, pendingCostsList, costList] = await Promise.all([
         getCostBreakdown(from, to, status, jobStatus, jobId, category),
         getReportStats(from, to, jobStatus, jobId, category),
-        getJobsListForFilter(),
+        getJobsListForFilter(jobStatus),
         getCategoriesForFilter(),
         getCostTrend(from, to, status, jobStatus, jobId, category),
         getTotalCostTrend(from, to, status, jobStatus, jobId, category),
-        getPendingCostsList(from, to, jobStatus, jobId, category)
+        getPendingCostsList(from, to, jobStatus, jobId, category),
+        getCostList(from, to, status, jobStatus, jobId, category)
     ]);
 
     const filteredTotalCost = Object.values(costBreakdown).reduce((a, b) => a + b, 0);
+
+    // Prepare data for pie chart
+    const pieChartData = Object.entries(costBreakdown).map(([name, value]) => ({ name, value }));
 
     return (
         <div className="flex-1 space-y-4 p-8 pt-6">
             <div className="flex items-center justify-between space-y-2">
                 <h2 className="text-3xl font-bold tracking-tight">Maliyet Raporu</h2>
                 <div className="flex items-center space-x-2">
-                    <ExcelDownloadButton 
-                        type="costs" 
+                    <ExcelDownloadButton
+                        type="costs"
                         filters={{
                             startDate: from.toISOString(),
                             endDate: to.toISOString(),
@@ -55,8 +61,8 @@ export default async function CostReportPage(props: {
                             category
                         }}
                     />
-                    <PDFDownloadButton 
-                        type="costs" 
+                    <PDFDownloadButton
+                        type="costs"
                         filters={{
                             startDate: from.toISOString(),
                             endDate: to.toISOString(),
@@ -78,7 +84,7 @@ export default async function CostReportPage(props: {
                 <Card className="border-red-200 bg-red-50 shadow-sm">
                     <CardHeader className="pb-3 flex flex-row items-center justify-between">
                         <CardTitle className="text-red-800 text-lg flex items-center font-bold">
-                            <span className="mr-2 px-2 py-0.5 bg-red-200 rounded-full text-xs animate-pulse">!</span> 
+                            <span className="mr-2 px-2 py-0.5 bg-red-200 rounded-full text-xs animate-pulse">!</span>
                             Onay Bekleyen Harcamalar ({pendingCostsList.length})
                         </CardTitle>
                         <Link href="/admin/costs?status=PENDING">
@@ -139,32 +145,10 @@ export default async function CostReportPage(props: {
                 <TotalCostChart data={totalTrend} />
                 <CostTrendChart data={costTrend.data} categories={costTrend.categories} />
             </div>
-            
+
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <div className="col-span-4 h-full">
-                   <Card className="h-full">
-                        <CardHeader>
-                            <CardTitle>Kategori Bazlı Dağılım</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {Object.entries(costBreakdown).length > 0 ? (
-                                    Object.entries(costBreakdown).map(([cat, amount]) => (
-                                        <div key={cat} className="flex items-center">
-                                            <div className="ml-4 space-y-1">
-                                                <p className="text-sm font-medium leading-none">{cat}</p>
-                                            </div>
-                                            <div className="ml-auto font-medium text-sm">
-                                                {new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(amount)}
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-sm text-muted-foreground text-center py-4">Veri bulunamadı.</p>
-                                )}
-                            </div>
-                        </CardContent>
-                   </Card>
+                    <CategoryPieChart data={pieChartData} />
                 </div>
                 <div className="col-span-3">
                     <Card className="bg-indigo-50 border-indigo-200">
@@ -184,6 +168,8 @@ export default async function CostReportPage(props: {
                     </Card>
                 </div>
             </div>
+
+            <CostListTable costs={costList} />
         </div>
     );
 }

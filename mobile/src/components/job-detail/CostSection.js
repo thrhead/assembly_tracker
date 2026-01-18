@@ -1,21 +1,24 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
+import GlassCard from '../ui/GlassCard';
 
 const CostSection = ({ job, canAdd, onAddPress }) => {
+    const { theme } = useTheme();
+
     if (!job) return null;
 
     return (
         <View>
             <View style={styles.sectionHeaderRow}>
-                <Text style={styles.sectionTitle}>Masraflar</Text>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Masraflar</Text>
                 {canAdd && (
                     <TouchableOpacity
-                        style={styles.addCostButton}
+                        style={[styles.addCostButton, { backgroundColor: theme.colors.primary }]}
                         onPress={onAddPress}
                     >
-                        <MaterialIcons name="add" size={20} color={COLORS.black} />
+                        <MaterialIcons name="add" size={20} color="#fff" />
                         <Text style={styles.addCostButtonText}>Ekle</Text>
                     </TouchableOpacity>
                 )}
@@ -23,30 +26,32 @@ const CostSection = ({ job, canAdd, onAddPress }) => {
 
             {job.costs && job.costs.length > 0 ? (
                 job.costs.map((cost) => (
-                    <View key={cost.id} style={styles.costCard}>
+                    <GlassCard key={cost.id} style={styles.costCard} theme={theme}>
                         <View style={styles.costHeader}>
-                            <Text style={styles.costCategory}>{cost.category}</Text>
+                            <Text style={[styles.costCategory, { color: theme.colors.primary }]}>{cost.category}</Text>
                             <Text style={[
                                 styles.costStatus,
-                                cost.status === 'APPROVED' ? styles.statusApproved :
-                                    cost.status === 'REJECTED' ? styles.statusRejected : styles.statusPending
+                                {
+                                    color: cost.status === 'APPROVED' ? theme.colors.success :
+                                        cost.status === 'REJECTED' ? theme.colors.error : theme.colors.warning
+                                }
                             ]}>
                                 {cost.status === 'APPROVED' ? 'Onaylandı' :
                                     cost.status === 'REJECTED' ? 'Reddedildi' : 'Bekliyor'}
                             </Text>
                         </View>
                         <View style={styles.costRow}>
-                            <Text style={styles.costAmount}>{cost.amount} {cost.currency}</Text>
-                            <Text style={styles.costDate}>{new Date(cost.date).toLocaleDateString()}</Text>
+                            <Text style={[styles.costAmount, { color: theme.colors.text }]}>{cost.amount} {cost.currency}</Text>
+                            <Text style={[styles.costDate, { color: theme.colors.subText }]}>{new Date(cost.date).toLocaleDateString()}</Text>
                         </View>
-                        <Text style={styles.costDescription}>{cost.description}</Text>
+                        <Text style={[styles.costDescription, { color: theme.colors.subText }]}>{cost.description}</Text>
                         {cost.rejectionReason && (
-                            <Text style={styles.rejectionReason}>Red Nedeni: {cost.rejectionReason}</Text>
+                            <Text style={[styles.rejectionReason, { color: theme.colors.error }]}>Red Nedeni: {cost.rejectionReason}</Text>
                         )}
-                    </View>
+                    </GlassCard>
                 ))
             ) : (
-                <Text style={styles.emptyText}>Henüz masraf eklenmemiş.</Text>
+                <Text style={[styles.emptyText, { color: theme.colors.subText }]}>Henüz masraf eklenmemiş.</Text>
             )}
         </View>
     );
@@ -63,31 +68,25 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.textLight,
         marginBottom: 12,
         marginTop: 8,
     },
     addCostButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.primary,
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 6,
     },
     addCostButtonText: {
-        color: COLORS.black,
+        color: '#fff',
         fontWeight: '600',
         fontSize: 14,
         marginLeft: 4,
     },
     costCard: {
-        backgroundColor: COLORS.cardDark,
-        borderRadius: 12,
         padding: 16,
         marginBottom: 12,
-        borderWidth: 1,
-        borderColor: COLORS.cardBorder,
     },
     costHeader: {
         flexDirection: 'row',
@@ -95,16 +94,12 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     costCategory: {
-        color: COLORS.primary,
         fontWeight: '600',
     },
     costStatus: {
         fontSize: 12,
         fontWeight: '600',
     },
-    statusApproved: { color: COLORS.green500 },
-    statusRejected: { color: COLORS.red500 },
-    statusPending: { color: COLORS.blue500 },
     costRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -113,22 +108,17 @@ const styles = StyleSheet.create({
     costAmount: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.textLight,
     },
     costDate: {
-        color: COLORS.textGray,
     },
     costDescription: {
-        color: COLORS.textGray,
         fontSize: 14,
     },
     rejectionReason: {
-        color: COLORS.red500,
         marginTop: 4,
         fontSize: 12,
     },
     emptyText: {
-        color: COLORS.textGray,
         textAlign: 'center',
         marginTop: 20,
         fontStyle: 'italic',

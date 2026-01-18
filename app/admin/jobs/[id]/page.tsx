@@ -7,6 +7,8 @@ import Link from "next/link"
 import { AdminJobDetailsTabs } from "@/components/admin/job-details-tabs"
 import { ApprovalActionCard } from "@/components/admin/approval-action-card"
 import { getJob } from "@/lib/data/jobs"
+import { JobDialog } from "@/components/admin/job-dialog"
+import { EditIcon } from "lucide-react"
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +24,7 @@ export default async function AdminJobDetailsPage(props: {
     // We fetch workers and teams here for the assignment dialogs that might be inside tabs
     // Ideally these should be fetched by the components that need them or inside a data layer
     // For now, keeping the pattern but using cleaner fetch
-    const [job, workers, teams] = await Promise.all([
+    const [job, workers, teams, customers, templates] = await Promise.all([
         getJob(params.id),
         prisma.user.findMany({
             where: { role: 'WORKER', isActive: true },
@@ -31,8 +33,31 @@ export default async function AdminJobDetailsPage(props: {
         prisma.team.findMany({
             where: { isActive: true },
             select: { id: true, name: true }
+        }),
+        prisma.customer.findMany({
+            include: { user: { select: { name: true } } }
+        }),
+        prisma.jobTemplate.findMany({
+            include: { steps: { include: { subSteps: true } } }
         })
     ])
+
+    // Map data for JobDialog
+    const dialogCustomers = customers.map(c => ({
+        id: c.id,
+        company: c.company,
+        user: { name: c.user.name || '' }
+    }))
+
+    const dialogTemplates = templates.map(t => ({
+        id: t.id,
+        name: t.name,
+        steps: t.steps.map(s => ({
+            title: s.title,
+            description: '',
+            subSteps: s.subSteps.map(ss => ({ title: ss.title }))
+        }))
+    }))
 
     if (!job) {
         return (
@@ -50,16 +75,30 @@ export default async function AdminJobDetailsPage(props: {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Link href="/admin/jobs">
-                    <Button variant="ghost" size="icon">
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
-                </Link>
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">İş Detayları</h1>
-                    <p className="text-gray-500">İşin ilerleme durumunu ve detaylarını görüntüleyin.</p>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    <Link href="/admin/jobs">
+                        <Button variant="ghost" size="icon">
+                            <ArrowLeft className="h-5 w-5" />
+                        </Button>
+                    </Link>
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">İş Detayları</h1>
+                        <p className="text-gray-500">İşin ilerleme durumunu ve detaylarını görüntüleyin.</p>
+                    </div>
                 </div>
+                <JobDialog
+                    job={JSON.parse(JSON.stringify(job))}
+                    customers={dialogCustomers}
+                    teams={teams}
+                    templates={dialogTemplates}
+                    trigger={
+                        <Button variant="outline" className="gap-2">
+                            <EditIcon className="h-4 w-4" />
+                            Düzenle
+                        </Button>
+                    }
+                />
             </div>
 
             {pendingApproval && (

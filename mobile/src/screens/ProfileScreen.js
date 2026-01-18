@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch, Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import authService from '../services/auth.service';
 import RoleBadge from '../components/RoleBadge';
+import GlassCard from '../components/ui/GlassCard';
+import { COLORS } from '../constants/theme';
 
 export default function ProfileScreen({ navigation }) {
     const { user, logout } = useAuth();
+    const { theme, isDark, toggleTheme } = useTheme();
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -50,71 +54,89 @@ export default function ProfileScreen({ navigation }) {
     };
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
             {/* User Info Section */}
             <View style={styles.section}>
-                <View style={styles.profileHeader}>
+                <GlassCard style={styles.profileHeader} theme={theme}>
                     <View style={styles.avatar}>
                         <Text style={styles.avatarText}>
                             {user?.name?.charAt(0).toUpperCase() || 'U'}
                         </Text>
                     </View>
                     <View style={styles.userInfo}>
-                        <Text style={styles.userName}>{user?.name || 'Kullanıcı'}</Text>
-                        <Text style={styles.userEmail}>{user?.email}</Text>
+                        <Text style={[styles.userName, { color: theme.colors.text }]}>{user?.name || 'Kullanıcı'}</Text>
+                        <Text style={[styles.userEmail, { color: theme.colors.subText }]}>{user?.email}</Text>
                         <RoleBadge role={user?.role} />
                     </View>
-                </View>
+                </GlassCard>
             </View>
 
             {/* Password Change Section */}
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Şifre Değiştir</Text>
-                <View style={styles.card}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Şifre Değiştir</Text>
+                <GlassCard style={styles.card} theme={theme}>
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Mevcut Şifre</Text>
+                        <Text style={[styles.inputLabel, { color: theme.colors.subText }]}>Mevcut Şifre</Text>
                         <TextInput
-                            style={styles.input}
+                            style={[styles.input, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', color: theme.colors.text, borderColor: theme.colors.border }]}
                             placeholder="Mevcut şifrenizi girin"
+                            placeholderTextColor={theme.colors.subText}
                             secureTextEntry
                             value={oldPassword}
                             onChangeText={setOldPassword}
                         />
                     </View>
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Yeni Şifre</Text>
+                        <Text style={[styles.inputLabel, { color: theme.colors.subText }]}>Yeni Şifre</Text>
                         <TextInput
-                            style={styles.input}
+                            style={[styles.input, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', color: theme.colors.text, borderColor: theme.colors.border }]}
                             placeholder="Yeni şifrenizi girin"
+                            placeholderTextColor={theme.colors.subText}
                             secureTextEntry
                             value={newPassword}
                             onChangeText={setNewPassword}
                         />
                     </View>
                     <View style={styles.inputGroup}>
-                        <Text style={styles.inputLabel}>Yeni Şifre (Tekrar)</Text>
+                        <Text style={[styles.inputLabel, { color: theme.colors.subText }]}>Yeni Şifre (Tekrar)</Text>
                         <TextInput
-                            style={styles.input}
+                            style={[styles.input, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', color: theme.colors.text, borderColor: theme.colors.border }]}
                             placeholder="Yeni şifrenizi tekrar girin"
+                            placeholderTextColor={theme.colors.subText}
                             secureTextEntry
                             value={confirmPassword}
                             onChangeText={setConfirmPassword}
                         />
                     </View>
-                    <TouchableOpacity style={styles.changePasswordButton} onPress={handlePasswordChange}>
+                    <TouchableOpacity style={[styles.changePasswordButton, { backgroundColor: theme.colors.primary }]} onPress={handlePasswordChange}>
                         <Text style={styles.changePasswordButtonText}>Şifreyi Değiştir</Text>
                     </TouchableOpacity>
-                </View>
+                </GlassCard>
             </View>
 
             {/* App Settings Section */}
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Uygulama Ayarları</Text>
-                <View style={styles.card}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Uygulama Ayarları</Text>
+                <GlassCard style={styles.card} theme={theme}>
                     <View style={styles.settingRow}>
                         <View style={styles.settingInfo}>
-                            <Text style={styles.settingTitle}>Bildirimler</Text>
-                            <Text style={styles.settingDescription}>Yakında aktif olacak</Text>
+                            <Text style={[styles.settingTitle, { color: theme.colors.text }]}>Karanlık Mod (Dark Mode)</Text>
+                            <Text style={[styles.settingDescription, { color: theme.colors.subText }]}>Uygulama temasını değiştir</Text>
+                        </View>
+                        <Switch
+                            value={isDark}
+                            onValueChange={toggleTheme}
+                            trackColor={{ false: '#D1D5DB', true: theme.colors.primary }}
+                            thumbColor={'#fff'}
+                        />
+                    </View>
+
+                    <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
+
+                    <View style={styles.settingRow}>
+                        <View style={styles.settingInfo}>
+                            <Text style={[styles.settingTitle, { color: theme.colors.text }]}>Bildirimler</Text>
+                            <Text style={[styles.settingDescription, { color: theme.colors.subText }]}>Yakında aktif olacak</Text>
                         </View>
                         <Switch
                             value={notificationsEnabled}
@@ -124,22 +146,22 @@ export default function ProfileScreen({ navigation }) {
                             thumbColor={notificationsEnabled ? '#16A34A' : '#9CA3AF'}
                         />
                     </View>
-                </View>
+                </GlassCard>
             </View>
 
             {/* About Section */}
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Hakkında</Text>
-                <View style={styles.card}>
-                    <View style={styles.aboutRow}>
-                        <Text style={styles.aboutLabel}>Versiyon</Text>
-                        <Text style={styles.aboutValue}>1.0.0</Text>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Hakkında</Text>
+                <GlassCard style={styles.card} theme={theme}>
+                    <View style={[styles.aboutRow, { borderBottomColor: theme.colors.border }]}>
+                        <Text style={[styles.aboutLabel, { color: theme.colors.subText }]}>Versiyon</Text>
+                        <Text style={[styles.aboutValue, { color: theme.colors.text }]}>1.0.0</Text>
                     </View>
                     <View style={styles.aboutRow}>
-                        <Text style={styles.aboutLabel}>Build</Text>
-                        <Text style={styles.aboutValue}>100</Text>
+                        <Text style={[styles.aboutLabel, { color: theme.colors.subText }]}>Build</Text>
+                        <Text style={[styles.aboutValue, { color: theme.colors.text }]}>100</Text>
                     </View>
-                </View>
+                </GlassCard>
             </View>
 
             {/* Logout Button */}
@@ -157,30 +179,21 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#010100',
     },
     section: {
         padding: 16,
+        paddingBottom: 0,
     },
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#ffffff',
         marginBottom: 12,
+        marginLeft: 4,
     },
     profileHeader: {
-        backgroundColor: '#1A1A1A',
-        borderRadius: 12,
         padding: 20,
         flexDirection: 'row',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-        borderWidth: 1,
-        borderColor: '#333',
     },
     avatar: {
         width: 80,
@@ -202,25 +215,14 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#ffffff',
         marginBottom: 4,
     },
     userEmail: {
         fontSize: 14,
-        color: '#94a3b8',
         marginBottom: 8,
     },
     card: {
-        backgroundColor: '#1A1A1A',
-        borderRadius: 12,
         padding: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-        borderWidth: 1,
-        borderColor: '#333',
     },
     inputGroup: {
         marginBottom: 16,
@@ -228,20 +230,15 @@ const styles = StyleSheet.create({
     inputLabel: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#e2e8f0',
         marginBottom: 8,
     },
     input: {
-        backgroundColor: '#2d3748',
         borderWidth: 1,
-        borderColor: '#4b5563',
         borderRadius: 8,
         padding: 12,
         fontSize: 14,
-        color: '#ffffff',
     },
     changePasswordButton: {
-        backgroundColor: '#3B82F6',
         borderRadius: 8,
         padding: 14,
         alignItems: 'center',
@@ -256,6 +253,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        paddingVertical: 8,
     },
     settingInfo: {
         flex: 1,
@@ -263,40 +261,35 @@ const styles = StyleSheet.create({
     settingTitle: {
         fontSize: 16,
         fontWeight: '600',
-        color: '#ffffff',
         marginBottom: 4,
     },
     settingDescription: {
         fontSize: 12,
-        color: '#94a3b8',
+    },
+    divider: {
+        height: 1,
+        marginVertical: 12,
     },
     aboutRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 8,
+        paddingVertical: 12,
         borderBottomWidth: 1,
-        borderBottomColor: '#333',
     },
     aboutLabel: {
         fontSize: 14,
-        color: '#94a3b8',
     },
     aboutValue: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#ffffff',
     },
     logoutButton: {
         backgroundColor: '#EF4444',
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
+        marginTop: 16,
     },
     logoutButtonText: {
         color: '#fff',

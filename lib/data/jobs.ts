@@ -80,18 +80,20 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
           }
         },
         steps: {
-          where: {
+          select: {
+            id: true,
+            isCompleted: true,
             subSteps: {
-              some: {
-                approvalStatus: 'PENDING'
-              }
+              select: { approvalStatus: true }
             }
-          },
-          select: { id: true }
+          }
         },
         costs: {
-          where: { status: 'PENDING' },
-          select: { id: true }
+          select: {
+            id: true,
+            amount: true,
+            status: true
+          }
         },
         // Check if any step has started work
         _count: {

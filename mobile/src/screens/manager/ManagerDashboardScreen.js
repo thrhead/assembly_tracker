@@ -1,167 +1,185 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
-import NotificationBadge from '../../components/NotificationBadge';
-import { COLORS } from '../../constants/theme';
-import StatCard from '../../components/StatCard';
-import DashboardAction from '../../components/DashboardAction';
+import { useTheme } from '../../context/ThemeContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import GlassCard from '../../components/ui/GlassCard';
+import StatCard from '../../components/StatCard'; // TODO: Update StatCard to support theme or wrap it
 
 export default function ManagerDashboardScreen({ navigation }) {
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
+    const { theme, toggleTheme, isDark } = useTheme();
 
     const handleLogout = async () => {
         await logout();
     };
 
     return (
-        <ScrollView style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <View>
-                    <Text style={styles.headerTitle}>Manager Dashboard</Text>
-                    <Text style={styles.headerSubtitle}>Ekip Yönetimi</Text>
-                </View>
-                <View style={styles.headerButtons}>
-                    <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Notifications')}>
-                        <MaterialIcons name="notifications-none" size={24} color={COLORS.primary} />
-                        <View style={styles.notificationBadge} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Profile')}>
-                        <MaterialIcons name="settings" size={24} color={COLORS.primary} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                        <MaterialIcons name="logout" size={24} color={COLORS.red500} />
-                    </TouchableOpacity>
-                </View>
-            </View>
+        <LinearGradient
+            colors={theme.colors.gradient}
+            start={theme.colors.gradientStart}
+            end={theme.colors.gradientEnd}
+            style={{ flex: 1 }}
+        >
+            <ScrollView style={styles.container}>
+                <StatusBar
+                    barStyle={isDark ? "light-content" : "dark-content"}
+                    backgroundColor="transparent"
+                    translucent
+                />
 
-            {/* Quick Stats */}
-            <View style={styles.statsContainer}>
-                <StatCard
-                    label="Ekip Üyeleri"
-                    value="8"
-                    icon="group"
-                    iconColor={COLORS.primary}
-                    style={{ flex: 1, margin: 6 }}
-                />
-                <StatCard
-                    label="Aktif İşler"
-                    value="12"
-                    icon="assignment"
-                    iconColor={COLORS.blue500}
-                    style={{ flex: 1, margin: 6 }}
-                />
-            </View>
-            <View style={styles.statsContainer}>
-                <StatCard
-                    label="Onay Bekleyen"
-                    value="5"
-                    icon="pending-actions"
-                    iconColor={COLORS.amber500}
-                    style={{ flex: 1, margin: 6 }}
-                />
-                <StatCard
-                    label="Tamamlanma"
-                    value="87%"
-                    icon="check-circle"
-                    iconColor={COLORS.green500}
-                    style={{ flex: 1, margin: 6 }}
-                />
-            </View>
+                {/* Header */}
+                <View style={[styles.header, { borderBottomColor: theme.colors.cardBorder, backgroundColor: isDark ? 'rgba(17, 24, 39, 0.5)' : 'rgba(255,255,255,0.5)' }]}>
+                    <View>
+                        <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Manager Dashboard</Text>
+                        <Text style={[styles.headerSubtitle, { color: theme.colors.subText }]}>Ekip Yönetimi</Text>
+                    </View>
+                    <View style={styles.headerButtons}>
+                        <TouchableOpacity
+                            style={[styles.headerButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder, borderWidth: 1, borderRadius: 20 }]}
+                            onPress={toggleTheme}
+                        >
+                            <MaterialIcons name={isDark ? "light-mode" : "dark-mode"} size={20} color={theme.colors.icon} />
+                        </TouchableOpacity>
 
-            {/* Coming Soon Section */}
-            <View style={styles.comingSoonContainer}>
-                <MaterialIcons name="rocket-launch" size={64} color={COLORS.primary} style={{ marginBottom: 16 }} />
-                <Text style={styles.comingSoonTitle}>Daha Fazla Özellik Yakında!</Text>
-                <Text style={styles.comingSoonText}>
-                    Şu anda kullanılabilir özellikler:
-                </Text>
-                <View style={styles.featureList}>
-                    <View style={styles.featureItemRow}>
-                        <MaterialIcons name="check" size={16} color={COLORS.primary} />
-                        <Text style={styles.featureItemActive}>Ekip performans görüntüleme</Text>
-                    </View>
-                    <View style={styles.featureItemRow}>
-                        <MaterialIcons name="check" size={16} color={COLORS.primary} />
-                        <Text style={styles.featureItemActive}>İş atama ve yönetimi</Text>
-                    </View>
-                    <View style={styles.featureItemRow}>
-                        <MaterialIcons name="fiber-manual-record" size={8} color={COLORS.slate400} style={{ marginTop: 6 }} />
-                        <Text style={styles.featureItem}>Onay bekleyen işlemler</Text>
-                    </View>
-                    <View style={styles.featureItemRow}>
-                        <MaterialIcons name="fiber-manual-record" size={8} color={COLORS.slate400} style={{ marginTop: 6 }} />
-                        <Text style={styles.featureItem}>Müşteri yönetimi</Text>
-                    </View>
-                    <View style={styles.featureItemRow}>
-                        <MaterialIcons name="fiber-manual-record" size={8} color={COLORS.slate400} style={{ marginTop: 6 }} />
-                        <Text style={styles.featureItem}>Detaylı istatistikler</Text>
+                        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Notifications')}>
+                            <MaterialIcons name="notifications-none" size={24} color={theme.colors.icon} />
+                            <View style={[styles.notificationBadge, { backgroundColor: theme.colors.primary }]} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.navigate('Profile')}>
+                            <MaterialIcons name="settings" size={24} color={theme.colors.icon} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                            <MaterialIcons name="logout" size={24} color="#ef4444" />
+                        </TouchableOpacity>
                     </View>
                 </View>
-            </View>
 
-            {/* Quick Actions */}
-            <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Hızlı Erişim</Text>
-                <View style={styles.quickActions}>
-                    <DashboardAction
-                        label="Ekibim"
-                        icon={<MaterialIcons name="groups" size={32} color={COLORS.indigo500} />}
-                        onPress={() => navigation.navigate('TeamList')}
-                        isActive={true}
-                        style={{ flex: 1 }}
-                    />
-                    <DashboardAction
-                        label="Takvim"
-                        icon={<MaterialIcons name="calendar-today" size={32} color={COLORS.purple500} />}
-                        onPress={() => navigation.navigate('Calendar')}
-                        isActive={true}
-                        style={{ flex: 1 }}
-                    />
+                {/* Quick Stats - Wrapped in GlassCards or using updated StatCard if we had one. 
+                    For now, creating a custom Stat View using GlassCard to ensure styling match */}
+                <View style={styles.statsContainer}>
+                    <GlassCard theme={theme} style={{ flex: 1, margin: 6, padding: 16 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <View>
+                                <Text style={{ color: theme.colors.subText, fontSize: 12, fontWeight: '600' }}>EKİP ÜYELERİ</Text>
+                                <Text style={{ color: theme.colors.text, fontSize: 24, fontWeight: 'bold' }}>8</Text>
+                            </View>
+                            <MaterialIcons name="group" size={32} color={theme.colors.primary} />
+                        </View>
+                    </GlassCard>
+
+                    <GlassCard theme={theme} style={{ flex: 1, margin: 6, padding: 16 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <View>
+                                <Text style={{ color: theme.colors.subText, fontSize: 12, fontWeight: '600' }}>AKTİF İŞLER</Text>
+                                <Text style={{ color: theme.colors.text, fontSize: 24, fontWeight: 'bold' }}>12</Text>
+                            </View>
+                            <MaterialIcons name="assignment" size={32} color="#3b82f6" />
+                        </View>
+                    </GlassCard>
                 </View>
-                <View style={[styles.quickActions, { marginTop: 12 }]}>
-                    <DashboardAction
-                        label="İş Atama"
-                        icon={<MaterialIcons name="assignment" size={32} color={COLORS.orange500} />}
-                        onPress={() => navigation.navigate('JobAssignment')}
-                        isActive={true}
-                        style={{ flex: 1 }}
-                    />
+
+                <View style={styles.statsContainer}>
+                    <GlassCard theme={theme} style={{ flex: 1, margin: 6, padding: 16 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <View>
+                                <Text style={{ color: theme.colors.subText, fontSize: 12, fontWeight: '600' }}>ONAY BEKLEYEN</Text>
+                                <Text style={{ color: theme.colors.text, fontSize: 24, fontWeight: 'bold' }}>5</Text>
+                            </View>
+                            <MaterialIcons name="pending-actions" size={32} color="#f59e0b" />
+                        </View>
+                    </GlassCard>
+
+                    <GlassCard theme={theme} style={{ flex: 1, margin: 6, padding: 16 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <View>
+                                <Text style={{ color: theme.colors.subText, fontSize: 12, fontWeight: '600' }}>TAMAMLANMA</Text>
+                                <Text style={{ color: theme.colors.text, fontSize: 24, fontWeight: 'bold' }}>87%</Text>
+                            </View>
+                            <MaterialIcons name="check-circle" size={32} color="#22c55e" />
+                        </View>
+                    </GlassCard>
                 </View>
-                <View style={[styles.quickActions, { marginTop: 12 }]}>
-                    <DashboardAction
-                        label="Masraflar"
-                        icon={<MaterialIcons name="attach-money" size={32} color={COLORS.green500} />}
-                        onPress={() => navigation.navigate('CostManagement')}
-                        isActive={true}
-                        style={{ flex: 1 }}
-                    />
-                    <DashboardAction
-                        label="Raporlar"
-                        icon={<MaterialIcons name="bar-chart" size={32} color={COLORS.slate400} />}
-                        isActive={false}
-                        disabled={true}
-                        comingSoon={true}
-                        style={{ flex: 1 }}
-                    />
+
+                {/* Coming Soon Section */}
+                <GlassCard theme={theme} style={styles.comingSoonContainer}>
+                    <MaterialIcons name="rocket-launch" size={64} color={theme.colors.primary} style={{ marginBottom: 16 }} />
+                    <Text style={[styles.comingSoonTitle, { color: theme.colors.text }]}>Daha Fazla Özellik Yakında!</Text>
+                    <Text style={[styles.comingSoonText, { color: theme.colors.subText }]}>
+                        Şu anda kullanılabilir özellikler:
+                    </Text>
+                    <View style={styles.featureList}>
+                        <View style={styles.featureItemRow}>
+                            <MaterialIcons name="check" size={16} color={theme.colors.primary} />
+                            <Text style={[styles.featureItemActive, { color: theme.colors.primary }]}>Ekip performans görüntüleme</Text>
+                        </View>
+                        <View style={styles.featureItemRow}>
+                            <MaterialIcons name="check" size={16} color={theme.colors.primary} />
+                            <Text style={[styles.featureItemActive, { color: theme.colors.primary }]}>İş atama ve yönetimi</Text>
+                        </View>
+                        <View style={styles.featureItemRow}>
+                            <MaterialIcons name="fiber-manual-record" size={8} color={theme.colors.subText} style={{ marginTop: 6 }} />
+                            <Text style={[styles.featureItem, { color: theme.colors.subText }]}>Onay bekleyen işlemler</Text>
+                        </View>
+                        <View style={styles.featureItemRow}>
+                            <MaterialIcons name="fiber-manual-record" size={8} color={theme.colors.subText} style={{ marginTop: 6 }} />
+                            <Text style={[styles.featureItem, { color: theme.colors.subText }]}>Müşteri yönetimi</Text>
+                        </View>
+                        <View style={styles.featureItemRow}>
+                            <MaterialIcons name="fiber-manual-record" size={8} color={theme.colors.subText} style={{ marginTop: 6 }} />
+                            <Text style={[styles.featureItem, { color: theme.colors.subText }]}>Detaylı istatistikler</Text>
+                        </View>
+                    </View>
+                </GlassCard>
+
+                {/* Quick Actions */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Hızlı Erişim</Text>
+                    <View style={styles.quickActions}>
+                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 12 }} onPress={() => navigation.navigate('TeamList')}>
+                            <MaterialIcons name="groups" size={32} color="#6366f1" />
+                            <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Ekibim</Text>
+                        </GlassCard>
+                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 12 }} onPress={() => navigation.navigate('Calendar')}>
+                            <MaterialIcons name="calendar-today" size={32} color="#a855f7" />
+                            <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Takvim</Text>
+                        </GlassCard>
+                    </View>
+                    <View style={[styles.quickActions, { marginTop: 12 }]}>
+                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 12 }} onPress={() => navigation.navigate('JobAssignment')}>
+                            <MaterialIcons name="assignment" size={32} color="#f97316" />
+                            <Text style={{ color: theme.colors.text, fontWeight: '600' }}>İş Atama</Text>
+                        </GlassCard>
+                    </View>
+                    <View style={[styles.quickActions, { marginTop: 12 }]}>
+                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 12 }} onPress={() => navigation.navigate('CostManagement')}>
+                            <MaterialIcons name="attach-money" size={32} color="#22c55e" />
+                            <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Masraflar</Text>
+                        </GlassCard>
+
+                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 12, opacity: 0.6 }}>
+                            <MaterialIcons name="bar-chart" size={32} color={theme.colors.subText} />
+                            <Text style={{ color: theme.colors.subText, fontWeight: '600' }}>Raporlar</Text>
+                            <View style={{ position: 'absolute', top: 8, right: 8, backgroundColor: theme.colors.cardBorder, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                                <Text style={{ fontSize: 9, color: theme.colors.subText }}>Yakında</Text>
+                            </View>
+                        </GlassCard>
+                    </View>
                 </View>
-            </View>
-        </ScrollView>
+            </ScrollView>
+        </LinearGradient>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.backgroundDark,
     },
     header: {
-        backgroundColor: COLORS.cardDark,
         padding: 20,
-        paddingTop: 16,
+        paddingTop: 45, // approx StatusBar height + padding
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.slate800,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -169,12 +187,10 @@ const styles = StyleSheet.create({
     headerTitle: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: COLORS.white,
         marginBottom: 4,
     },
     headerSubtitle: {
         fontSize: 16,
-        color: COLORS.slate400,
     },
     headerButtons: {
         flexDirection: 'row',
@@ -184,6 +200,8 @@ const styles = StyleSheet.create({
         padding: 8,
         marginRight: 8,
         position: 'relative',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     notificationBadge: {
         position: 'absolute',
@@ -192,7 +210,6 @@ const styles = StyleSheet.create({
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: COLORS.primary,
     },
     logoutButton: {
         padding: 8,
@@ -204,23 +221,17 @@ const styles = StyleSheet.create({
     },
     comingSoonContainer: {
         margin: 16,
-        backgroundColor: COLORS.cardDark,
-        borderRadius: 12,
         padding: 32,
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: COLORS.slate800,
     },
     comingSoonTitle: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: COLORS.white,
         marginBottom: 12,
         textAlign: 'center',
     },
     comingSoonText: {
         fontSize: 16,
-        color: COLORS.slate400,
         marginBottom: 16,
         textAlign: 'center',
     },
@@ -236,11 +247,9 @@ const styles = StyleSheet.create({
     },
     featureItem: {
         fontSize: 14,
-        color: COLORS.slate400,
     },
     featureItemActive: {
         fontSize: 14,
-        color: COLORS.primary,
         fontWeight: '600',
     },
     section: {
@@ -250,7 +259,6 @@ const styles = StyleSheet.create({
     sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.white,
         marginBottom: 12,
     },
     quickActions: {
