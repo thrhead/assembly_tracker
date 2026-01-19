@@ -43,10 +43,10 @@ if (Platform.OS === 'web') {
       width: 100%;
       margin: 0;
       padding: 0;
-      overflow: hidden;
+      /* Allow body and root to be scrollable if needed, but primary scroll is in inner containers */
+      overflow: visible !important;
       display: flex;
       flex-direction: column;
-      /* Prevent elements from expanding beyond their flex parent */
       min-height: 0;
       min-width: 0;
     }
@@ -270,7 +270,13 @@ export default function App() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+    <GestureHandlerRootView style={{
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      // CRITICAL: Ensure touch-action is permitted for native scrolling on web
+      ...(Platform.OS === 'web' && { touchAction: 'pan-y pan-x' })
+    }}>
       <ErrorBoundary>
         <SafeAreaProvider>
           <NetworkProvider>

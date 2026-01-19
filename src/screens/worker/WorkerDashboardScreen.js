@@ -269,7 +269,7 @@ export default function WorkerDashboardScreen({ navigation }) {
             colors={theme.colors.gradient}
             start={theme.colors.gradientStart}
             end={theme.colors.gradientEnd}
-            style={{ flex: 1 }}
+            style={{ flex: 1, minHeight: 0 }}
         >
             <SafeAreaView style={{ flex: 1, minHeight: 0 }}>
                 <StatusBar
