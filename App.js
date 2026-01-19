@@ -38,22 +38,17 @@ import { SyncManager } from './src/services/SyncManager';
 if (Platform.OS === 'web') {
   const style = document.createElement('style');
   style.textContent = `
-    html, body, #root {
+    html, body, #root, #root > div {
       height: 100%;
+      width: 100%;
       margin: 0;
       padding: 0;
       overflow: hidden;
-    }
-    #root {
       display: flex;
       flex-direction: column;
-    }
-    #root > div {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow: hidden;
+      /* Prevent elements from expanding beyond their flex parent */
+      min-height: 0;
+      min-width: 0;
     }
     textarea, input {
       font-family: inherit;
@@ -120,7 +115,7 @@ function AppNavigator() {
   };
 
   return (
-    <View style={{ flex: 1, height: '100%', overflow: 'hidden' }}>
+    <View style={{ flex: 1, minHeight: 0 }}>
       <NavigationContainer>
         <Stack.Navigator
           initialRouteName={getInitialRoute()}
@@ -275,7 +270,7 @@ export default function App() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
       <ErrorBoundary>
         <SafeAreaProvider>
           <NetworkProvider>

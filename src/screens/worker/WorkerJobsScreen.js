@@ -90,7 +90,7 @@ export default function WorkerJobsScreen() {
 
     if (loading && !refreshing && jobs.length === 0) {
         return (
-            <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+            <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background, minHeight: 0 }]}>
                 <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
                 <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: theme.colors.background }]}>
                     <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -100,7 +100,7 @@ export default function WorkerJobsScreen() {
     }
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background, minHeight: 0 }]}>
             <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.colors.background} />
 
             <JobSearchHeader

@@ -271,7 +271,7 @@ export default function WorkerDashboardScreen({ navigation }) {
             end={theme.colors.gradientEnd}
             style={{ flex: 1 }}
         >
-            <SafeAreaView style={{ flex: 1 }}>
+            <SafeAreaView style={{ flex: 1, minHeight: 0 }}>
                 <StatusBar
                     barStyle={isDark ? "light-content" : "dark-content"}
                     backgroundColor="transparent"

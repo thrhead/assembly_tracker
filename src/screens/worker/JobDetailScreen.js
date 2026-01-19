@@ -497,7 +497,7 @@ export default function JobDetailScreen({ route, navigation }) {
                 <View style={{ width: 24 }} />
             </View>
 
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, minHeight: 0 }}>
                 <ScrollView
                     style={{ flex: 1 }}
                     contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]}
