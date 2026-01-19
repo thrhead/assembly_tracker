@@ -25,6 +25,7 @@ import jobService from '../../services/job.service';
 import costService from '../../services/cost.service';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { getValidImageUrl } from '../../utils';
 import JobInfoCard from '../../components/job-detail/JobInfoCard';
 import CostSection from '../../components/job-detail/CostSection';
 import SuccessModal from '../../components/SuccessModal';
@@ -507,7 +508,7 @@ export default function JobDetailScreen({ route, navigation }) {
             </View>
 
             <PageWrapper>
-                <ScrollView style={styles.contentContainer}>
+                <ScrollView style={[styles.contentContainer, { flex: 1 }]}>
                     {/* Job Info Card */}
                     <JobInfoCard job={job} />
 
@@ -734,8 +735,8 @@ export default function JobDetailScreen({ route, navigation }) {
                                                     {substepPhotos.length > 0 && (
                                                         <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
                                                             {substepPhotos.map((photo, pIndex) => (
-                                                                <TouchableOpacity key={pIndex} onPress={() => openImageModal(photo.url || photo)}>
-                                                                    <Image source={{ uri: photo.url || photo }} style={styles.thumbnail} />
+                                                        <TouchableOpacity key={pIndex} onPress={() => openImageModal(getValidImageUrl(photo.url || photo))}>
+                                                            <Image source={{ uri: getValidImageUrl(photo.url || photo) }} style={styles.thumbnail} />
                                                                 </TouchableOpacity>
                                                             ))}
                                                         </ScrollView>
@@ -816,8 +817,8 @@ export default function JobDetailScreen({ route, navigation }) {
                                         {step.photos && step.photos.length > 0 && (
                                             <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
                                                 {step.photos.map((photo, pIndex) => (
-                                                    <TouchableOpacity key={pIndex} onPress={() => openImageModal(photo.url || photo)}>
-                                                        <Image source={{ uri: photo.url || photo }} style={styles.thumbnail} />
+                                                    <TouchableOpacity key={pIndex} onPress={() => openImageModal(getValidImageUrl(photo.url || photo))}>
+                                                        <Image source={{ uri: getValidImageUrl(photo.url || photo) }} style={styles.thumbnail} />
                                                     </TouchableOpacity>
                                                 ))}
                                             </ScrollView>
@@ -1093,7 +1094,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.backgroundDark,
         ...(Platform.OS === 'web' && {
-            height: '100vh',
+            height: '100%',
             overflow: 'hidden',
         }),
     },
