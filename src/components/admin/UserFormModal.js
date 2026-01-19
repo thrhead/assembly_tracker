@@ -125,7 +125,7 @@ const UserFormModal = ({ visible, onClose, initialData, onSave, theme }) => {
 
                         <Text style={[styles.label, { color: textMain }]}>Rol</Text>
                         <View style={styles.roleSelector}>
-                            {['WORKER', 'TEAM_LEAD', 'MANAGER', 'ADMIN'].map((role) => (
+                            {['WORKER', 'TEAM_LEAD', 'MANAGER', 'ADMIN', 'CUSTOMER'].map((role) => (
                                 <TouchableOpacity
                                     key={role}
                                     style={[

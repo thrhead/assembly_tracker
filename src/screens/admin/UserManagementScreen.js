@@ -94,7 +94,7 @@ export default function UserManagementScreen({ navigation, route }) {
             </View>
 
             <View style={styles.tabsContainer}>
-                {['ALL', 'ADMIN', 'MANAGER', 'TEAM_LEAD', 'WORKER'].map((role) => (
+                {['ALL', 'ADMIN', 'MANAGER', 'TEAM_LEAD', 'WORKER', 'CUSTOMER'].map((role) => (
                     <TouchableOpacity
                         key={role}
                         style={[
