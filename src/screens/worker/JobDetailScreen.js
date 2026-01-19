@@ -51,20 +51,10 @@ const AppModal = ({ visible, children, ...props }) => {
 };
 
 const PageWrapper = ({ children }) => {
-    if (Platform.OS === 'web') {
-        return (
-            <View style={{ flex: 1, minHeight: 0, height: '100dvh' }}>
-                {children}
-            </View>
-        );
-    }
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={{ flex: 1 }}
-        >
+        <View style={{ flex: 1 }}>
             {children}
-        </KeyboardAvoidingView>
+        </View>
     );
 };
 
@@ -507,7 +497,7 @@ export default function JobDetailScreen({ route, navigation }) {
                 <View style={{ width: 24 }} />
             </View>
 
-            <PageWrapper>
+            <View style={{ flex: 1 }}>
                 <ScrollView
                     style={{ flex: 1 }}
                     contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]}
@@ -842,10 +832,10 @@ export default function JobDetailScreen({ route, navigation }) {
 
                     <View style={{ height: 100 }} />
                 </ScrollView>
-            </PageWrapper>
+            </View>
 
             {/* Footer Actions */}
-            <View style={[styles.footer, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
+            <View style={[styles.footerContainer, { backgroundColor: theme.colors.surface, borderTopColor: theme.colors.border }]}>
                 {!['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) ? (
                     job.status === 'PENDING' ? (
                         <TouchableOpacity
@@ -1319,24 +1309,18 @@ const styles = StyleSheet.create({
         color: COLORS.textGray,
         fontSize: 14,
     },
-    footer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: COLORS.backgroundDark,
+    footerContainer: {
         padding: 16,
+        paddingBottom: Platform.OS === 'ios' ? 32 : 16,
         borderTopWidth: 1,
-        borderTopColor: COLORS.cardBorder,
     },
     mainCompleteButton: {
-        backgroundColor: COLORS.primary,
-        padding: 16,
+        height: 54,
         borderRadius: 12,
         alignItems: 'center',
+        justifyContent: 'center',
     },
     mainCompleteButtonText: {
-        color: COLORS.black,
         fontSize: 16,
         fontWeight: 'bold',
     },

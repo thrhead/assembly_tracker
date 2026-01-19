@@ -146,11 +146,10 @@ export default function LoginScreen({ navigation }) {
   );
 
   return (
-    <View style={[{ flex: 1, backgroundColor: theme.colors.background }, Platform.OS === 'web' && { height: '100dvh' }]}>
+    <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={[{ flex: 1 }, Platform.OS === 'web' && { height: '100%' }]}
-        enabled={Platform.OS !== 'web'}
+        style={{ flex: 1 }}
       >
         {showLoginForm ? (
           <LoginForm

@@ -269,9 +269,9 @@ export default function WorkerDashboardScreen({ navigation }) {
             colors={theme.colors.gradient}
             start={theme.colors.gradientStart}
             end={theme.colors.gradientEnd}
-            style={[{ flex: 1 }, Platform.OS === 'web' && { height: '100dvh' }]}
+            style={{ flex: 1 }}
         >
-            <SafeAreaView style={[{ flex: 1 }, Platform.OS === 'web' && { height: '100%' }]}>
+            <SafeAreaView style={{ flex: 1 }}>
                 <StatusBar
                     barStyle={isDark ? "light-content" : "dark-content"}
                     backgroundColor="transparent"
