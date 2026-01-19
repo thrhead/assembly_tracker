@@ -41,9 +41,12 @@ if (Platform.OS === 'web') {
     html, body, #root {
       height: 100%;
       width: 100%;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden; /* Prevent body scroll, let app handle it */
+      margin: 0;
+      padding: 0;
+      overflow: hidden; /* Prevent body scroll but keep container height */
+    }
+    textarea, input {
+      font-family: inherit;
     }
   `;
   document.head.appendChild(style);
@@ -107,119 +110,121 @@ function AppNavigator() {
   };
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName={getInitialRoute()}
-        detachInactiveScreens={false}
-        screenOptions={{
-          animationEnabled: false,
-          headerShown: true
-        }}
-      >
-        {user ? (
-          <>
-            {/* Worker Screens */}
-            <Stack.Screen
-              name="WorkerDashboard"
-              component={WorkerDashboardScreen}
-              options={{ title: 'Dashboard' }}
-            />
-            <Stack.Screen
-              name="Jobs"
-              component={WorkerJobsScreen}
-              options={{ title: 'İşlerim' }}
-            />
-            <Stack.Screen
-              name="JobDetail"
-              component={JobDetailScreen}
-              options={{ title: 'İş Detayı' }}
-            />
-            <Stack.Screen
-              name="ExpenseManagement"
-              component={ExpenseManagementScreen}
-              options={{ title: 'Masraf Yönetimi', headerShown: false }}
-            />
+    <View style={{ flex: 1 }}>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName={getInitialRoute()}
+          detachInactiveScreens={false}
+          screenOptions={{
+            animationEnabled: false,
+            headerShown: true
+          }}
+        >
+          {user ? (
+            <>
+              {/* Worker Screens */}
+              <Stack.Screen
+                name="WorkerDashboard"
+                component={WorkerDashboardScreen}
+                options={{ title: 'Dashboard' }}
+              />
+              <Stack.Screen
+                name="Jobs"
+                component={WorkerJobsScreen}
+                options={{ title: 'İşlerim' }}
+              />
+              <Stack.Screen
+                name="JobDetail"
+                component={JobDetailScreen}
+                options={{ title: 'İş Detayı' }}
+              />
+              <Stack.Screen
+                name="ExpenseManagement"
+                component={ExpenseManagementScreen}
+                options={{ title: 'Masraf Yönetimi', headerShown: false }}
+              />
 
-            {/* Manager Screens */}
+              {/* Manager Screens */}
+              <Stack.Screen
+                name="ManagerDashboard"
+                component={ManagerDashboardScreen}
+                options={{ title: 'Manager Dashboard' }}
+              />
+              <Stack.Screen
+                name="TeamList"
+                component={TeamListScreen}
+                options={{ title: 'Ekibim' }}
+              />
+              <Stack.Screen
+                name="JobAssignment"
+                component={JobAssignmentScreen}
+                options={{ title: 'İş Atama' }}
+              />
+              <Stack.Screen
+                name="CostManagement"
+                component={CostManagementScreen}
+                options={{ title: 'Masraf Yönetimi' }}
+              />
+              {/* Admin Screens */}
+              <Stack.Screen
+                name="AdminDashboard"
+                component={AdminDashboardScreen}
+                options={{ title: 'Admin Dashboard' }}
+              />
+              <Stack.Screen
+                name="UserManagement"
+                component={UserManagementScreen}
+                options={{ title: 'Kullanıcı Yönetimi' }}
+              />
+              <Stack.Screen
+                name="CustomerManagement"
+                component={CustomerManagementScreen}
+                options={{ title: 'Müşteri Yönetimi' }}
+              />
+              <Stack.Screen
+                name="Approvals"
+                component={ApprovalsScreen}
+                options={{ title: 'Onaylar' }}
+              />
+              <Stack.Screen
+                name="CreateJob"
+                component={CreateJobScreen}
+                options={{ title: 'Yeni İş Oluştur' }}
+              />
+              <Stack.Screen
+                name="Calendar"
+                component={CalendarScreen}
+                options={{ headerShown: false }}
+              />
+              {/* Profile Screen */}
+              <Stack.Screen
+                name="Profile"
+                component={ProfileScreen}
+                options={{ title: 'Profil ve Ayarlar' }}
+              />
+              <Stack.Screen
+                name="Notifications"
+                component={NotificationsScreen}
+                options={{ title: 'Bildirimler' }}
+              />
+
+              {/* Legacy Home Screen */}
+              <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+                options={{ title: 'Ana Sayfa' }}
+              />
+            </>
+          ) : (
             <Stack.Screen
-              name="ManagerDashboard"
-              component={ManagerDashboardScreen}
-              options={{ title: 'Manager Dashboard' }}
-            />
-            <Stack.Screen
-              name="TeamList"
-              component={TeamListScreen}
-              options={{ title: 'Ekibim' }}
-            />
-            <Stack.Screen
-              name="JobAssignment"
-              component={JobAssignmentScreen}
-              options={{ title: 'İş Atama' }}
-            />
-            <Stack.Screen
-              name="CostManagement"
-              component={CostManagementScreen}
-              options={{ title: 'Masraf Yönetimi' }}
-            />
-            {/* Admin Screens */}
-            <Stack.Screen
-              name="AdminDashboard"
-              component={AdminDashboardScreen}
-              options={{ title: 'Admin Dashboard' }}
-            />
-            <Stack.Screen
-              name="UserManagement"
-              component={UserManagementScreen}
-              options={{ title: 'Kullanıcı Yönetimi' }}
-            />
-            <Stack.Screen
-              name="CustomerManagement"
-              component={CustomerManagementScreen}
-              options={{ title: 'Müşteri Yönetimi' }}
-            />
-            <Stack.Screen
-              name="Approvals"
-              component={ApprovalsScreen}
-              options={{ title: 'Onaylar' }}
-            />
-            <Stack.Screen
-              name="CreateJob"
-              component={CreateJobScreen}
-              options={{ title: 'Yeni İş Oluştur' }}
-            />
-            <Stack.Screen
-              name="Calendar"
-              component={CalendarScreen}
+              name="Login"
+              component={LoginScreen}
               options={{ headerShown: false }}
             />
-            {/* Profile Screen */}
-            <Stack.Screen
-              name="Profile"
-              component={ProfileScreen}
-              options={{ title: 'Profil ve Ayarlar' }}
-            />
-            <Stack.Screen
-              name="Notifications"
-              component={NotificationsScreen}
-              options={{ title: 'Bildirimler' }}
-            />
-
-            {/* Legacy Home Screen */}
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-              options={{ title: 'Ana Sayfa' }}
-            />
-          </>
-        ) : (
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ headerShown: false }}
-          />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </View>
   );
 }
 
@@ -260,7 +265,7 @@ export default function App() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, height: Platform.OS === 'web' ? '100%' : undefined }}>
       <ErrorBoundary>
         <SafeAreaProvider>
           <NetworkProvider>
