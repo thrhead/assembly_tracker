@@ -104,6 +104,17 @@ export default function JobDetailScreen({ route, navigation }) {
         loadJobDetails();
     }, [jobId]);
 
+    const openImageModal = (url) => {
+        setSelectedImage(url);
+        setModalVisible(true);
+    };
+
+    const renderPhotoItem = React.useCallback(({ item }) => (
+        <TouchableOpacity onPress={() => openImageModal(getValidImageUrl(item.url || item))}>
+            <Image source={{ uri: getValidImageUrl(item.url || item) }} style={styles.thumbnail} />
+        </TouchableOpacity>
+    ), [theme]);
+
     const loadJobDetails = async () => {
         try {
             setLoading(true);
@@ -726,13 +737,17 @@ export default function JobDetailScreen({ route, navigation }) {
                                                     )}
 
                                                     {substepPhotos.length > 0 && (
-                                                        <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
-                                                            {substepPhotos.map((photo, pIndex) => (
-                                                                <TouchableOpacity key={pIndex} onPress={() => openImageModal(getValidImageUrl(photo.url || photo))}>
-                                                                    <Image source={{ uri: getValidImageUrl(photo.url || photo) }} style={styles.thumbnail} />
-                                                                </TouchableOpacity>
-                                                            ))}
-                                                        </ScrollView>
+                                                        <FlatList
+                                                            horizontal
+                                                            data={substepPhotos}
+                                                            renderItem={renderPhotoItem}
+                                                            keyExtractor={(photo, pIndex) => pIndex.toString()}
+                                                            style={styles.thumbnailsContainer}
+                                                            showsHorizontalScrollIndicator={false}
+                                                            initialNumToRender={3}
+                                                            windowSize={3}
+                                                            removeClippedSubviews={Platform.OS === 'android'}
+                                                        />
                                                     )}
                                                 </GlassCard>
                                             );
@@ -808,13 +823,17 @@ export default function JobDetailScreen({ route, navigation }) {
                                         )}
 
                                         {step.photos && step.photos.length > 0 && (
-                                            <ScrollView horizontal style={styles.thumbnailsContainer} showsHorizontalScrollIndicator={false}>
-                                                {step.photos.map((photo, pIndex) => (
-                                                    <TouchableOpacity key={pIndex} onPress={() => openImageModal(getValidImageUrl(photo.url || photo))}>
-                                                        <Image source={{ uri: getValidImageUrl(photo.url || photo) }} style={styles.thumbnail} />
-                                                    </TouchableOpacity>
-                                                ))}
-                                            </ScrollView>
+                                            <FlatList
+                                                horizontal
+                                                data={step.photos}
+                                                renderItem={renderPhotoItem}
+                                                keyExtractor={(photo, pIndex) => pIndex.toString()}
+                                                style={styles.thumbnailsContainer}
+                                                showsHorizontalScrollIndicator={false}
+                                                initialNumToRender={3}
+                                                windowSize={3}
+                                                removeClippedSubviews={Platform.OS === 'android'}
+                                            />
                                         )}
                                     </View>
                                 )}

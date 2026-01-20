@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { COLORS } from '../../constants/theme';
 
@@ -68,4 +68,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default NotificationItem;
+export default memo(NotificationItem);

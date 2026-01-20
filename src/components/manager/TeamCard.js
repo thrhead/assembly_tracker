@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
@@ -132,4 +132,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default TeamCard;
+export default memo(TeamCard);

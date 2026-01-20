@@ -18,6 +18,15 @@ export default function ApprovalsScreen({ navigation }) {
         handleReject
     } = useApprovals();
 
+    const renderItem = React.useCallback(({ item }) => (
+        <ApprovalCard
+            item={item}
+            onApprove={handleApprove}
+            onReject={handleReject}
+            theme={theme}
+        />
+    ), [handleApprove, handleReject, theme]);
+
     if (loading) {
         return (
             <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
@@ -57,14 +66,7 @@ export default function ApprovalsScreen({ navigation }) {
             <FlatList
                 style={{ flex: 1 }}
                 data={filteredApprovals}
-                renderItem={({ item }) => (
-                    <ApprovalCard
-                        item={item}
-                        onApprove={handleApprove}
-                        onReject={handleReject}
-                        theme={theme}
-                    />
-                )}
+                renderItem={renderItem}
                 keyExtractor={item => `${item.type}-${item.id}`}
                 contentContainerStyle={[styles.listContent, { flexGrow: 1 }]}
                 refreshControl={
@@ -76,6 +78,10 @@ export default function ApprovalsScreen({ navigation }) {
                         <Text style={[styles.emptyText, { color: theme.colors.subText }]}>Bekleyen onay bulunmuyor</Text>
                     </View>
                 }
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={Platform.OS === 'android'}
             />
         </View>
     );

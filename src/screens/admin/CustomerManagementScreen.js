@@ -96,6 +96,36 @@ export default function CustomerManagementScreen({ navigation, route }) {
         </View>
     );
 
+    const renderItem = React.useCallback(({ item }) => (
+        <CustomerListItem
+            item={item}
+            onEdit={handleEditCustomer}
+            onDelete={handleDeleteCustomer}
+            theme={theme}
+        />
+    ), [handleEditCustomer, handleDeleteCustomer, theme]);
+
+    const renderHeader = React.useCallback(() => (
+        <View style={[styles.headerContainer, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}>
+            {/* Search Bar */}
+            <View style={[styles.searchContainer, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
+                <MaterialIcons name="search" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
+                <TextInput
+                    style={[styles.searchInput, { color: theme.colors.text }]}
+                    placeholder="Müşteri ara..."
+                    placeholderTextColor={theme.colors.subText}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                />
+                {searchQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => setSearchQuery('')}>
+                        <MaterialIcons name="close" size={20} color={theme.colors.subText} />
+                    </TouchableOpacity>
+                )}
+            </View>
+        </View>
+    ), [theme, searchQuery, setSearchQuery]);
+
     if (loading) {
         return (
             <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
@@ -107,38 +137,13 @@ export default function CustomerManagementScreen({ navigation, route }) {
 
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            <View style={[styles.headerContainer, { backgroundColor: theme.colors.card, borderBottomColor: theme.colors.border }]}>
-                {/* Search Bar */}
-                <View style={[styles.searchContainer, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
-                    <MaterialIcons name="search" size={20} color={theme.colors.primary} style={{ marginRight: 8 }} />
-                    <TextInput
-                        style={[styles.searchInput, { color: theme.colors.text }]}
-                        placeholder="Müşteri ara..."
-                        placeholderTextColor={theme.colors.subText}
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                    />
-                    {searchQuery.length > 0 && (
-                        <TouchableOpacity onPress={() => setSearchQuery('')}>
-                            <MaterialIcons name="close" size={20} color={theme.colors.subText} />
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </View>
-
             <FlatList
                 data={filteredCustomers}
-                renderItem={({ item }) => (
-                    <CustomerListItem
-                        item={item}
-                        onEdit={handleEditCustomer}
-                        onDelete={handleDeleteCustomer}
-                        theme={theme}
-                    />
-                )}
+                renderItem={renderItem}
                 keyExtractor={item => item.id.toString()}
                 contentContainerStyle={[styles.listContainer, { flexGrow: 1 }]}
                 style={{ flex: 1 }}
+                ListHeaderComponent={renderHeader}
                 ListEmptyComponent={renderEmptyState}
                 refreshControl={
                     <RefreshControl
@@ -148,6 +153,10 @@ export default function CustomerManagementScreen({ navigation, route }) {
                         tintColor={theme.colors.primary}
                     />
                 }
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={Platform.OS === 'android'}
             />
 
             <TouchableOpacity

@@ -233,18 +233,21 @@ export default function WorkerDashboardScreen({ navigation }) {
                 ))}
             </View>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tasksScroll}>
-                {getFilteredJobs().length > 0 ? (
-                    getFilteredJobs().map((job) => (
-                        <JobCard
-                            key={job.id}
-                            job={job}
-                            onPress={() => navigation.navigate('JobDetail', { jobId: job.id })}
-                            style={{ width: width * 0.75, marginRight: 16 }}
-                        // Pass theme prop if JobCard supports it, or it uses theme inside
-                        />
-                    ))
-                ) : (
+            <FlatList
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.tasksScroll}
+                contentContainerStyle={{ paddingHorizontal: 16 }}
+                data={getFilteredJobs()}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={({ item }) => (
+                    <JobCard
+                        job={item}
+                        onPress={() => navigation.navigate('JobDetail', { jobId: item.id })}
+                        style={{ width: width * 0.75, marginRight: 16 }}
+                    />
+                )}
+                ListEmptyComponent={
                     <View style={[styles.emptyStateContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}>
                         <View style={[styles.emptyStateIconContainer, { backgroundColor: theme.colors.card }]}>
                             <MaterialIcons
@@ -259,8 +262,12 @@ export default function WorkerDashboardScreen({ navigation }) {
                                     'Bekleyen görev yok'}
                         </Text>
                     </View>
-                )}
-            </ScrollView>
+                }
+                initialNumToRender={5}
+                maxToRenderPerBatch={5}
+                windowSize={3}
+                removeClippedSubviews={Platform.OS === 'android'}
+            />
         </View>
     );
 

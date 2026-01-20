@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import CustomButton from '../CustomButton';
@@ -120,4 +120,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default CustomerListItem;
+export default memo(CustomerListItem);
