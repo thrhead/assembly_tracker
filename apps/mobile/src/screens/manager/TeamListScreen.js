@@ -71,6 +71,20 @@ export default function TeamListScreen({ navigation }) {
         }
     };
 
+    const renderTeamItem = React.useCallback(({ item }) => (
+        <TeamCard
+            item={item}
+            onEdit={handleEditTeam}
+            onDelete={handleDeleteTeam}
+            isAdmin={isAdmin}
+            theme={theme}
+        />
+    ), [handleEditTeam, handleDeleteTeam, isAdmin, theme]);
+
+    const renderMemberItem = React.useCallback(({ item }) => (
+        <MemberCard item={item} theme={theme} />
+    ), [theme]);
+
     if (loading) {
         return (
             <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
@@ -85,19 +99,15 @@ export default function TeamListScreen({ navigation }) {
                 <>
                     <FlatList
                         data={teams}
-                        renderItem={({ item }) => (
-                            <TeamCard
-                                item={item}
-                                onEdit={handleEditTeam}
-                                onDelete={handleDeleteTeam}
-                                isAdmin={isAdmin}
-                                theme={theme}
-                            />
-                        )}
+                        renderItem={renderTeamItem}
                         keyExtractor={item => item.id}
                         contentContainerStyle={[styles.listContainer, { flexGrow: 1, paddingBottom: 100 }]}
                         style={{ flex: 1 }}
                         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
+                        initialNumToRender={10}
+                        maxToRenderPerBatch={10}
+                        windowSize={5}
+                        removeClippedSubviews={Platform.OS === 'android'}
                     />
                     <TouchableOpacity style={[styles.fab, { backgroundColor: theme.colors.primary }]} onPress={handleAddTeam} activeOpacity={0.8}>
                         <MaterialIcons name="add" size={32} color={theme.colors.textInverse} />
@@ -106,7 +116,7 @@ export default function TeamListScreen({ navigation }) {
             ) : (
                 <FlatList
                     data={members}
-                    renderItem={({ item }) => <MemberCard item={item} theme={theme} />}
+                    renderItem={renderMemberItem}
                     keyExtractor={item => item.id}
                     contentContainerStyle={[styles.listContainer, { flexGrow: 1, paddingBottom: 20 }]}
                     style={{ flex: 1 }}
@@ -116,6 +126,10 @@ export default function TeamListScreen({ navigation }) {
                             <Text style={[styles.emptyText, { color: theme.colors.subText }]}>Ekip bulunamadı.</Text>
                         </View>
                     }
+                    initialNumToRender={10}
+                    maxToRenderPerBatch={10}
+                    windowSize={5}
+                    removeClippedSubviews={Platform.OS === 'android'}
                 />
             )}
 

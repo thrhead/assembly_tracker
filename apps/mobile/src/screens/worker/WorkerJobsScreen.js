@@ -125,7 +125,7 @@ export default function WorkerJobsScreen() {
                 initialNumToRender={10}
                 windowSize={5}
                 maxToRenderPerBatch={10}
-                removeClippedSubviews={true}
+                removeClippedSubviews={Platform.OS === 'android'}
                 ListEmptyComponent={<View style={styles.emptyContainer}><Text style={[styles.emptyText, { color: theme.colors.subText }]}>Görev bulunamadı.</Text></View>}
             />
 

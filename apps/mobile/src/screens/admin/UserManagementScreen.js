@@ -137,7 +137,6 @@ export default function UserManagementScreen({ navigation, route }) {
 
     return (
         <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-            {renderHeader()}
             <FlatList
                 style={{ flex: 1 }}
                 data={filteredUsers}
@@ -151,6 +150,7 @@ export default function UserManagementScreen({ navigation, route }) {
                 )}
                 keyExtractor={item => item.id}
                 contentContainerStyle={[styles.listContainer, { flexGrow: 1 }]}
+                ListHeaderComponent={renderHeader}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
@@ -160,6 +160,10 @@ export default function UserManagementScreen({ navigation, route }) {
                     />
                 }
                 ListEmptyComponent={renderEmptyState}
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={Platform.OS === 'android'}
             />
 
             <TouchableOpacity

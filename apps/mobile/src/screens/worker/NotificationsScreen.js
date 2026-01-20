@@ -9,7 +9,7 @@ export default function NotificationsScreen({ navigation }) {
     const { theme, isDark } = useTheme();
     const { notifications, loading, refreshing, onRefresh, markAsRead } = useNotifications();
 
-    const handleNotificationPress = async (notification) => {
+    const handleNotificationPress = React.useCallback(async (notification) => {
         if (!notification.isRead) {
             await markAsRead(notification.id);
         }
@@ -20,7 +20,15 @@ export default function NotificationsScreen({ navigation }) {
                 navigation.navigate('JobDetail', { jobId: match[1] });
             }
         }
-    };
+    }, [markAsRead, navigation]);
+
+    const renderItem = React.useCallback(({ item }) => (
+        <NotificationItem
+            item={item}
+            onPress={handleNotificationPress}
+            theme={theme}
+        />
+    ), [handleNotificationPress, theme]);
 
     if (loading) {
         return (
@@ -35,13 +43,7 @@ export default function NotificationsScreen({ navigation }) {
             <FlatList
                 style={{ flex: 1 }}
                 data={notifications}
-                renderItem={({ item }) => (
-                    <NotificationItem
-                        item={item}
-                        onPress={handleNotificationPress}
-                        theme={theme}
-                    />
-                )}
+                renderItem={renderItem}
                 keyExtractor={item => item.id}
                 contentContainerStyle={[styles.list, { flexGrow: 1 }]}
                 refreshControl={
@@ -53,6 +55,10 @@ export default function NotificationsScreen({ navigation }) {
                         <Text style={[styles.emptyText, { color: theme.colors.subText }]}>Bildiriminiz yok.</Text>
                     </View>
                 }
+                initialNumToRender={10}
+                maxToRenderPerBatch={10}
+                windowSize={5}
+                removeClippedSubviews={Platform.OS === 'android'}
             />
         </View>
     );

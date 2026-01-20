@@ -98,101 +98,153 @@ export default function AdminDashboardScreen({ navigation }) {
                     onLogout={handleLogout}
                 />
 
-                <ScrollView
+                <FlatList
                     style={styles.scrollView}
                     contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
                     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />}
                     showsVerticalScrollIndicator={false}
-                >
-                    {/* Header Container */}
-                    <View style={styles.headerContainer}>
-                        <View style={styles.headerContent}>
-                            <View style={styles.userInfo}>
-                                <Text style={[styles.welcomeLabel, { color: theme.colors.subText }]}>Hoşgeldiniz,</Text>
-                                <Text style={[styles.userName, { color: theme.colors.text }]}>{user?.name || 'Admin'}</Text>
-                            </View>
-
-                            <View style={{ flexDirection: 'row', gap: 12 }}>
-                                <TouchableOpacity
-                                    style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}
-                                    onPress={toggleTheme}
-                                >
-                                    <MaterialIcons name={isDark ? "light-mode" : "dark-mode"} size={24} color={theme.colors.icon} />
-                                </TouchableOpacity>
-
-                                <TouchableOpacity
-                                    style={styles.profileButton}
-                                    onPress={() => navigation.navigate('Profile')}
-                                >
-                                    <View style={[styles.avatarCircle, { backgroundColor: theme.colors.primary }]}>
-                                        <Text style={[styles.avatarText, { color: isDark ? '#000' : '#fff' }]}>
-                                            {user?.name?.charAt(0) || 'A'}
-                                        </Text>
+                    data={recentJobs}
+                    keyExtractor={(item) => item.id.toString()}
+                    initialNumToRender={10}
+                    maxToRenderPerBatch={10}
+                    windowSize={5}
+                    removeClippedSubviews={Platform.OS === 'android'}
+                    ListHeaderComponent={
+                        <>
+                            {/* Header Container */}
+                            <View style={styles.headerContainer}>
+                                <View style={styles.headerContent}>
+                                    <View style={styles.userInfo}>
+                                        <Text style={[styles.welcomeLabel, { color: theme.colors.subText }]}>Hoşgeldiniz,</Text>
+                                        <Text style={[styles.userName, { color: theme.colors.text }]}>{user?.name || 'Admin'}</Text>
                                     </View>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                    </View>
 
-                    <View style={styles.mainContent}>
-
-                        {/* Recent Jobs wrapped in a view purely for layout order if needed, but keeping original order */}
-                        <DashboardStatsGrid statsData={statsData} />
-
-                        {/* Navigation Grid */}
-                        <View style={styles.section}>
-                            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Menü</Text>
-                            <View style={styles.navGrid}>
-                                {navItems.map((item) => (
-                                    <View key={item.id} style={styles.navItemWrapper}>
-                                        <GlassCard
-                                            theme={theme}
-                                            onPress={() => handleNavPress(item.route)}
-                                            style={styles.navActionCard}
+                                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                                        <TouchableOpacity
+                                            style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}
+                                            onPress={toggleTheme}
                                         >
-                                            <MaterialIcons name={item.icon} size={32} color={item.color} />
-                                            <Text style={[styles.navActionLabel, { color: theme.colors.text }]}>{item.title}</Text>
+                                            <MaterialIcons name={isDark ? "light-mode" : "dark-mode"} size={24} color={theme.colors.icon} />
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={styles.profileButton}
+                                            onPress={() => navigation.navigate('Profile')}
+                                        >
+                                            <View style={[styles.avatarCircle, { backgroundColor: theme.colors.primary }]}>
+                                                <Text style={[styles.avatarText, { color: isDark ? '#000' : '#fff' }]}>
+                                                    {user?.name?.charAt(0) || 'A'}
+                                                </Text>
+                                            </View>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            </View>
+
+                            <View style={styles.mainContent}>
+                                <DashboardStatsGrid statsData={statsData} />
+
+                                {/* Navigation Grid */}
+                                <View style={styles.section}>
+                                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Menü</Text>
+                                    <View style={styles.navGrid}>
+                                        {navItems.map((item) => (
+                                            <View key={item.id} style={styles.navItemWrapper}>
+                                                <GlassCard
+                                                    theme={theme}
+                                                    onPress={() => handleNavPress(item.route)}
+                                                    style={styles.navActionCard}
+                                                >
+                                                    <MaterialIcons name={item.icon} size={32} color={item.color} />
+                                                    <Text style={[styles.navActionLabel, { color: theme.colors.text }]}>{item.title}</Text>
+                                                </GlassCard>
+                                            </View>
+                                        ))}
+                                    </View>
+                                </View>
+
+                                {/* Quick Actions */}
+                                <View style={styles.section}>
+                                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Hızlı İşlemler</Text>
+                                    <View style={styles.quickActions}>
+                                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('CreateJob')}>
+                                            <View style={{ padding: 12, borderRadius: 12, backgroundColor: 'rgba(6, 182, 212, 0.1)' }}>
+                                                <MaterialIcons name="add-task" size={28} color="#06b6d4" />
+                                            </View>
+                                            <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Yeni İş</Text>
+                                        </GlassCard>
+
+                                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('UserManagement', { openCreate: true })}>
+                                            <View style={{ padding: 12, borderRadius: 12, backgroundColor: 'rgba(236, 72, 153, 0.1)' }}>
+                                                <MaterialIcons name="person-add" size={28} color="#ec4899" />
+                                            </View>
+                                            <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Yeni Kullanıcı</Text>
+                                        </GlassCard>
+
+                                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('CustomerManagement', { openCreate: true })}>
+                                            <View style={{ padding: 12, borderRadius: 12, backgroundColor: 'rgba(20, 184, 166, 0.1)' }}>
+                                                <MaterialIcons name="business" size={28} color="#14b8a6" />
+                                            </View>
+                                            <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Yeni Müşteri</Text>
                                         </GlassCard>
                                     </View>
-                                ))}
+                                </View>
+
+                                {/* List Header Section Title */}
+                                <View style={[styles.section, { paddingBottom: 0 }]}>
+                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Text style={[styles.sectionTitle, { color: theme.colors.text, marginBottom: 0 }]}>Son İşler</Text>
+                                        <TouchableOpacity onPress={() => navigation.navigate('Jobs')}>
+                                            <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.primary }}>Tümü</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
                             </View>
+                        </>
+                    }
+                    renderItem={({ item }) => (
+                        <View style={{ paddingHorizontal: 16, marginBottom: 8 }}>
+                            <TouchableOpacity
+                                style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    padding: 12,
+                                    borderRadius: 12,
+                                    borderWidth: 1,
+                                    backgroundColor: theme.colors.card,
+                                    borderColor: theme.colors.cardBorder
+                                }}
+                                onPress={() => navigation.navigate('JobDetail', { jobId: item.id })}
+                            >
+                                <View style={{
+                                    width: 36,
+                                    height: 36,
+                                    borderRadius: 18,
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    marginRight: 12,
+                                    backgroundColor: isDark ? 'rgba(204, 255, 4, 0.1)' : 'rgba(45, 91, 255, 0.1)'
+                                }}>
+                                    <MaterialIcons name="work" size={20} color={theme.colors.primary} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 2, color: theme.colors.text }} numberOfLines={1}>
+                                        {item.customer?.company ? `${item.customer.company} - ` : ''}{item.title}
+                                    </Text>
+                                    <Text style={{ fontSize: 12, color: theme.colors.subText }}>
+                                        {item.status} • {new Date(item.createdAt).toLocaleDateString('tr-TR')}
+                                    </Text>
+                                </View>
+                                <MaterialIcons name="chevron-right" size={20} color={theme.colors.subText} />
+                            </TouchableOpacity>
                         </View>
-
-                        {/* Quick Actions */}
-                        <View style={styles.section}>
-                            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Hızlı İşlemler</Text>
-                            <View style={styles.quickActions}>
-                                <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('CreateJob')}>
-                                    <View style={{ padding: 12, borderRadius: 12, backgroundColor: 'rgba(6, 182, 212, 0.1)' }}>
-                                        <MaterialIcons name="add-task" size={28} color="#06b6d4" />
-                                    </View>
-                                    <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Yeni İş</Text>
-                                </GlassCard>
-
-                                <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('UserManagement', { openCreate: true })}>
-                                    <View style={{ padding: 12, borderRadius: 12, backgroundColor: 'rgba(236, 72, 153, 0.1)' }}>
-                                        <MaterialIcons name="person-add" size={28} color="#ec4899" />
-                                    </View>
-                                    <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Yeni Kullanıcı</Text>
-                                </GlassCard>
-
-                                <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('CustomerManagement', { openCreate: true })}>
-                                    <View style={{ padding: 12, borderRadius: 12, backgroundColor: 'rgba(20, 184, 166, 0.1)' }}>
-                                        <MaterialIcons name="business" size={28} color="#14b8a6" />
-                                    </View>
-                                    <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Yeni Müşteri</Text>
-                                </GlassCard>
-                            </View>
+                    )}
+                    ListEmptyComponent={
+                        <View style={{ padding: 16, alignItems: 'center' }}>
+                            <Text style={{ color: theme.colors.subText, fontStyle: 'italic' }}>Henüz iş bulunmuyor.</Text>
                         </View>
-
-                        <RecentJobsList
-                            jobs={recentJobs}
-                            onJobPress={(id) => navigation.navigate('JobDetail', { jobId: id })}
-                            onViewAll={() => navigation.navigate('Jobs')}
-                        />
-
-                    </View>
-                </ScrollView>
+                    }
+                />
 
                 <DashboardBottomNav navigation={navigation} />
             </SafeAreaView>
