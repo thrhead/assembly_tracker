@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, TextInput, Alert, Modal, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 // import { COLORS } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';

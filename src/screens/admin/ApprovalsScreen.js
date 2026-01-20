@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useApprovals } from '../../hooks/useApprovals';
 import ApprovalCard from '../../components/admin/ApprovalCard';

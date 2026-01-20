@@ -12,7 +12,8 @@ import {
     UIManager,
     ActivityIndicator,
     StatusBar,
-    Alert
+    Alert,
+    FlatList
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
