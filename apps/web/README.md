@@ -1,0 +1,111 @@
+# 🛠️ Montaj Takip Sistemi (Assembly Tracker)
+
+**Fabrika dışında çalışan montaj ve servis ekiplerinin gerçek zamanlı takibi, maliyet kontrolü ve iş yönetim süreçlerini dijitalleştiren modern web ve mobil uygulaması.**
+
+Bu proje; Next.js 16, React Native ve modern web teknolojileri kullanılarak geliştirilmiş kapsamlı bir kurumsal çözümdür.
+
+-----
+
+## ✨ Temel Özellikler
+
+### 📋 İş ve Süreç Yönetimi
+* **Detaylı İş Takibi:** Montaj süreçleri için checklist sistemi, alt görevler (sub-steps) ve ilerleme takibi.
+* **Zaman Yönetimi:** İş başlangıç/bitiş süreleri ve alt görev bazlı hassas zaman raporlama.
+* **Otomasyon:** Alt görevler tamamlandığında ana görevin otomatik kapanması.
+* **Görev Bloklama:** Sorunlu adımları işaretleme, bloklama nedeni ve not ekleme.
+
+### 📊 Gelişmiş Raporlama Sistemi (Yeni)
+* **Dinamik Dashboard:** KPI kartları ile toplam iş, maliyet ve bekleyen onay takibi.
+* **Zaman Bazlı Analiz:** Toplam harcama trendleri ve kategori bazlı (Yol, Yemek, Malzeme vb.) harcama grafikleri.
+* **Otomatik Filtreleme:** Tarih aralığı, iş durumu, montaj seçimi ve kategoriye göre anlık güncellenen raporlar.
+* **Dışa Aktarma:** Raporların Excel (.xlsx) ve PDF formatlarında tek tıkla indirilmesi.
+* **Onay Yönetimi:** Rapor üzerinden bekleyen onaylara doğrudan erişim ve hızlı aksiyon.
+
+### 👥 Ekip ve Rol Yönetimi
+* **Gelişmiş Yetkilendirme:** 5 farklı rol desteği (Admin, Manager, Team Lead, Worker, Customer).
+* **Dinamik Ekipler:** Ekip oluşturma, üye atama ve performans grafikleri.
+* **Müşteri Paneli:** Müşterilerin kendi iş durumlarını takip edebileceği özel arayüz.
+
+### 💰 Maliyet ve Finans
+* **Masraf Takibi:** Malzeme, ulaşım, işçilik gibi kategorilerde masraf girişi (₺ desteği).
+* **Onay Mekanizması:** Personel masrafları için Admin/Manager onay akışı.
+
+### 📱 Mobil ve Saha Operasyonları
+* **Cross-Platform Mobil Uygulama:** React Native (Expo) ile iOS ve Android uyumlu.
+* **Çevrimdışı Mod (POC):** Saha şartlarına uygun, bağlantısız çalışma altyapısı.
+* **Medya Yönetimi:** Yerel dosya sistemi entegrasyonu ile iş adımlarına fotoğraf kanıtı ekleme.
+* **Lokasyon:** Harita entegrasyonu ve navigasyon özellikleri.
+
+-----
+
+## 🛠️ Teknoloji Yığını (Tech Stack)
+
+### Frontend (Web)
+* **Framework:** Next.js 16 (App Router, Turbopack)
+* **Language:** TypeScript (Strict Mode)
+* **Styling:** TailwindCSS v4, Radix UI, Lucide React
+* **Components:** ShadCN/UI
+* **Visualization:** Recharts
+
+### Mobile (App)
+* **Framework:** React Native, Expo (SDK 52+)
+* **Navigation:** React Navigation v7
+* **Storage:** AsyncStorage
+
+### Backend & Database
+* **API:** Next.js API Routes & Server Actions
+* **Database:** PostgreSQL (Neon Serverless)
+* **ORM:** Prisma ORM (Optimize edilmiş indeksler ile)
+* **Auth:** NextAuth.js v5 (Beta)
+* **Real-time:** Socket.IO (Custom Server)
+
+### Kalite ve Test
+* **Testing:** Vitest, @testing-library/react
+* **Metodoloji:** TDD (Test-Driven Development) & Conductor Framework
+
+-----
+
+## 📦 Kurulum ve Başlangıç
+
+### Gereksinimler
+* Node.js 18+
+* PostgreSQL (Local veya Neon/Supabase)
+* npm
+
+### 1. Web Uygulaması Kurulumu
+```bash
+# Repository'yi klonlayın
+git clone [repository-url]
+cd assembly_tracker
+
+# Bağımlılıkları yükleyin
+npm install
+
+# Environment variables dosyasını oluşturun
+cp .env.example .env
+
+# Veritabanı şemasını oluşturun ve senkronize edin
+npx prisma db push
+npx prisma db seed
+
+# Testleri çalıştırın
+npm test
+
+# Development sunucusunu başlatın
+npm run dev
+```
+
+### 2. Mobil Uygulama Kurulumu
+```bash
+cd mobile
+npm install
+npx expo start
+```
+
+-----
+
+## 📄 Lisans
+Bu proje özel kullanım içindir. Ticari kullanım ve dağıtım hakları saklıdır.
+
+**Son Güncelleme:** 28 Aralık 2025
+**Versiyon:** 2.6.0 (Advanced Reporting & TDD Setup)
