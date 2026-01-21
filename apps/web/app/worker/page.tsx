@@ -1,5 +1,8 @@
-import { auth } from "@/lib/auth"
-import { redirect } from "next/navigation"
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -8,12 +11,18 @@ import {
   MapPinIcon,
   ChevronRightIcon,
   Building2Icon,
-  BriefcaseIcon
+  BriefcaseIcon,
+  WifiOffIcon,
+  Loader2Icon
 } from 'lucide-react'
 import { format } from "date-fns"
 import { tr } from "date-fns/locale"
 import Link from "next/link"
-import { getWorkerJobs } from "@/lib/data/worker-dashboard"
+import { apiClient } from '@/lib/api-client'
+import { toast } from 'sonner'
+
+// Local storage key for caching jobs
+const CACHE_KEY_JOBS = 'worker_dashboard_jobs_cache'
 
 const priorityColors: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   LOW: "secondary",
@@ -36,19 +45,77 @@ const statusLabels: Record<string, string> = {
   CANCELLED: "İptal"
 }
 
-export default async function WorkerDashboard() {
-  const session = await auth()
-  if (!session || (session.user.role !== "WORKER" && session.user.role !== "TEAM_LEAD")) {
-    redirect("/login")
+export default function WorkerDashboard() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const [jobs, setJobs] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [isOffline, setIsOffline] = useState(false)
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    } else if (status === 'authenticated') {
+      if (session.user.role !== "WORKER" && session.user.role !== "TEAM_LEAD") {
+        router.push('/login') // Or unauthorized page
+      } else {
+        fetchJobs()
+      }
+    }
+  }, [status, session])
+
+  const fetchJobs = async () => {
+    try {
+      setLoading(true)
+      // Try to fetch from API
+      const res = await apiClient.get('/api/worker/jobs')
+      
+      if (res.ok) {
+        const data = await res.json()
+        setJobs(data)
+        setIsOffline(false)
+        // Update cache
+        localStorage.setItem(CACHE_KEY_JOBS, JSON.stringify(data))
+      } else {
+        throw new Error('API Error')
+      }
+    } catch (error) {
+      console.log('Fetch error, falling back to cache', error)
+      setIsOffline(true)
+      // Fallback to cache
+      const cached = localStorage.getItem(CACHE_KEY_JOBS)
+      if (cached) {
+        setJobs(JSON.parse(cached))
+        toast.info('Çevrimdışı mod: Önbellekten veriler gösteriliyor.')
+      } else {
+        toast.error('Bağlantı yok ve önbellek boş.')
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const jobs = await getWorkerJobs(session.user.id)
+  if (status === 'loading' || (loading && jobs.length === 0)) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2Icon className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">İşlerim</h1>
-        <p className="text-gray-500">Size atanan aktif işler ({jobs.length})</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">İşlerim</h1>
+          <p className="text-gray-500">Size atanan aktif işler ({jobs.length})</p>
+        </div>
+        {isOffline && (
+          <Badge variant="outline" className="gap-1 border-orange-200 bg-orange-50 text-orange-700">
+            <WifiOffIcon className="h-3 w-3" />
+            Çevrimdışı
+          </Badge>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -65,8 +132,8 @@ export default async function WorkerDashboard() {
                     {job.customer.company}
                   </div>
                 </div>
-                <Badge variant={priorityColors[job.priority]}>
-                  {priorityLabels[job.priority]}
+                <Badge variant={priorityColors[job.priority] || "default"}>
+                  {priorityLabels[job.priority] || job.priority}
                 </Badge>
               </div>
             </CardHeader>
@@ -88,9 +155,9 @@ export default async function WorkerDashboard() {
 
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs font-normal">
-                  {statusLabels[job.status]}
+                  {statusLabels[job.status] || job.status}
                 </Badge>
-                {job._count.steps > 0 && (
+                {job._count?.steps > 0 && (
                   <span className="text-xs text-gray-500">
                     {job._count.steps} Adım
                   </span>
@@ -108,11 +175,16 @@ export default async function WorkerDashboard() {
           </Card>
         ))}
 
-        {jobs.length === 0 && (
+        {jobs.length === 0 && !loading && (
           <div className="col-span-full text-center py-12 bg-white rounded-lg border border-dashed">
             <BriefcaseIcon className="h-12 w-12 mx-auto text-gray-300 mb-3" />
             <h3 className="text-lg font-medium text-gray-900">Aktif işiniz bulunmuyor</h3>
             <p className="text-gray-500 mt-1">Yeni iş atandığında burada göreceksiniz.</p>
+            {isOffline && (
+              <p className="text-orange-600 text-sm mt-2">
+                Çevrimdışı modda olduğunuz için yeni işler yüklenemiyor olabilir.
+              </p>
+            )}
           </div>
         )}
       </div>
