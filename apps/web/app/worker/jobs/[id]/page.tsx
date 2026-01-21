@@ -21,6 +21,7 @@ import { CostDialog } from '@/components/worker/cost-dialog'
 import { toast } from 'sonner'
 import { PhotoUploadDialog } from '@/components/worker/photo-upload-dialog'
 import { apiClient } from '@/lib/api-client'
+import { ChatPanel } from '@/components/chat/ChatPanel'
 
 interface JobDetail {
   id: string
