@@ -1,13 +1,13 @@
 # Plan: Expo Push Notifications Integration
 
 ## Phase 1: Altyapı ve Veritabanı
-- [ ] Task: Database Şema Güncellemesi
-  - [ ] Subtask: `schema.prisma` dosyasına `PushToken` modelini ekle (userId relation ile).
-  - [ ] Subtask: Veritabanı migrasyonunu oluştur ve uygula (`npx prisma migrate dev`).
-- [ ] Task: Backend Push Servisi Kurulumu
-  - [ ] Subtask: `expo-server-sdk-node` paketini backend'e yükle.
-  - [ ] Subtask: `lib/push-notification.ts` (veya benzeri) yardımcı servisini oluştur.
-  - [ ] Subtask: Toplu ve tekli bildirim gönderme fonksiyonlarını implemente et.
+- [x] Task: Database Şema Güncellemesi
+  - [x] Subtask: `schema.prisma` dosyasına `PushToken` modelini ekle (userId relation ile).
+  - [x] Subtask: Veritabanı migrasyonunu oluştur ve uygula (`npx prisma migrate dev`).
+- [x] Task: Backend Push Servisi Kurulumu (4e40b6e)
+  - [x] Subtask: `expo-server-sdk-node` paketini backend'e yükle.
+  - [x] Subtask: `lib/push-notification.ts` (veya benzeri) yardımcı servisini oluştur.
+  - [x] Subtask: Toplu ve tekli bildirim gönderme fonksiyonlarını implemente et.
 - [ ] Task: Conductor - User Manual Verification 'Altyapı ve Veritabanı' (Protocol in workflow.md)
 
 ## Phase 2: API ve Token Yönetimi
