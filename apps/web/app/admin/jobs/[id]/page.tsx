@@ -9,6 +9,8 @@ import { ApprovalActionCard } from "@/components/admin/approval-action-card"
 import { getJob } from "@/lib/data/jobs"
 import { JobDialog } from "@/components/admin/job-dialog"
 import { EditIcon } from "lucide-react"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { ChatPanel } from "@/components/chat/ChatPanel"
 
 export const dynamic = 'force-dynamic'
 
