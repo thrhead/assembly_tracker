@@ -16,6 +16,18 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+## [ ] Track: Mobile i18n Infrastructure
+
+*Link: [./conductor/tracks/mobile_i18n_v1/](./conductor/tracks/mobile_i18n_v1/)*
+
+---
+
+## [ ] Track: Mobile Feature Parity & Module Migration
+
+*Link: [./conductor/tracks/mobile_feature_parity_v1/](./conductor/tracks/mobile_feature_parity_v1/)*
+
+---
+
 ## [ ] Track: Digital Signature Integration
 
 *Link: [./conductor/tracks/digital_signature_v1/](./conductor/tracks/digital_signature_v1/)*

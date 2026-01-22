@@ -21,7 +21,6 @@ export interface FilterState {
 }
 
 interface AdvancedFilterProps {
-    onFilterChange?: (filters: FilterState) => void
     teams: { id: string; name: string }[]
 }
 

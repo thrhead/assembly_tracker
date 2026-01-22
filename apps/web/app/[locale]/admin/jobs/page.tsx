@@ -119,7 +119,6 @@ export default async function JobsPage(props: {
         <div className="flex items-center gap-2">
           <AdvancedFilter 
             teams={teams.map(t => ({ id: t.id, name: t.name }))}
-            onFilterChange={() => {}} 
           />
           <BulkUploadDialog />
           <JobDialog
