@@ -1,10 +1,26 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { compare } from 'bcryptjs'
+import { SignJWT } from 'jose'
 
-// Simple mock token generation (in production use JWT)
-const generateToken = (userId: string) => {
-    return Buffer.from(`${userId}:${Date.now()}`).toString('base64')
+// Generate a real JWT token compatible with verifyAuth
+const generateToken = async (user: any) => {
+    const secretKey = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "fallback_secret"
+    const secret = new TextEncoder().encode(secretKey)
+    
+    const token = await new SignJWT({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.name,
+        phone: user.phone
+    })
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('30d') // Long expiration for mobile app
+        .sign(secret)
+        
+    return token
 }
 
 export async function POST(req: Request) {
@@ -41,6 +57,8 @@ export async function POST(req: Request) {
 
         // Return user info and a "token" (for mobile app compatibility)
         // Note: Mobile app currently expects { user, token } structure
+        const token = await generateToken(user)
+        
         return NextResponse.json({
             user: {
                 id: user.id,
@@ -48,7 +66,7 @@ export async function POST(req: Request) {
                 name: user.name,
                 role: user.role,
             },
-            token: generateToken(user.id) // Mock token, replace with JWT if needed
+            token: token 
         })
 
     } catch (error) {
