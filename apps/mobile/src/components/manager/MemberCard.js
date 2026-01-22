@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS } from '../../constants/theme';
 
@@ -39,7 +40,7 @@ const MemberCard = ({ item, theme }) => {
 
 const styles = StyleSheet.create({
     memberCard: {
-        backgroundColor: COLORS.cardDark,
+        backgroundColor: theme.colors.card,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,

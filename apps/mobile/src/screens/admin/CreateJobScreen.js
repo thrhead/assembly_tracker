@@ -344,7 +344,7 @@ export default function CreateJobScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.backgroundDark,
+        backgroundColor: theme.colors.background,
     },
     header: {
         flexDirection: 'row',
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         padding: 16,
         paddingTop: 20,
-        backgroundColor: COLORS.cardDark,
+        backgroundColor: theme.colors.card,
         borderBottomWidth: 1,
         borderBottomColor: COLORS.slate800,
     },
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: COLORS.cardDark,
+        backgroundColor: theme.colors.card,
         borderWidth: 1,
         borderColor: COLORS.slate800,
         borderRadius: 8,
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     dateSelector: {
-        backgroundColor: COLORS.cardDark,
+        backgroundColor: theme.colors.card,
         borderWidth: 1,
         borderColor: COLORS.slate800,
         borderRadius: 8,
@@ -431,7 +431,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: COLORS.cardDark,
+        backgroundColor: theme.colors.card,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         maxHeight: '80%',

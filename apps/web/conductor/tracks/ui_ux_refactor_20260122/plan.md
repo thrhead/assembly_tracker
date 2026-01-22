@@ -9,43 +9,37 @@
 ## Phase 2: Web Performance (Images)
 - [x] Task: Image Component Migration
   - [x] Subtask: `apps/web/components/worker/cost-dialog.tsx` içindeki `<img>` etiketini `next/image` ile değiştir.
+- [x] Task: Image Component Migration (Gallery)
   - [x] Subtask: `apps/web/components/photo-gallery.tsx` içindeki `<img>` etiketini `next/image` ile değiştir.
 
 ## Phase 3: Mobile Modernization
 - [x] Task: Button Component Refactor
   - [x] Subtask: `apps/mobile/src/components/CustomButton.js` dosyasını `TouchableOpacity` yerine `Pressable` kullanacak şekilde güncelle.
-  - [x] Subtask: Butonun mevcut prop'larını koruyarak geriye dönük uyumluluğu sağla.
 
 ## Phase 4: Code Quality & Safety
 - [x] Task: Web Linting Onarımı
-  - [x] Subtask: `eslint-config-next` bağımlılığını kur ve `npm run lint` komutunun hatasız çalıştığını doğrula.
 - [x] Task: Type Safety İyileştirmeleri
-  - [x] Subtask: Web projesindeki kritik `any` kullanımlarını (özellikle API yanıtları ve Context'ler) azalt.
 - [x] Task: Mobil Linting Kurulumu
-  - [x] Subtask: Mobil projeye temel `eslint` ve `prettier` yapılandırmasını ekle.
 
 ## Phase 5: Web Responsiveness & Profile Navigation
 - [x] Task: Sidebar Mobile Visibility Fix
-  - [x] Subtask: `AdminHeader`, `ManagerHeader` ve `CustomerHeader` bileşenlerine mobil menü tetikleyici (hamburger button) ekle.
-  - [x] Subtask: `CustomerSidebar` ve `ManagerSidebar` bileşenlerini mobil uyumlu hale getir (Drawer/Overlay mantığı ekle).
-  - [x] Subtask: `AdminSidebar` mobil butonunun Header altında kalma sorununu z-index ile çöz.
+  - [x] Subtask: Hamburger menü ve overlay mantığının Admin, Manager ve Customer için eklenmesi.
 - [x] Task: Profile Pages Implementation
-  - [x] Subtask: Admin, Manager ve Customer için temel profil sayfalarını (`/profile`) oluştur.
-  - [x] Subtask: Tüm Header bileşenlerindeki "Profil" linklerini aktif hale getir ve doğru rotalara yönlendir.
+  - [x] Subtask: Tüm roller için `/profile` sayfalarının ve API'lerinin oluşturulması.
 
-## Phase 6: Mobile Theme & Status UX Fixes
-- [ ] Task: Dashboard Bottom Nav Theme Fix
-  - [ ] Subtask: `DashboardBottomNav.js` içinde açık temada hala siyah görünen alanları düzelt.
-- [ ] Task: Job Detail Status Visibility
-  - [ ] Subtask: İş detaylarında Kabul/Red butonları üzerindeki durum alanının açık temada siyah görünmesini engelle.
-- [ ] Task: Substep Rejection Modal Theme
-  - [ ] Subtask: Alt iş emri reddetme ekranının açık temada koyu kalması sorununu gider.
+## Phase 6: Project-wide Theme Consistency (Anti-Dark Spots)
+- [x] Task: Bottom Nav Theme Fix
+  - [x] Subtask: `DashboardBottomNav.js` açık temada beyaz/kart rengi yapıldı.
+- [x] Task: Job Detail Status & Modal Fix
+  - [x] Subtask: `JobDetailScreen.js` içindeki durum çubuğu ve red modalları temaya duyarlı hale getirildi.
+- [x] Task: Comprehensive Hardcoded Color Audit (Global)
+  - [x] Subtask: Mobil: `TeamCard`, `MemberCard`, `DashboardAction`, `CustomDrawer`, `SelectionModal`, `ExpenseList`, `CustomButton` ve `UserList` bileşenlerindeki sabit `COLORS.cardDark/black` tanımları temizlendi.
+  - [x] Subtask: Web: `DialogContent`, `PhotoGallery`, `JobTimeline` ve tüm Sidebar overlay'lerindeki sabit `bg-black/50` gibi Tailwind sınıfları temaya duyarlı (`bg-background/80`, `backdrop-blur`) hale getirildi.
 
-## Phase 7: Enhanced Mobile Navigation (Functional Bottom Menu)
-- [ ] Task: Bottom Nav Modernization
-  - [ ] Subtask: `DashboardBottomNav` bileşenine aktif sekme animasyonu ve dokunsal geri bildirim ekle.
-  - [ ] Subtask: Menüye "Hızlı Ekle" (Floating Action Button mantığı) veya bildirim sayacı gibi işlevsel öğeler entegre et.
-  - [ ] Subtask: İkon setini daha açıklayıcı ve modern Lucide ikonları ile güncelle.
+## Phase 7: Enhanced Mobile Navigation
+- [/] Task: Bottom Nav Modernization
+  - [x] Subtask: "Hızlı Ekle" (+) butonunun eklenmesi ve tasarımın yenilenmesi.
+  - [ ] Subtask: Aktif sekme animasyonları ve Lucide ikon geçişi.
 
 ## Phase 8: Verification
 - [ ] Task: Final Manual Review

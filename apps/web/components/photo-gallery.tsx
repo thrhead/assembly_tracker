@@ -101,7 +101,7 @@ export function PhotoGallery({ photos, canDelete = false, onDelete }: PhotoGalle
             </div>
 
             <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-                <DialogContent className="max-w-4xl w-full p-0 overflow-hidden bg-black">
+                <DialogContent className="max-w-4xl w-full p-0 overflow-hidden bg-background/95 backdrop-blur-sm">
                     <div className="relative w-full h-[70vh]">
                         <Image
                             src={photos[currentIndex]?.url}

@@ -3,9 +3,14 @@
 This file tracks all major tracks for the project. Each track has its own detailed plan in its respective folder.
 
 ## Active Tracks
-n---
 
-n---
+---
+
+## [ ] Track: UI/UX Accessibility & Touch Standardization
+
+*Link: [./conductor/tracks/ui_ux_standardization_20260122/](./conductor/tracks/ui_ux_standardization_20260122/)*
+
+---
 
 ## [ ] Track: Mobile i18n Infrastructure
 

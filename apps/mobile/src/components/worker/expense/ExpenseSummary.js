@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '../../../context/ThemeContext';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS } from '../../../constants/theme';
 
@@ -20,7 +21,7 @@ const styles = StyleSheet.create({
         margin: 16,
         marginTop: 0,
         padding: 20,
-        backgroundColor: COLORS.cardDark,
+        backgroundColor: theme.colors.card,
         borderRadius: 12,
         borderWidth: 1,
         borderColor: COLORS.cardBorder,

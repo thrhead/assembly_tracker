@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
@@ -63,7 +64,7 @@ const TeamCard = ({ item, onEdit, onDelete, isAdmin, theme }) => {
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: COLORS.cardDark,
+        backgroundColor: theme.colors.card,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,

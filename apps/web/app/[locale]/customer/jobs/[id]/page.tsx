@@ -513,7 +513,7 @@ export default function CustomerJobDetailPage(props: { params: Promise<{ id: str
 
       {/* Image Preview Dialog */}
       <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black/90 border-none">
+        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-background/95 border-none">
           {previewImage && (
             <div className="relative aspect-video w-full">
               <Image

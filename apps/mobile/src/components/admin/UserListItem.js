@@ -5,7 +5,7 @@ import { COLORS } from '../../constants/theme';
 
 const UserListItem = ({ item, onEdit, onDelete, theme }) => {
     // Fallback if theme prop isn't passed
-    const cardBg = theme ? theme.colors.card : COLORS.cardDark;
+    const cardBg = theme ? theme.colors.card : theme.colors.card;
     const borderColor = theme ? theme.colors.border : COLORS.slate800;
     const textMain = theme ? theme.colors.text : COLORS.textLight;
     const textSub = theme ? theme.colors.subText : COLORS.slate400;

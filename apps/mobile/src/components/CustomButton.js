@@ -25,7 +25,7 @@ const CustomButton = ({
     const slate500 = theme ? theme.colors.subText || COLORS.slate500 : COLORS.slate500;
     const slate400 = theme ? theme.colors.subText || COLORS.slate400 : COLORS.slate400;
     const white = theme ? theme.colors.textInverse || COLORS.white : COLORS.white;
-    const black = theme ? theme.colors.textInverse || COLORS.black : COLORS.black;
+    const black = theme ? theme.colors.textInverse || theme.colors.textInverse : theme.colors.textInverse;
 
     const getBackgroundColor = (pressed) => {
         if (disabled) return slate700;
@@ -40,11 +40,11 @@ const CustomButton = ({
     const getTextColor = () => {
         if (disabled) return slate500;
         switch (variant) {
-            case 'primary': return theme?.id === 'dark' ? COLORS.black : COLORS.textLight;
+            case 'primary': return theme?.id === 'dark' ? theme.colors.textInverse : COLORS.textLight;
             case 'outline': return primaryColor;
             case 'danger': return white;
             case 'ghost': return slate400;
-            default: return theme?.id === 'dark' ? COLORS.black : COLORS.textLight;
+            default: return theme?.id === 'dark' ? theme.colors.textInverse : COLORS.textLight;
         }
     };
 

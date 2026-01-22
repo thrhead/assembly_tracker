@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     drawerContainer: {
         width: '70%',
         height: '100%',
-        backgroundColor: COLORS.cardDark,
+        backgroundColor: theme.colors.card,
         padding: 20,
         paddingTop: 50,
         borderRightWidth: 1,

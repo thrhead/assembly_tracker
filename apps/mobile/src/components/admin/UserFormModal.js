@@ -15,7 +15,7 @@ const UserFormModal = ({ visible, onClose, initialData, onSave, theme }) => {
     });
 
     // Fallbacks
-    const bg = theme ? theme.colors.card : COLORS.cardDark;
+    const bg = theme ? theme.colors.card : theme.colors.card;
     const border = theme ? theme.colors.border : COLORS.slate800;
     const textMain = theme ? theme.colors.text : COLORS.textLight;
     const textSub = theme ? theme.colors.subText : COLORS.textLight;

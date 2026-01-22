@@ -319,7 +319,7 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
             {
                 selectedPhoto && (
                     <div
-                        className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-background/80 z-50 flex items-center justify-center p-4"
                         onClick={() => setSelectedPhoto(null)}
                     >
                         <div className="relative max-w-4xl max-h-[90vh]">
@@ -329,7 +329,7 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                 className="max-w-full max-h-[90vh] object-contain rounded-lg"
                             />
                             {selectedPhoto.uploadedBy?.name && (
-                                <div className="absolute bottom-4 left-4 bg-black/60 text-white px-3 py-1 rounded text-sm">
+                                <div className="absolute bottom-4 left-4 bg-muted/90 text-white px-3 py-1 rounded text-sm">
                                     📷 {selectedPhoto.uploadedBy.name} • {format(new Date(selectedPhoto.uploadedAt), 'd MMM, HH:mm', { locale: tr })}
                                 </div>
                             )}

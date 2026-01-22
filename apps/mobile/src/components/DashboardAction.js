@@ -24,7 +24,7 @@ const DashboardAction = ({ icon, label, onPress, isActive = true, disabled = fal
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: COLORS.cardDark,
+        backgroundColor: theme.colors.card,
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',

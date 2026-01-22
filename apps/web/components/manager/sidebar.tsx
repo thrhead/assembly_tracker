@@ -86,7 +86,7 @@ export function ManagerSidebar({ isOpen, onClose }: ManagerSidebarProps) {
             {/* Overlay for mobile */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+                    className="fixed inset-0 bg-background/60 backdrop-blur-sm z-30 lg:hidden"
                     onClick={onClose}
                 />
             )}

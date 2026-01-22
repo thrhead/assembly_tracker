@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '../../../context/ThemeContext';
 import { View, Text, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../../constants/theme';
@@ -85,7 +86,7 @@ const styles = StyleSheet.create({
     expenseCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: COLORS.cardDark,
+        backgroundColor: theme.colors.card,
         padding: 16,
         borderRadius: 12,
         borderWidth: 1,
