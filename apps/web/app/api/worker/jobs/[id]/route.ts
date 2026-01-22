@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { emitToUser } from '@/lib/socket'
+import { sendAdminNotification } from '@/lib/notification-helper'
 
 export async function GET(
   req: Request,
@@ -68,7 +69,6 @@ export async function GET(
       return NextResponse.json({ error: 'Job not found' }, { status: 404 })
     }
 
-    // Check access
     // Check access (skip for ADMIN/MANAGER)
     if (!['ADMIN', 'MANAGER'].includes(session.user.role)) {
       const hasAccess = job.assignments.some(
@@ -123,6 +123,15 @@ export async function PATCH(
     } else if (status === 'PENDING') {
       message = `${job.title} işi beklemeye alındı.`
       type = 'warning'
+    } else if (status === 'COMPLETED') {
+      // Notify Admins via Push
+      await sendAdminNotification(
+        'İş Tamamlandı',
+        `${session.user.name} tarafından "${job.title}" işi tamamlandı olarak işaretlendi.`,
+        'SUCCESS',
+        `/admin/jobs/${job.id}`,
+        session.user.id
+      )
     }
 
     console.log('🔔 Notification Message:', message)
