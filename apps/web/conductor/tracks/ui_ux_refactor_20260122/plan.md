@@ -28,3 +28,12 @@
 - [ ] Task: Manual Review
   - [ ] Subtask: Web tarafında klavye ile navigasyonu test et.
   - [ ] Subtask: Mobil tarafında butonların çalışırlığını test et.
+
+## Phase 6: Web Responsiveness & Profile Navigation
+- [ ] Task: Sidebar Mobile Visibility Fix
+  - [ ] Subtask: `AdminHeader` ve `ManagerHeader` bileşenlerine mobil menü tetikleyici (hamburger button) ekle.
+  - [ ] Subtask: `CustomerSidebar` bileşenini mobil uyumlu hale getir (Drawer/Overlay mantığı ekle).
+  - [ ] Subtask: `AdminSidebar` mobil butonunun Header altında kalma sorununu z-index ile çöz.
+- [ ] Task: Profile Pages Implementation
+  - [ ] Subtask: Admin, Manager ve Customer için temel profil sayfalarını (`/profile`) oluştur.
+  - [ ] Subtask: Tüm Header bileşenlerindeki "Profil" linklerini aktif hale getir ve doğru rotalara yönlendir.

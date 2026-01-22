@@ -1,17 +1,14 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { Link, usePathname } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
 import {
     LayoutDashboardIcon,
     BriefcaseIcon,
     CheckCircle2Icon,
-    MenuIcon,
     XIcon,
     FileBarChartIcon
 } from 'lucide-react'
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 
 const sidebarItems = [
@@ -37,23 +34,16 @@ const sidebarItems = [
     }
 ]
 
-export function ManagerSidebar() {
+interface ManagerSidebarProps {
+    isOpen: boolean
+    onClose: () => void
+}
+
+export function ManagerSidebar({ isOpen, onClose }: ManagerSidebarProps) {
     const pathname = usePathname()
-    const [isOpen, setIsOpen] = useState(false)
 
     return (
         <>
-            {/* Mobile Menu Button */}
-            <div className="lg:hidden fixed top-4 left-4 z-50">
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsOpen(!isOpen)}
-                >
-                    {isOpen ? <XIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
-                </Button>
-            </div>
-
             {/* Sidebar Container */}
             <div
                 className={cn(
@@ -61,14 +51,13 @@ export function ManagerSidebar() {
                     isOpen ? "translate-x-0" : "-translate-x-full"
                 )}
             >
-                {/* Logo Area */}
-                <div className="h-16 flex items-center justify-center border-b px-6">
-                    <Link href="/manager" className="flex items-center gap-2 font-bold text-xl text-indigo-600">
-                        <span>Montaj Takip</span>
-                    </Link>
+                <div className="h-16 flex items-center justify-between px-6 border-b">
+                    <span className="font-bold text-lg text-indigo-600">Yönetici Paneli</span>
+                    <Button variant="ghost" size="icon" onClick={onClose} className="lg:hidden">
+                        <XIcon className="h-5 w-5" />
+                    </Button>
                 </div>
 
-                {/* Navigation Links */}
                 <div className="flex-1 overflow-y-auto py-4 px-3">
                     <nav className="space-y-1">
                         {sidebarItems.map((item) => {
@@ -83,7 +72,7 @@ export function ManagerSidebar() {
                                             ? "bg-indigo-50 text-indigo-600"
                                             : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                                     )}
-                                    onClick={() => setIsOpen(false)}
+                                    onClick={onClose}
                                 >
                                     <item.icon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-gray-400")} />
                                     {item.title}
@@ -92,26 +81,13 @@ export function ManagerSidebar() {
                         })}
                     </nav>
                 </div>
-
-                {/* User Profile / Footer */}
-                <div className="border-t p-4">
-                    <div className="flex items-center gap-3 px-2">
-                        <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                            Y
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">Yönetici</p>
-                            <p className="text-xs text-gray-500 truncate">manager@montaj.com</p>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {/* Overlay for mobile */}
             {isOpen && (
                 <div
                     className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-                    onClick={() => setIsOpen(false)}
+                    onClick={onClose}
                 />
             )}
         </>

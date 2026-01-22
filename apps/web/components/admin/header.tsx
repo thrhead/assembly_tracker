@@ -1,6 +1,6 @@
 'use client'
 
-import { BellIcon, LogOutIcon } from 'lucide-react'
+import { BellIcon, LogOutIcon, MenuIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -15,7 +15,11 @@ import { signOut } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
-export function AdminHeader() {
+interface AdminHeaderProps {
+  onMenuClick?: () => void
+}
+
+export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const [unreadCount, setUnreadCount] = useState(0)
   const router = useRouter()
 
@@ -42,8 +46,9 @@ export function AdminHeader() {
   return (
     <div className="h-16 border-b bg-white flex items-center justify-between px-4 sticky top-0 z-50">
       <div className="flex items-center gap-3">
-        {/* Mobile menu trigger is handled by Sidebar component */}
-        <div className="w-8" />
+        <Button variant="ghost" size="icon" onClick={onMenuClick} className="lg:hidden">
+          <MenuIcon className="h-5 w-5" />
+        </Button>
         <h1 className="font-bold text-lg text-indigo-600">Montaj Takip</h1>
       </div>
       <div className="hidden lg:block">
@@ -69,7 +74,9 @@ export function AdminHeader() {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Hesabım</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profil</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/admin/profile')}>
+              Profil
+            </DropdownMenuItem>
             <DropdownMenuItem className="text-red-600" onClick={() => signOut({ callbackUrl: '/login' })}>
               <LogOutIcon className="mr-2 h-4 w-4" />
               Çıkış Yap

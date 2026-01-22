@@ -1,7 +1,7 @@
 'use client'
 
 import { signOut, useSession } from 'next-auth/react'
-import { MenuIcon, BellIcon, LogOutIcon, UserIcon } from 'lucide-react'
+import { MenuIcon, LogOutIcon, UserIcon, WifiOffIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { NotificationDropdown } from '@/components/notifications/notification-dropdown'
 import { useNetwork } from '@/hooks/use-network'
-import { WifiOffIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { useRouter } from '@/lib/navigation'
 
 interface WorkerHeaderProps {
   onMenuClick: () => void
@@ -23,6 +23,7 @@ interface WorkerHeaderProps {
 export function WorkerHeader({ onMenuClick }: WorkerHeaderProps) {
   const { data: session } = useSession()
   const isOnline = useNetwork()
+  const router = useRouter()
 
   return (
     <header className="h-16 border-b bg-white flex items-center justify-between px-4 lg:px-6">
@@ -58,6 +59,10 @@ export function WorkerHeader({ onMenuClick }: WorkerHeaderProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push('/worker/profile')}>
+              <UserIcon className="h-4 w-4 mr-2" />
+              Profil
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/login' })}>
               <LogOutIcon className="h-4 w-4 mr-2" />
               Çıkış Yap

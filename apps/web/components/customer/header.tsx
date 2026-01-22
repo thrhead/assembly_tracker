@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useRouter } from '@/lib/navigation'
 
 interface CustomerHeaderProps {
   onMenuClick?: () => void
@@ -21,6 +22,7 @@ interface CustomerHeaderProps {
 }
 
 export function CustomerHeader({ onMenuClick, user }: CustomerHeaderProps) {
+  const router = useRouter()
   return (
     <header className="h-16 border-b bg-white flex items-center justify-between px-4 lg:px-6">
       <div className="flex items-center gap-4">
@@ -46,6 +48,10 @@ export function CustomerHeader({ onMenuClick, user }: CustomerHeaderProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push('/customer/profile')}>
+              <UserIcon className="h-4 w-4 mr-2" />
+              Profil
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => signOut({ callbackUrl: '/login' })}>
               <LogOutIcon className="h-4 w-4 mr-2" />
               Çıkış Yap

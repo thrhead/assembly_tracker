@@ -79,23 +79,16 @@ const sidebarItems = [
   }
 ]
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const pathname = usePathname()
-  const [isOpen, setIsOpen] = useState(false)
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <XIcon className="h-5 w-5" /> : <MenuIcon className="h-5 w-5" />}
-        </Button>
-      </div>
-
       {/* Sidebar Container */}
       <div
         className={cn(
@@ -104,10 +97,13 @@ export function AdminSidebar() {
         )}
       >
         {/* Logo Area */}
-        <div className="h-16 flex items-center justify-center border-b px-6">
-          <Link href="/admin" className="flex items-center gap-2 font-bold text-xl text-indigo-600">
+        <div className="h-16 flex items-center justify-between px-6 border-b">
+          <Link href="/admin" className="flex items-center gap-2 font-bold text-xl text-indigo-600" onClick={onClose}>
             <span>Montaj Takip</span>
           </Link>
+          <Button variant="ghost" size="icon" onClick={onClose} className="lg:hidden">
+            <XIcon className="h-5 w-5" />
+          </Button>
         </div>
 
         {/* Navigation Links */}
@@ -125,7 +121,7 @@ export function AdminSidebar() {
                       ? "bg-indigo-50 text-indigo-600"
                       : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
                   )}
-                  onClick={() => setIsOpen(false)}
+                  onClick={onClose}
                 >
                   <item.icon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-gray-400")} />
                   {item.title}
@@ -153,7 +149,7 @@ export function AdminSidebar() {
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setIsOpen(false)}
+          onClick={onClose}
         />
       )}
     </>
