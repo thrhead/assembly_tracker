@@ -30,14 +30,47 @@ export async function GET(req: Request) {
             }, { status: 400 })
         }
 
+        const where: any = {
+            OR: [
+                { scheduledDate: { gte: startDate, lte: endDate } },
+                { scheduledEndDate: { gte: startDate, lte: endDate } },
+                { scheduledDate: { lte: startDate }, scheduledEndDate: { gte: endDate } }
+            ]
+        }
+
+        // Role-based filtering
+        if (session.user.role === 'CUSTOMER') {
+            // Customer can only see their own jobs
+            // Need to find customer record first or assume customerId is linked to user
+            const customer = await prisma.customer.findUnique({
+                where: { userId: session.user.id }
+            })
+            if (customer) {
+                where.customerId = customer.id
+            } else {
+                return NextResponse.json([]) // No customer profile found
+            }
+        } else if (['WORKER', 'TEAM_LEAD'].includes(session.user.role)) {
+            // Worker/Team Lead sees only assigned jobs
+            where.assignments = {
+                some: {
+                    OR: [
+                        { workerId: session.user.id },
+                        {
+                            team: {
+                                members: {
+                                    some: { userId: session.user.id }
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+        // ADMIN and MANAGER see everything (no extra filter)
+
         const jobs = await prisma.job.findMany({
-            where: {
-                OR: [
-                    { scheduledDate: { gte: startDate, lte: endDate } },
-                    { scheduledEndDate: { gte: startDate, lte: endDate } },
-                    { scheduledDate: { lte: startDate }, scheduledEndDate: { gte: endDate } }
-                ]
-            },
+            where,
             include: {
                 customer: { select: { company: true } },
                 assignments: { include: { team: true, worker: true } }
