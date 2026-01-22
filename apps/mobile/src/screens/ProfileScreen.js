@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Switch, Alert, Platform } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import authService from '../services/auth.service';
+import notificationService from '../services/notification.service';
 import RoleBadge from '../components/RoleBadge';
 import GlassCard from '../components/ui/GlassCard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../constants/theme';
 
 export default function ProfileScreen({ navigation }) {
@@ -14,6 +16,37 @@ export default function ProfileScreen({ navigation }) {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+    useEffect(() => {
+        const loadNotificationSetting = async () => {
+            const saved = await AsyncStorage.getItem('notifications_enabled');
+            if (saved !== null) {
+                setNotificationsEnabled(JSON.parse(saved));
+            }
+        };
+        loadNotificationSetting();
+    }, []);
+
+    const toggleNotifications = async (value) => {
+        setNotificationsEnabled(value);
+        await AsyncStorage.setItem('notifications_enabled', JSON.stringify(value));
+
+        if (value) {
+            // Register
+            const token = await notificationService.registerForPushNotificationsAsync();
+            if (token) {
+                await notificationService.sendPushTokenToBackend(token, user.id);
+            }
+        } else {
+            // Unregister (Delete from backend)
+            try {
+                // notificationService should ideally handle this
+                console.log('Disabling notifications...');
+            } catch (e) {
+                console.log('Error deleting token:', e);
+            }
+        }
+    };
 
     const handlePasswordChange = async () => {
         if (newPassword !== confirmPassword) {
@@ -153,14 +186,13 @@ export default function ProfileScreen({ navigation }) {
                     <View style={styles.settingRow}>
                         <View style={styles.settingInfo}>
                             <Text style={[styles.settingTitle, { color: theme.colors.text }]}>Bildirimler</Text>
-                            <Text style={[styles.settingDescription, { color: theme.colors.subText }]}>Yakında aktif olacak</Text>
+                            <Text style={[styles.settingDescription, { color: theme.colors.subText }]}>Anlık bildirimleri yönet</Text>
                         </View>
                         <Switch
                             value={notificationsEnabled}
-                            onValueChange={setNotificationsEnabled}
-                            disabled
-                            trackColor={{ false: '#D1D5DB', true: '#86EFAC' }}
-                            thumbColor={notificationsEnabled ? '#16A34A' : '#9CA3AF'}
+                            onValueChange={toggleNotifications}
+                            trackColor={{ false: '#D1D5DB', true: theme.colors.primary }}
+                            thumbColor={'#fff'}
                         />
                     </View>
                 </GlassCard>

@@ -11,18 +11,18 @@
 - [ ] Task: Conductor - User Manual Verification 'Altyapı ve Veritabanı' (Protocol in workflow.md)
 
 ## Phase 2: API ve Token Yönetimi
-- [~] Task: Token Kayıt API'si
-  - [ ] Subtask: `POST /api/user/push-token` endpoint'ini oluştur (Token ekleme).
-  - [ ] Subtask: `DELETE /api/user/push-token` endpoint'ini oluştur (Token silme/logout).
-- [ ] Task: Bildirim Tetikleyicileri Entegrasyonu (Trigger Points)
-  - [ ] Subtask: `assignJob` servisine push notification çağrısını ekle.
-  - [ ] Subtask: `updateJobStatus` servisine push notification çağrısını ekle.
-  - [ ] Subtask: `createCost` ve `approveCost/rejectCost` servislerine push notification çağrılarını ekle.
+- [x] Task: Token Kayıt API'si
+  - [x] Subtask: `POST /api/user/push-token` endpoint'ini oluştur (Token ekleme).
+  - [x] Subtask: `DELETE /api/user/push-token` endpoint'ini oluştur (Token silme/logout).
+- [x] Task: Bildirim Tetikleyicileri Entegrasyonu (Trigger Points)
+  - [x] Subtask: `assignJob` servisine push notification çağrısını ekle.
+  - [x] Subtask: `updateJobStatus` servisine push notification çağrısını ekle.
+  - [x] Subtask: `createCost` ve `approveCost/rejectCost` servislerine push notification çağrılarını ekle.
 - [ ] Task: Conductor - User Manual Verification 'API ve Token Yönetimi' (Protocol in workflow.md)
 
 ## Phase 3: Mobil Uygulama Entegrasyonu
-- [ ] Task: İzinler ve Token Alma
-  - [ ] Subtask: `mobile` projesine `expo-notifications` ve `expo-device` paketlerini yükle.
+- [~] Task: İzinler ve Token Alma
+  - [x] Subtask: `mobile` projesine `expo-notifications` ve `expo-device` paketlerini yükle.
   - [ ] Subtask: `usePushNotifications` hook'unu oluştur (İzin isteme ve token alma).
   - [ ] Subtask: Alınan token'ı backend'e gönderen servisi bağla.
 - [ ] Task: Bildirim Karşılama (Handling)

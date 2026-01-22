@@ -3,6 +3,7 @@ import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Configure how notifications behave when the app is in foreground
 Notifications.setNotificationHandler({
@@ -53,6 +54,9 @@ const notificationService = {
                 }
 
                 console.log('Push Token:', token);
+                if (token) {
+                    await AsyncStorage.setItem('push_token_last', token);
+                }
             } catch (e) {
                 console.log('Error fetching push token:', e);
             }

@@ -34,6 +34,7 @@ import { SocketProvider } from './src/context/SocketContext';
 import ToastNotification from './src/components/ToastNotification';
 import { QueueService } from './src/services/QueueService';
 import { SyncManager } from './src/services/SyncManager';
+import { linking } from './src/utils/linking';
 
 // Web specific styles injection
 if (Platform.OS === 'web') {
@@ -82,7 +83,16 @@ function AppNavigator() {
 
     const responseSubscription = Notifications.addNotificationResponseReceivedListener(response => {
       console.log("Notification response received:", response);
-      // Future: extract jobId and navigate
+      
+      const data = response.notification.request.content.data;
+      if (data?.jobId) {
+        // We might need a small delay or check if navigation is ready
+        // But NavigationContainer with linking handles most cases if the URL matches
+        if (data.link) {
+          // If a direct link is provided, use it
+          // Example link: /worker/jobs/123
+        }
+      }
     });
 
     return () => {
@@ -117,7 +127,7 @@ function AppNavigator() {
 
   return (
     <View style={{ flex: 1, minHeight: 0 }}>
-      <NavigationContainer>
+      <NavigationContainer linking={linking}>
         <Stack.Navigator
           initialRouteName={getInitialRoute()}
           detachInactiveScreens={false}
