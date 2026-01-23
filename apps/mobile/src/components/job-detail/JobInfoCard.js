@@ -1,53 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Svg, Circle, Text as SvgText } from 'react-native-svg';
+import { Svg, Circle } from 'react-native-svg';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
-import { formatDate } from '../../utils';
 import GlassCard from '../ui/GlassCard';
-
-const CircularProgress = ({ progress, size = 60, strokeWidth = 6, theme }) => {
-    const radius = (size - strokeWidth) / 2;
-    const circumference = radius * 2 * Math.PI;
-    const offset = circumference - (progress / 100) * circumference;
-
-    const getColor = (percent) => {
-        if (percent === 100) return theme.colors.success || '#10B981';
-        if (percent > 30) return theme.colors.primary || '#3b82f6';
-        return '#f97316'; // orange-500
-    };
-
-    return (
-        <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-            <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }}>
-                <Circle
-                    cx={size / 2}
-                    cy={size / 2}
-                    r={radius}
-                    stroke={theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}
-                    strokeWidth={strokeWidth}
-                    fill="transparent"
-                />
-                <Circle
-                    cx={size / 2}
-                    cy={size / 2}
-                    r={radius}
-                    stroke={getColor(progress)}
-                    strokeWidth={strokeWidth}
-                    strokeDasharray={`${circumference} ${circumference}`}
-                    strokeDashoffset={offset}
-                    strokeLinecap="round"
-                    fill="transparent"
-                />
-            </Svg>
-            <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
-                <Text style={{ fontSize: size * 0.22, fontWeight: 'bold', color: theme.colors.text }}>
-                    {Math.round(progress)}%
-                </Text>
-            </View>
-        </View>
-    );
-};
 
 const JobInfoCard = ({ job }) => {
     const { theme } = useTheme();
@@ -57,6 +13,52 @@ const JobInfoCard = ({ job }) => {
     const totalSteps = job.steps?.length || 0;
     const completedSteps = job.steps?.filter(s => s.isCompleted).length || 0;
     const progress = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
+
+    // Helper for Circular Progress
+    const renderCircularProgress = () => {
+        const size = 60;
+        const strokeWidth = 6;
+        const radius = (size - strokeWidth) / 2;
+        const circumference = radius * 2 * Math.PI;
+        const offset = circumference - (progress / 100) * circumference;
+
+        const getColor = () => {
+            if (progress === 100) return theme.colors.success || '#10B981';
+            if (progress > 30) return theme.colors.primary || '#3b82f6';
+            return '#f97316'; // orange-500
+        };
+
+        return (
+            <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+                <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }}>
+                    <Circle
+                        cx={size / 2}
+                        cy={size / 2}
+                        r={radius}
+                        stroke={theme.dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'}
+                        strokeWidth={strokeWidth}
+                        fill="transparent"
+                    />
+                    <Circle
+                        cx={size / 2}
+                        cy={size / 2}
+                        r={radius}
+                        stroke={getColor()}
+                        strokeWidth={strokeWidth}
+                        strokeDasharray={`${circumference} ${circumference}`}
+                        strokeDashoffset={offset}
+                        strokeLinecap="round"
+                        fill="transparent"
+                    />
+                </Svg>
+                <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
+                    <Text style={{ fontSize: size * 0.22, fontWeight: 'bold', color: theme.colors.text }}>
+                        {Math.round(progress)}%
+                    </Text>
+                </View>
+            </View>
+        );
+    };
 
     return (
         <GlassCard style={styles.card} theme={theme}>
@@ -68,7 +70,7 @@ const JobInfoCard = ({ job }) => {
                         <Text style={[styles.infoText, { color: theme.colors.subText }]}>{job.customer?.company || job.customer?.name || 'Müşteri'}</Text>
                     </View>
                 </View>
-                <CircularProgress progress={progress} theme={theme} />
+                {totalSteps > 0 && renderCircularProgress()}
             </View>
 
             <View style={styles.separator} />

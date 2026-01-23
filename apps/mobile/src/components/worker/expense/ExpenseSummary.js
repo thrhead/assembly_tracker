@@ -21,10 +21,8 @@ const styles = StyleSheet.create({
         margin: 16,
         marginTop: 0,
         padding: 20,
-        backgroundColor: theme.colors.card,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: COLORS.cardBorder,
     },
     budgetHeader: {
         flexDirection: 'row',

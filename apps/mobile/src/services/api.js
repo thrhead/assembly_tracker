@@ -72,8 +72,11 @@ api.interceptors.request.use(
                     config.headers.Authorization = `Bearer ${token}`;
                 }
             }
+            
+            console.log(`[API Request] ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
+            
             if (__DEV__) {
-                console.log(`[API] ${config.method.toUpperCase()} ${config.url}`);
+                console.log(`[API Trace] Params:`, config.params);
             }
         } catch (error) {
             // Propagate special offline errors immediately

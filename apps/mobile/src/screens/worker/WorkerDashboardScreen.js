@@ -79,11 +79,20 @@ export default function WorkerDashboardScreen({ navigation }) {
     const loadDashboardData = async () => {
         try {
             setLoading(true);
+            console.log('[Dashboard] Fetching jobs...');
             const jobs = await jobService.getMyJobs();
+            console.log('[Dashboard] Jobs received:', jobs ? jobs.length : 0);
+            
+            console.log('[Dashboard] Fetching costs...');
             const costs = await costService.getMyCosts();
+            console.log('[Dashboard] Costs received:', costs ? costs.length : 0);
 
-            const active = jobs.filter(j => ['PENDING', 'IN_PROGRESS'].includes(j.status));
-            const completed = jobs.filter(j => j.status === 'COMPLETED');
+            if (!jobs || jobs.length === 0) {
+                console.warn('[Dashboard] No jobs returned from server');
+            }
+
+            const active = jobs ? jobs.filter(j => ['PENDING', 'IN_PROGRESS'].includes(j.status)) : [];
+            const completed = jobs ? jobs.filter(j => j.status === 'COMPLETED') : [];
 
             const formattedActiveJobs = active.map(job => {
                 const totalSteps = job.steps ? job.steps.length : 0;

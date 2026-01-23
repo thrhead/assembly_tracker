@@ -344,7 +344,6 @@ export default function CreateJobScreen({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.background,
     },
     header: {
         flexDirection: 'row',
@@ -352,14 +351,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         padding: 16,
         paddingTop: 20,
-        backgroundColor: theme.colors.card,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.slate800,
     },
     headerTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.white,
     },
     backButton: {
         padding: 8,
@@ -374,7 +370,6 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: COLORS.slate400,
         marginBottom: 8,
         marginTop: 12,
     },
@@ -382,15 +377,12 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: theme.colors.card,
         borderWidth: 1,
-        borderColor: COLORS.slate800,
         borderRadius: 8,
         padding: 12,
         height: 48,
     },
     selectorText: {
-        color: COLORS.textLight,
         fontSize: 14,
     },
     placeholderText: {
@@ -404,19 +396,15 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     dateSelector: {
-        backgroundColor: theme.colors.card,
         borderWidth: 1,
-        borderColor: COLORS.slate800,
         borderRadius: 8,
         padding: 12,
     },
     dateText: {
-        color: COLORS.textLight,
         fontSize: 14,
         fontWeight: '600',
     },
     timeText: {
-        color: COLORS.slate400,
         fontSize: 12,
         marginTop: 2,
     },
@@ -431,7 +419,6 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     modalContent: {
-        backgroundColor: theme.colors.card,
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         maxHeight: '80%',
@@ -442,11 +429,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 16,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.slate800,
     },
     modalTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: COLORS.white,
     },
 });

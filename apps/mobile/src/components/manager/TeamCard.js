@@ -66,12 +66,10 @@ const TeamCard = ({ item, onEdit, onDelete, isAdmin, theme }) => {
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: theme.colors.card,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: COLORS.slate800,
     },
     cardHeader: {
         flexDirection: 'row',

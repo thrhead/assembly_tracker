@@ -40,12 +40,10 @@ const MemberCard = ({ item, theme }) => {
 
 const styles = StyleSheet.create({
     memberCard: {
-        backgroundColor: theme.colors.card,
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: COLORS.slate800,
     },
     memberHeader: {
         flexDirection: 'row',

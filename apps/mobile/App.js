@@ -43,21 +43,56 @@ import { linking } from './src/utils/linking';
 import { useTranslation } from 'react-i18next';
 
 // Web specific styles injection
-// ... existing code ...
+if (Platform.OS === 'web') {
+  const style = document.createElement('style');
+  style.textContent = `
+    html, body, #root {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    #root > div {
+      height: 100%;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  `;
+  document.head.append(style);
+}
 
 const Stack = createStackNavigator();
+
+function getInitialRoute(user) {
+  if (!user) return 'Login';
+  switch (user.role?.toUpperCase()) {
+    case 'ADMIN': return 'AdminDashboard';
+    case 'MANAGER': return 'ManagerDashboard';
+    case 'WORKER':
+    case 'TEAM_LEAD':
+      return 'WorkerDashboard';
+    default: return 'Login';
+  }
+}
 
 function AppNavigator() {
   const { user, loading } = useAuth();
   const { t } = useTranslation();
 
-  // ... existing useEffects ...
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
 
   return (
-    <View style={{ flex: 1, minHeight: 0 }}>
+    <View style={{ flex: 1, height: '100%' }}>
       <NavigationContainer linking={linking}>
         <Stack.Navigator
-          initialRouteName={getInitialRoute()}
+          initialRouteName={getInitialRoute(user)}
           detachInactiveScreens={false}
           screenOptions={{
             animationEnabled: false,
@@ -231,8 +266,9 @@ export default function App() {
       flex: 1,
       display: 'flex',
       flexDirection: 'column',
+      minHeight: '100%', // Ensure it takes full height on web
       // CRITICAL: Ensure touch-action is permitted for native scrolling on web
-      ...(Platform.OS === 'web' && { touchAction: 'pan-y pan-x' })
+      ...(Platform.OS === 'web' && { touchAction: 'auto', overflow: 'auto' })
     }}>
       <ErrorBoundary>
         <SafeAreaProvider>

@@ -2,8 +2,11 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
+import { useTheme } from '../../context/ThemeContext';
 
 const CustomDrawer = ({ visible, onClose, user, navItems, onNavigate, onLogout }) => {
+    const { theme } = useTheme();
+
     return (
         <Modal
             animationType="fade"
@@ -16,8 +19,8 @@ const CustomDrawer = ({ visible, onClose, user, navItems, onNavigate, onLogout }
                 activeOpacity={1}
                 onPress={onClose}
             >
-                <View style={styles.drawerContainer}>
-                    <View style={styles.drawerHeader}>
+                <View style={[styles.drawerContainer, { backgroundColor: theme.colors.card, borderRightColor: theme.colors.cardBorder }]}>
+                    <View style={[styles.drawerHeader, { borderBottomColor: theme.colors.cardBorder }]}>
                         <View style={styles.drawerAvatarContainer}>
                             <Text style={styles.drawerAvatarText}>
                                 {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
@@ -57,17 +60,14 @@ const styles = StyleSheet.create({
     drawerContainer: {
         width: '70%',
         height: '100%',
-        backgroundColor: theme.colors.card,
         padding: 20,
         paddingTop: 50,
         borderRightWidth: 1,
-        borderRightColor: COLORS.slate800,
     },
     drawerHeader: {
         alignItems: 'center',
         marginBottom: 30,
         borderBottomWidth: 1,
-        borderBottomColor: COLORS.slate800,
         paddingBottom: 20,
     },
     drawerAvatarContainer: {

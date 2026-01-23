@@ -86,11 +86,9 @@ const styles = StyleSheet.create({
     expenseCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: theme.colors.card,
         padding: 16,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: COLORS.cardBorder,
         marginBottom: 12,
     },
     expenseIconCircle: {

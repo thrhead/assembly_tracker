@@ -2,13 +2,17 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { COLORS } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 const DashboardAction = ({ icon, label, onPress, isActive = true, disabled = false, comingSoon = false }) => {
     const { t } = useTranslation();
+    const { theme } = useTheme();
+
     return (
         <TouchableOpacity
             style={[
                 styles.container,
+                { backgroundColor: theme.colors.card },
                 isActive ? styles.active : styles.inactive,
                 disabled && styles.disabled
             ]}
@@ -17,7 +21,7 @@ const DashboardAction = ({ icon, label, onPress, isActive = true, disabled = fal
             activeOpacity={0.7}
         >
             {typeof icon === 'string' ? <Text style={styles.icon}>{icon}</Text> : icon}
-            <Text style={styles.label}>{label}</Text>
+            <Text style={[styles.label, { color: theme.colors.text }]}>{label}</Text>
             {comingSoon && <Text style={styles.comingSoon}>{t('jobs.comingSoon')}</Text>}
         </TouchableOpacity>
     );
@@ -26,7 +30,6 @@ const DashboardAction = ({ icon, label, onPress, isActive = true, disabled = fal
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.colors.card,
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',
