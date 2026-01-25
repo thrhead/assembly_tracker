@@ -156,6 +156,13 @@ export default function JobDetailScreen({ route, navigation }) {
                 const step = job.steps.find(s => s.id === stepId);
                 const substep = step?.subSteps.find(ss => ss.id === substepId);
 
+
+                console.log('[Mobile] Checking photos for substep:', {
+                    substepId,
+                    hasPhotosArray: !!substep?.photos,
+                    photoCount: substep?.photos?.length
+                });
+
                 // NOT: substep.photos API'den gelen veriye göre şekillenir.
                 // Eğer fotoğraf dizisi yoksa veya boşsa İZİN VERME.
                 if (!substep?.photos || substep.photos.length === 0) {
@@ -219,7 +226,7 @@ export default function JobDetailScreen({ route, navigation }) {
                     return;
                 }
                 result = await ImagePicker.launchCameraAsync({
-                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                    mediaTypes: ImagePicker.MediaType.Images,
                     allowsEditing: true,
                     aspect: [4, 3],
                     quality: 0.5,
@@ -231,7 +238,7 @@ export default function JobDetailScreen({ route, navigation }) {
                     return;
                 }
                 result = await ImagePicker.launchImageLibraryAsync({
-                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                    mediaTypes: ImagePicker.MediaType.Images,
                     allowsEditing: true,
                     aspect: [4, 3],
                     quality: 0.5,
