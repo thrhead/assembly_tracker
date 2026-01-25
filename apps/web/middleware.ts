@@ -31,11 +31,13 @@ export default auth((req) => {
   const userRole = req.auth?.user?.role;
 
   // Rate Limit for Auth routes
+  /*
   if (pathname.includes("/api/auth") || pathname === "/login") {
     if (!rateLimit(ip, 50, 60000)) { // 50 requests per minute
       return new NextResponse("Too Many Requests", { status: 429 });
     }
   }
+  */
 
   // 1. CORS Handling for API
   if (pathname.startsWith("/api")) {
