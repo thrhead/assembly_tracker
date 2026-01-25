@@ -180,18 +180,22 @@ export default function JobDetailScreen({ route, navigation }) {
             if (!currentStatus) {
                 const step = job.steps.find(s => s.id === stepId);
 
-                // Alt adımları varsa ana adımın fotoğrafına bakmaya gerek yok, alt adımların kendi kontrolü var.
-                // Ancak burada "Adım" seviyesinde bir fotoğraf isteniyorsa:
+
+                // Kullanıcı isteği üzerine ana adım başlığında fotoğraf yükleme kaldırıldı.
+                // Artık sadece alt iş emirlerinde (sub-steps) fotoğraf zorunlu.
+                // Dolayısıyla ana adımı tamamlarken doğrudan fotoğraf kontrolü yapmıyoruz,
+                // çünkü alt adımlar tamamlanmadan ana adım tamamlanamıyor ve alt adımlar kendi fotoğrafını zorunlu kılıyor.
+
+                /* 
+                // ESKİ KOD:
                 if (step && (!step.photos || step.photos.length === 0)) {
-                    // Eğer alt adımları varsa ve hepsi tamamlandıysa, belki ana adıma fotoğraf gerekmez? 
-                    // Ancak kullanıcı "yapıyı en az 1 fotoğraf eklemeden ilerletemesin" dedi.
-                    // Güvenli taraf: Her adımın (ana veya alt) kendi kanıtı olmalı.
                     Alert.alert(
-                        t('common.warning'),
+                        t('common.warning'), 
                         "Bu adımı tamamlamak için en az bir fotoğraf eklemelisiniz."
                     );
                     return;
                 }
+                */
             }
 
             const isCompleted = !currentStatus;
@@ -685,14 +689,6 @@ Assembly Tracker Ltd. Şti.
                                             <Text style={[styles.stepTitle, step.isCompleted && styles.completedText, { color: theme.colors.text }]}>
                                                 {step.title || step.name}
                                             </Text>
-                                            {!isLocked && !step.isCompleted && (
-                                                <TouchableOpacity
-                                                    onPress={() => pickImage(step.id, null, 'camera')}
-                                                    style={styles.actionButton}
-                                                >
-                                                    <MaterialIcons name="add-a-photo" size={20} color={theme.colors.primary} />
-                                                </TouchableOpacity>
-                                            )}
                                         </View>
                                         {step.startedAt && (
                                             <Text style={[styles.dateText, { color: theme.colors.subText }]}>
