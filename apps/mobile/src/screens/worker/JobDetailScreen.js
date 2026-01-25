@@ -286,7 +286,10 @@ export default function JobDetailScreen({ route, navigation }) {
 
             setSuccessMessage(t('alerts.photoUploadSuccess'));
             setSuccessModalVisible(true);
-            loadJobDetails();
+
+            console.log('[Mobile] Photo Upload Success. Refreshing job details...');
+            await loadJobDetails(); // Wait for reload
+            console.log('[Mobile] Job details refreshed.');
         } catch (error) {
             console.error('Error uploading photo:', error);
             Alert.alert(t('common.error'), t('alerts.photoUploadError'));
