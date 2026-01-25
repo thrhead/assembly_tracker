@@ -744,43 +744,35 @@ Assembly Tracker Ltd. Şti.
                                                         >
                                                             {substep.isCompleted && <MaterialIcons name="check" size={14} color="#FFFFFF" />}
                                                         </TouchableOpacity>
-                                                            <View style={styles.substepInfo}>
+                                                        <View style={styles.substepInfo}>
                                                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                                    <Text style={[styles.substepTitle, substep.isCompleted && styles.completedText, { color: theme.colors.text, flex: 1 }]}>
-                                                                        {substep.title}
-                                                                    </Text>
-                                                                    
-                                                                    {/* Alt adım için fotoğraf yükleme butonu */}
-                                                                    {!isSubstepLocked && !substep.isCompleted && (
-                                                                        <TouchableOpacity
-                                                                            onPress={() => pickImage(step.id, substep.id, 'camera')}
-                                                                            style={[styles.actionButton, { padding: 4, marginLeft: 8 }]}
-                                                                        >
-                                                                            <MaterialIcons name="add-a-photo" size={18} color={theme.colors.primary} />
-                                                                        </TouchableOpacity>
-                                                                    )}
-                                                                </View>
-                                                                <Text style={[styles.substepText, substep.isCompleted && styles.completedText, { color: theme.colors.text }]}>
-                                                                    {substep.title || substep.name}
+                                                                <Text style={[styles.substepTitle, substep.isCompleted && styles.completedText, { color: theme.colors.text, flex: 1 }]}>
+                                                                    {substep.title}
                                                                 </Text>
+
+                                                                {/* Alt adım için fotoğraf yükleme butonu */}
                                                                 {!isSubstepLocked && !substep.isCompleted && (
                                                                     <TouchableOpacity
                                                                         onPress={() => pickImage(step.id, substep.id, 'camera')}
+                                                                        style={[styles.actionButton, { padding: 4, marginLeft: 8 }]}
                                                                     >
                                                                         <MaterialIcons name="add-a-photo" size={18} color={theme.colors.primary} />
                                                                     </TouchableOpacity>
                                                                 )}
                                                             </View>
-                                                            {substep.photos && substep.photos.length > 0 && (
-                                                                <FlatList
-                                                                    data={substep.photos}
-                                                                    renderItem={renderPhotoItem}
-                                                                    keyExtractor={(p, i) => i.toString()}
-                                                                    horizontal
-                                                                    showsHorizontalScrollIndicator={false}
-                                                                />
-                                                            )}
+                                                            <Text style={[styles.substepText, substep.isCompleted && styles.completedText, { color: theme.colors.text }]}>
+                                                                {substep.title || substep.name}
+                                                            </Text>
                                                         </View>
+                                                        {substep.photos && substep.photos.length > 0 && (
+                                                            <FlatList
+                                                                data={substep.photos}
+                                                                renderItem={renderPhotoItem}
+                                                                keyExtractor={(p, i) => i.toString()}
+                                                                horizontal
+                                                                showsHorizontalScrollIndicator={false}
+                                                            />
+                                                        )}
                                                     </View>
                                                 </GlassCard>
                                             );
