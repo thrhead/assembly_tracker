@@ -50,7 +50,7 @@ const jobService = {
     },
 
     completeJob: async (jobId, signature, coords) => {
-        const response = await api.post(`/api/worker/jobs/${jobId}/complete`, { 
+        const response = await api.post(`/api/worker/jobs/${jobId}/complete`, {
             signature,
             signatureLatitude: coords?.latitude,
             signatureLongitude: coords?.longitude
@@ -122,7 +122,11 @@ const jobService = {
         }
         const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/photos`, formData, {
             headers: {
+                'Accept': 'application/json',
                 'Content-Type': 'multipart/form-data',
+            },
+            transformRequest: (data, headers) => {
+                return data; // React Native FormData should not be transformed
             },
         });
         return response.data;
@@ -134,7 +138,11 @@ const jobService = {
         }
         const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/audio`, formData, {
             headers: {
+                'Accept': 'application/json',
                 'Content-Type': 'multipart/form-data',
+            },
+            transformRequest: (data, headers) => {
+                return data;
             },
         });
         return response.data;
