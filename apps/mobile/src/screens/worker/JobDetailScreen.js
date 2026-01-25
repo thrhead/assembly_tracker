@@ -151,15 +151,17 @@ export default function JobDetailScreen({ route, navigation }) {
 
     const handleSubstepToggle = async (stepId, substepId, currentStatus) => {
         try {
-            // Eğer tamamlanmaya çalışılıyorsa (yani şu an tamamlanmamışsa) fotoğraf kontrolü yap
+            // Eğer tamamlanmaya çalışılıyorsa (yani şu an tamamlanmamışsa) ZORUNLU fotoğraf kontrolü yap
             if (!currentStatus) {
                 const step = job.steps.find(s => s.id === stepId);
                 const substep = step?.subSteps.find(ss => ss.id === substepId);
 
-                if (substep && (!substep.photos || substep.photos.length === 0)) {
+                // NOT: substep.photos API'den gelen veriye göre şekillenir.
+                // Eğer fotoğraf dizisi yoksa veya boşsa İZİN VERME.
+                if (!substep?.photos || substep.photos.length === 0) {
                     Alert.alert(
                         t('common.warning'),
-                        "Bu adımı tamamlamak için en az bir fotoğraf eklemelisiniz."
+                        "Bu alt iş emrini tamamlamak için ÖNCE fotoğraf yüklemelisiniz. Lütfen yandaki kamera ikonuna tıklayarak fotoğraf ekleyin."
                     );
                     return;
                 }
@@ -742,8 +744,22 @@ Assembly Tracker Ltd. Şti.
                                                         >
                                                             {substep.isCompleted && <MaterialIcons name="check" size={14} color="#FFFFFF" />}
                                                         </TouchableOpacity>
-                                                        <View style={styles.substepInfo}>
+                                                            <View style={styles.substepInfo}>
                                                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                    <Text style={[styles.substepTitle, substep.isCompleted && styles.completedText, { color: theme.colors.text, flex: 1 }]}>
+                                                                        {substep.title}
+                                                                    </Text>
+                                                                    
+                                                                    {/* Alt adım için fotoğraf yükleme butonu */}
+                                                                    {!isSubstepLocked && !substep.isCompleted && (
+                                                                        <TouchableOpacity
+                                                                            onPress={() => pickImage(step.id, substep.id, 'camera')}
+                                                                            style={[styles.actionButton, { padding: 4, marginLeft: 8 }]}
+                                                                        >
+                                                                            <MaterialIcons name="add-a-photo" size={18} color={theme.colors.primary} />
+                                                                        </TouchableOpacity>
+                                                                    )}
+                                                                </View>
                                                                 <Text style={[styles.substepText, substep.isCompleted && styles.completedText, { color: theme.colors.text }]}>
                                                                     {substep.title || substep.name}
                                                                 </Text>
@@ -899,7 +915,7 @@ Assembly Tracker Ltd. Şti.
                 onSave={handleSaveSignature}
                 onCancel={() => setSignatureModalVisible(false)}
             />
-        </SafeAreaView>
+        </SafeAreaView >
     );
 }
 
