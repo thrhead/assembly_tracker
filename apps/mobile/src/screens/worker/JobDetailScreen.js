@@ -226,6 +226,12 @@ export default function JobDetailScreen({ route, navigation }) {
 
     const pickImage = async (stepId, substepId, source) => {
         try {
+
+            // Safe access to MediaType enum (supports both v16+ and older versions)
+            const mediaTypes = ImagePicker.MediaType
+                ? ImagePicker.MediaType.Images
+                : (ImagePicker.MediaTypeOptions ? ImagePicker.MediaTypeOptions.Images : 'Images');
+
             let result;
             if (source === 'camera') {
                 const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -234,7 +240,7 @@ export default function JobDetailScreen({ route, navigation }) {
                     return;
                 }
                 result = await ImagePicker.launchCameraAsync({
-                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                    mediaTypes: mediaTypes,
                     allowsEditing: true,
                     aspect: [4, 3],
                     quality: 0.5,
@@ -246,7 +252,7 @@ export default function JobDetailScreen({ route, navigation }) {
                     return;
                 }
                 result = await ImagePicker.launchImageLibraryAsync({
-                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                    mediaTypes: mediaTypes,
                     allowsEditing: true,
                     aspect: [4, 3],
                     quality: 0.5,
