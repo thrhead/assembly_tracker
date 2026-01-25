@@ -25,7 +25,7 @@ export async function POST(
 
         let file: File | null = null;
         let subStepId: string | null = null;
-        let buffer: Buffer;
+        let buffer: Buffer = Buffer.alloc(0);
 
         if (contentType.includes('application/json')) {
             console.log('[Photo Upload] Processing JSON/Base64 request');
