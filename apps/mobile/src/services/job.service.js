@@ -123,7 +123,7 @@ const jobService = {
         const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/photos`, formData, {
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'multipart/form-data',
+                // 'Content-Type': 'multipart/form-data', // Let Axios set this with boundary
             },
             transformRequest: (data, headers) => {
                 return data; // React Native FormData should not be transformed

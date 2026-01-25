@@ -243,7 +243,7 @@ export default function JobDetailScreen({ route, navigation }) {
                     mediaTypes: mediaTypes,
                     allowsEditing: true,
                     aspect: [4, 3],
-                    quality: 0.5,
+                    quality: 0.3, // Reduced for Vercel 4.5MB limit
                 });
             } else {
                 const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -255,7 +255,7 @@ export default function JobDetailScreen({ route, navigation }) {
                     mediaTypes: mediaTypes,
                     allowsEditing: true,
                     aspect: [4, 3],
-                    quality: 0.5,
+                    quality: 0.3, // Reduced for Vercel 4.5MB limit
                 });
             }
 
