@@ -117,13 +117,42 @@ export default function JobDetailScreen({ route, navigation }) {
         loadJobDetails();
     }, [jobId]);
 
-    const openImageModal = (url) => {
-        setSelectedImage(url);
+    const openImageModal = (image) => {
+        setSelectedImage(image);
         setModalVisible(true);
     };
 
+    const handleDeletePhoto = (photo) => {
+        Alert.alert(
+            t('common.delete'),
+            t('common.confirmDelete'), // Make sure this key exists or use readable text
+            [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                    text: t('common.delete'),
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            setLoading(true);
+                            await jobService.deletePhoto(jobId, photo.stepId, photo.id);
+                            setModalVisible(false);
+                            setSuccessMessage(t('common.success'));
+                            setSuccessModalVisible(true);
+                            loadJobDetails();
+                        } catch (error) {
+                            console.error('Error deleting photo:', error);
+                            Alert.alert(t('common.error'), "Fotoğraf silinemedi.");
+                        } finally {
+                            setLoading(false);
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     const renderPhotoItem = React.useCallback(({ item }) => (
-        <TouchableOpacity onPress={() => openImageModal(getValidImageUrl(item.url || item))}>
+        <TouchableOpacity onPress={() => openImageModal(item)}>
             <Image source={{ uri: getValidImageUrl(item.url || item) }} style={styles.thumbnail} />
         </TouchableOpacity>
     ), [theme]);
@@ -900,6 +929,34 @@ Assembly Tracker Ltd. Şti.
                     </View>
                 )}
             </View>
+
+            <AppModal visible={modalVisible} transparent={true} onRequestClose={() => setModalVisible(false)}>
+                <View style={[styles.modalContainer, { backgroundColor: 'black' }]}>
+                    <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+                        <MaterialIcons name="close" size={30} color="#fff" />
+                    </TouchableOpacity>
+
+                    {selectedImage && (
+                        <Image
+                            source={{ uri: getValidImageUrl(selectedImage.url || selectedImage) }}
+                            style={{ width: '100%', height: '80%' }}
+                            resizeMode="contain"
+                        />
+                    )}
+
+                    <View style={styles.modalButtons}>
+                        {selectedImage?.id && (
+                            <TouchableOpacity
+                                style={[styles.modalButton, { backgroundColor: theme.colors.error, marginTop: 20, flexDirection: 'row', justifyContent: 'center' }]}
+                                onPress={() => handleDeletePhoto(selectedImage)}
+                            >
+                                <MaterialIcons name="delete" size={24} color="#fff" />
+                                <Text style={{ color: '#fff', marginLeft: 8, fontWeight: 'bold' }}>{t('common.delete')}</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
+            </AppModal>
 
             <AppModal visible={rejectionModalVisible} transparent={true} animationType="slide" onRequestClose={() => setRejectionModalVisible(false)}>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.modalContainer}>

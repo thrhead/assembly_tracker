@@ -147,6 +147,11 @@ const jobService = {
         return response.data;
     },
 
+    deletePhoto: async (jobId, stepId, photoId) => {
+        const response = await api.delete(`/api/worker/jobs/${jobId}/steps/${stepId}/photos/${photoId}`);
+        return response.data;
+    },
+
     uploadAudio: async (jobId, stepId, formData, subStepId = null) => {
         if (subStepId) {
             formData.append('subStepId', subStepId);
