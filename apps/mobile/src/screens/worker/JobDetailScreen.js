@@ -580,14 +580,23 @@ export default function JobDetailScreen({ route, navigation }) {
     const [completing, setCompleting] = useState(false);
 
     const handleCompleteJob = async () => {
-        const allStepsCompleted = job.steps.every(step => step.isCompleted);
+        console.log('[Mobile] handleCompleteJob triggered');
+        
+        if (!job || !job.steps) {
+            console.error('[Mobile] Job or steps missing:', job);
+            return;
+        }
+
+        const allStepsCompleted = job.steps.length === 0 || job.steps.every(step => step.isCompleted);
+        console.log('[Mobile] All steps completed:', allStepsCompleted);
 
         if (!allStepsCompleted) {
-            Alert.alert(t('common.warning'), t('alerts.photoRequired'));
+            Alert.alert(t('common.warning'), t('alerts.photoRequired') || "Lütfen tüm adımları tamamlayın.");
             return;
         }
 
         // Make signature optional
+        console.log('[Mobile] Showing optional signature alert');
         Alert.alert(
             t('common.confirm'),
             "İşi bitirmek üzeresiniz. Müşteri imzası almak ister misiniz?",
@@ -595,13 +604,17 @@ export default function JobDetailScreen({ route, navigation }) {
                 {
                     text: "İmzasız Bitir",
                     onPress: () => {
+                        console.log('[Mobile] Selected: Finish without signature');
                         setJob(prev => ({ ...prev, signature: null, signatureCoords: null }));
                         setConfirmationModalVisible(true);
                     }
                 },
                 {
                     text: "İmza Al",
-                    onPress: () => setSignatureModalVisible(true)
+                    onPress: () => {
+                        console.log('[Mobile] Selected: Take signature');
+                        setSignatureModalVisible(true);
+                    }
                 },
                 {
                     text: t('common.cancel'),
@@ -928,15 +941,21 @@ Assembly Tracker Ltd. Şti.
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity
-                            style={[styles.mainCompleteButton, (job.status === 'COMPLETED' || completing) && styles.disabledButton, { backgroundColor: (job.status === 'COMPLETED' || completing) ? theme.colors.border : theme.colors.primary }]}
+                            style={[
+                                styles.mainCompleteButton, 
+                                (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL' || completing) && styles.disabledButton, 
+                                { backgroundColor: (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL' || completing) ? theme.colors.border : theme.colors.primary }
+                            ]}
                             onPress={handleCompleteJob}
-                            disabled={job.status === 'COMPLETED' || completing}
+                            disabled={job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL' || completing}
                         >
                             {completing ? (
                                 <ActivityIndicator color={theme.colors.textInverse} />
                             ) : (
                                 <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>
-                                    {job.status === 'COMPLETED' ? t('common.success') : t('worker.completeJob')}
+                                    {job.status === 'COMPLETED' ? t('common.success') : 
+                                     job.status === 'PENDING_APPROVAL' ? "Onay Bekliyor" : 
+                                     t('worker.completeJob')}
                                 </Text>
                             )}
                         </TouchableOpacity>
