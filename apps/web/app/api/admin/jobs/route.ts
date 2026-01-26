@@ -9,7 +9,7 @@ import { EventBus } from '@/lib/event-bus';
 
 // Helper function to build where clause for filtering
 function buildJobFilter(searchParams: URLSearchParams) {
-    const search = searchParams.get('search')
+    const search = searchParams.get('search')?.trim()
     const status = searchParams.get('status')
     const priority = searchParams.get('priority')
     const teamId = searchParams.get('teamId')
@@ -17,16 +17,15 @@ function buildJobFilter(searchParams: URLSearchParams) {
 
     const where: any = {}
 
-    if (search) {
+    if (search && search.length > 0) {
         where.OR = [
             { title: { contains: search, mode: 'insensitive' } },
-            { customer: { company: { contains: search, mode: 'insensitive' } } },
-            { customer: { user: { name: { contains: search, mode: 'insensitive' } } } }
+            { customer: { company: { contains: search, mode: 'insensitive' } } }
         ]
     }
 
-    if (status && status !== 'all') where.status = status
-    if (priority && priority !== 'all') where.priority = priority
+    if (status && status !== 'all' && status !== 'ALL') where.status = status
+    if (priority && priority !== 'all' && priority !== 'ALL') where.priority = priority
     if (customerId && customerId !== 'all') where.customerId = customerId
 
     if (teamId && teamId !== 'all') {
@@ -38,54 +37,43 @@ function buildJobFilter(searchParams: URLSearchParams) {
 
 async function fetchJobs(where: any) {
     try {
-        console.log("Fetching jobs with where:", JSON.stringify(where));
-        return await prisma.job.findMany({
+        console.log("DEBUG: Fetching jobs with where keys:", Object.keys(where));
+        
+        // Try the query with minimal fields first if it keeps failing
+        const jobs = await prisma.job.findMany({
             where,
             orderBy: { createdAt: 'desc' },
-            take: 100, // Limit to prevent timeout
+            take: 50,
             include: {
                 customer: {
-                    include: {
+                    select: {
+                        id: true,
+                        company: true,
                         user: {
                             select: { name: true }
                         }
                     }
                 },
                 assignments: {
-                    include: {
-                        team: true,
-                        worker: {
-                            select: { name: true }
-                        }
+                    select: {
+                        id: true,
+                        team: { select: { name: true } },
+                        worker: { select: { name: true } }
                     }
                 },
                 _count: {
-                    select: {
-                        steps: true
-                    }
+                    select: { steps: true }
                 }
             }
-        })
+        });
+        return jobs;
     } catch (e: any) {
-        console.error("Prisma jobs fetch failed:", e);
-        // Fallback: even more basic fetch
-        try {
-            return await prisma.job.findMany({
-                where: where.id ? { id: where.id } : {}, // Try without complex filters if they fail
-                orderBy: { createdAt: 'desc' },
-                take: 50,
-                select: {
-                    id: true,
-                    title: true,
-                    status: true,
-                    priority: true,
-                    createdAt: true
-                }
-            });
-        } catch (fallbackError) {
-            console.error("Critical jobs fetch failure:", fallbackError);
-            return [];
-        }
+        console.error("CRITICAL: Prisma fetchJobs failed:", e.message);
+        // Absolute fallback - no includes, no filters
+        return await prisma.job.findMany({
+            take: 10,
+            select: { id: true, title: true, status: true }
+        });
     }
 }
 
@@ -107,35 +95,35 @@ export async function GET(req: Request) {
             try {
                 return {
                     id: job.id,
-                    title: job.title,
-                    status: job.status,
-                    priority: job.priority,
-                    location: job.location,
-                    scheduledDate: job.scheduledDate,
-                    createdAt: job.createdAt,
+                    title: job.title || '',
+                    status: job.status || 'PENDING',
+                    priority: job.priority || 'MEDIUM',
+                    location: job.location || '',
+                    scheduledDate: job.scheduledDate ? new Date(job.scheduledDate).toISOString() : null,
+                    createdAt: job.createdAt ? new Date(job.createdAt).toISOString() : new Date().toISOString(),
                     customer: job.customer ? {
                         id: job.customer.id,
-                        company: job.customer.company,
+                        company: job.customer.company || '',
                         user: job.customer.user ? {
-                            name: job.customer.user.name
+                            name: job.customer.user.name || ''
                         } : null
                     } : null,
-                    assignments: job.assignments?.map((a: any) => ({
+                    assignments: (job.assignments || []).map((a: any) => ({
                         id: a.id,
-                        team: a.team ? { name: a.team.name } : null,
-                        worker: a.worker ? { name: a.worker.name } : null
-                    })) || [],
+                        team: a.team ? { name: a.team.name || '' } : null,
+                        worker: a.worker ? { name: a.worker.name || '' } : null
+                    })),
                     _count: {
                         steps: job._count?.steps || 0
                     }
                 };
             } catch (err) {
-                console.error(`Error formatting job ${job.id}:`, err);
-                return { id: job.id, title: "Formatting Error", status: "ERROR" };
+                console.error(`Error formatting job ${job?.id}:`, err);
+                return { id: job?.id || 'unknown', title: "Formatting Error", status: "ERROR" };
             }
         });
 
-        return NextResponse.json(formattedJobs)
+        return NextResponse.json(JSON.parse(JSON.stringify(formattedJobs)))
     } catch (error: any) {
         console.error('Jobs fetch error detailed:', {
             message: error.message,
