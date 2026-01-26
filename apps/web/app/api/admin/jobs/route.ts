@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAdminOrManager } from '@/lib/auth-helper'
 import { z } from 'zod'
-import { jobCreationSchema } from '@/lib/validations'
+import { jobCreationSchema } from '@/lib/validations-edge'
 import { sendJobNotification } from '@/lib/notification-helper';
 import { EventBus } from '@/lib/event-bus';
 
