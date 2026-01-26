@@ -1,5 +1,6 @@
 import api from './api';
 import { CryptoService } from './crypto-service';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const MessageService = {
     /**
@@ -57,14 +58,14 @@ export const MessageService = {
 
             // If queued (offline), return the original content so UI can show it immediately
             if (response.data && response.data.offline) {
-                const offlineMsg = { 
-                    ...response.data, 
+                const offlineMsg = {
+                    ...response.data,
                     content: messageData.content,
                     id: `temp_${Date.now()}`, // Temporary ID for UI
                     sentAt: new Date().toISOString(),
                     status: 'queued'
                 };
-                
+
                 // Optimistically update cache
                 const cacheKey = `messages_${messageData.jobId}`;
                 const cached = await AsyncStorage.getItem(cacheKey);
@@ -72,15 +73,15 @@ export const MessageService = {
                     const current = JSON.parse(cached);
                     await AsyncStorage.setItem(cacheKey, JSON.stringify([...current, offlineMsg]));
                 }
-                
+
                 return offlineMsg;
             }
-            
+
             // Update cache for online success too
             const sentMsg = { ...response.data, content: messageData.content }; // already decrypted content in scope
             const cacheKey = `messages_${messageData.jobId}`;
             const cached = await AsyncStorage.getItem(cacheKey);
-             if (cached) {
+            if (cached) {
                 const current = JSON.parse(cached);
                 await AsyncStorage.setItem(cacheKey, JSON.stringify([...current, sentMsg]));
             }

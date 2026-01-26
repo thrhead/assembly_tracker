@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Modal, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Modal, Alert, ActivityIndicator, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 // import { COLORS } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
@@ -153,7 +153,7 @@ export default function TeamListScreen({ navigation }) {
                     <View style={[styles.modalContent, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
                         <Text style={[styles.modalTitle, { color: theme.colors.text }]}>Ekibi Sil</Text>
                         <Text style={[styles.deleteConfirmationText, { color: theme.colors.text }]}>
-                            "{teamToDelete?.name}" ekibini silmek istediğinizden emin misiniz?
+                            &quot;{teamToDelete?.name}&quot; ekibini silmek istediğinizden emin misiniz?
                         </Text>
                         <Text style={[styles.deleteWarningText, { color: theme.colors.subText }]}>
                             Bu işlem geri alınamaz.

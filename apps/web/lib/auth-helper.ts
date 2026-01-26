@@ -10,9 +10,10 @@ export async function verifyAuth(req: Request) {
         const token = authHeader.split(" ")[1]
         console.log("verifyAuth: Bearer token found, length:", token.length);
         try {
-            const secretKey = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "fallback_secret"
-            if (secretKey === "fallback_secret") {
-                console.warn("verifyAuth: Using fallback_secret! Check AUTH_SECRET env var.");
+            const secretKey = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+            if (!secretKey) {
+                console.error("verifyAuth: AUTH_SECRET or NEXTAUTH_SECRET is missing!");
+                return null;
             }
             const secret = new TextEncoder().encode(secretKey)
             const { payload } = await jwtVerify(token, secret)

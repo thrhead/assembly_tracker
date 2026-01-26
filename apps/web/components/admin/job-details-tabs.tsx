@@ -14,6 +14,7 @@ import { MapPin, Save } from 'lucide-react'
 import { PDFDownloadButton } from '@/components/pdf-download-button'
 import { ExcelDownloadButton } from '@/components/excel-download-button'
 import { ProformaDownloadButton } from '@/components/proforma-download-button'
+import { JobApprovalsView } from '@/components/admin/job-approvals-view'
 
 // Dynamic imports to avoid SSR issues
 const JobLocationMap = dynamic(
@@ -84,12 +85,13 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
             </div>
 
             <Tabs defaultValue="overview" className="w-full">
-                <TabsList className="grid w-full grid-cols-5">
+                <TabsList className="grid w-full grid-cols-6">
                     <TabsTrigger value="overview">Genel Bakış</TabsTrigger>
                     <TabsTrigger value="timeline">Zaman Çizelgesi</TabsTrigger>
                     <TabsTrigger value="analytics">Grafikler</TabsTrigger>
                     <TabsTrigger value="map">Harita</TabsTrigger>
                     <TabsTrigger value="details">Detaylar</TabsTrigger>
+                    <TabsTrigger value="approvals">Onaylar</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-6">
@@ -331,6 +333,10 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                             </Card>
                         )}
                     </div>
+                </TabsContent>
+
+                <TabsContent value="approvals" className="space-y-6">
+                    <JobApprovalsView job={job} />
                 </TabsContent>
             </Tabs >
         </div >

@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { hash } from 'bcryptjs'
+import { sanitizeHtml, stripHtml } from '@/lib/security'
 
 // Define schema here if not in validations, or import it.
 // Assuming we want a specific schema for customer creation which includes company info.
@@ -60,10 +61,10 @@ export async function createCustomerAction(data: z.infer<typeof customerCreateSc
             await tx.customer.create({
                 data: {
                     userId: user.id,
-                    company,
-                    address,
-                    taxId,
-                    notes
+                    company: stripHtml(company),
+                    address: address ? stripHtml(address) : null,
+                    taxId: taxId ? stripHtml(taxId) : null,
+                    notes: notes ? sanitizeHtml(notes) : null
                 }
             })
         })
@@ -136,10 +137,10 @@ export async function updateCustomerAction(data: z.infer<typeof customerUpdateSc
             await tx.customer.update({
                 where: { id },
                 data: {
-                    company,
-                    address,
-                    taxId,
-                    notes
+                    company: company ? stripHtml(company) : undefined,
+                    address: address ? stripHtml(address) : (address === null ? null : undefined),
+                    taxId: taxId ? stripHtml(taxId) : (taxId === null ? null : undefined),
+                    notes: notes ? sanitizeHtml(notes) : (notes === null ? null : undefined)
                 }
             })
         })

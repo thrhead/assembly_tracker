@@ -1,6 +1,9 @@
 import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import api from '../api';
+import { QueueService } from '../QueueService';
+
 jest.mock('@react-native-community/netinfo', () => ({
   fetch: jest.fn(),
   addEventListener: jest.fn(),
@@ -9,9 +12,6 @@ jest.mock('@react-native-community/netinfo', () => ({
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
-
-import api from '../api';
-import { QueueService } from '../QueueService';
 
 jest.mock('../QueueService');
 

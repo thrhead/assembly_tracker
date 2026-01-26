@@ -370,13 +370,32 @@ model IntegrationLog {
 }
 
 model Webhook {
-  id        String   @id @default(cuid())
-  url       String
-  event     String   // örn: "job.updated", "job.completed"
-  secret    String?  // Payloadi imzalamak için opsiyonel secret
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String       @id @default(cuid())
+  url         String
+  event       String // örn: "job.updated", "job.completed"
+  secret      String? // Payloadi imzalamak için opsiyonel secret
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deliveryLogs WebhookLog[]
 
   @@map("webhooks")
+}
+
+model WebhookLog {
+  id            String    @id @default(cuid())
+  webhookId     String
+  event         String
+  payload       String // JSON string
+  statusCode    Int?
+  response      String? // JSON string
+  error         String?
+  attemptCount  Int       @default(0)
+  status        String    @default("PENDING") // PENDING, SUCCESS, FAILED
+  nextAttemptAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  webhook       Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@map("webhook_logs")
 }

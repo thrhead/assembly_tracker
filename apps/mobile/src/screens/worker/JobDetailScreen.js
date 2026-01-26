@@ -242,10 +242,9 @@ export default function JobDetailScreen({ route, navigation }) {
     const pickImage = async (stepId, substepId, source) => {
         try {
 
-            // Safe access to MediaType enum (supports both v16+ and older versions)
-            const mediaTypes = ImagePicker.MediaType
-                ? ImagePicker.MediaType.Images
-                : (ImagePicker.MediaTypeOptions ? ImagePicker.MediaTypeOptions.Images : 'Images');
+            // Safe access to MediaTypeOptions (modern Expo ImagePicker usage)
+            const mediaTypes = ImagePicker.MediaTypeOptions ? ImagePicker.MediaTypeOptions.Images : 'Images';
+
 
             let result;
             if (source === 'camera') {
@@ -593,7 +592,7 @@ export default function JobDetailScreen({ route, navigation }) {
 
     const handleCompleteJob = async () => {
         console.log('[Mobile] handleCompleteJob triggered');
-        
+
         if (!job || !job.steps) {
             console.error('[Mobile] Job or steps missing:', job);
             return;
@@ -610,7 +609,7 @@ export default function JobDetailScreen({ route, navigation }) {
 
         if (!allStepsCompleted) {
             Alert.alert(
-                t('common.warning'), 
+                t('common.warning'),
                 "bu montajı tamamlayarak kapatmak için tüm alt iş emirlerini tamamlamanız gerekiyor"
             );
             return;
@@ -735,15 +734,15 @@ Assembly Tracker Ltd. Şti.
                     {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (
                         <>
                             {user?.role?.toUpperCase() === 'ADMIN' && (
-                                <TouchableOpacity 
-                                    onPress={handleDeleteJob} 
+                                <TouchableOpacity
+                                    onPress={handleDeleteJob}
                                     style={styles.chatButton}
                                 >
                                     <MaterialIcons name="delete" size={24} color={theme.colors.error} />
                                 </TouchableOpacity>
                             )}
-                            <TouchableOpacity 
-                                onPress={() => navigation.navigate('EditJob', { job })} 
+                            <TouchableOpacity
+                                onPress={() => navigation.navigate('EditJob', { job })}
                                 style={styles.chatButton}
                             >
                                 <MaterialIcons name="edit" size={24} color={theme.colors.primary} />
@@ -954,8 +953,8 @@ Assembly Tracker Ltd. Şti.
                     ) : (
                         <TouchableOpacity
                             style={[
-                                styles.mainCompleteButton, 
-                                (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL' || completing) && styles.disabledButton, 
+                                styles.mainCompleteButton,
+                                (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL' || completing) && styles.disabledButton,
                                 { backgroundColor: (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL' || completing) ? theme.colors.border : theme.colors.primary }
                             ]}
                             onPress={handleCompleteJob}
@@ -965,9 +964,9 @@ Assembly Tracker Ltd. Şti.
                                 <ActivityIndicator color={theme.colors.textInverse} />
                             ) : (
                                 <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>
-                                    {job.status === 'COMPLETED' ? t('common.success') : 
-                                     job.status === 'PENDING_APPROVAL' ? "Onay Bekliyor" : 
-                                     t('worker.completeJob')}
+                                    {job.status === 'COMPLETED' ? t('common.success') :
+                                        job.status === 'PENDING_APPROVAL' ? "Onay Bekliyor" :
+                                            t('worker.completeJob')}
                                 </Text>
                             )}
                         </TouchableOpacity>
@@ -1069,7 +1068,7 @@ Assembly Tracker Ltd. Şti.
                             Müşteri imzası almak ister misiniz?
                         </Text>
                         <View style={{ gap: 12 }}>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={[styles.modalButton, { backgroundColor: theme.colors.primary, paddingVertical: 16 }]}
                                 onPress={() => {
                                     setChoiceModalVisible(false);
@@ -1078,7 +1077,7 @@ Assembly Tracker Ltd. Şti.
                             >
                                 <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>İmza Al</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={[styles.modalButton, { backgroundColor: theme.colors.secondary, paddingVertical: 16 }]}
                                 onPress={() => {
                                     setChoiceModalVisible(false);
@@ -1088,7 +1087,7 @@ Assembly Tracker Ltd. Şti.
                             >
                                 <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>İmzasız Bitir</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 style={[styles.modalButton, styles.cancelButton, { paddingVertical: 16 }]}
                                 onPress={() => setChoiceModalVisible(false)}
                             >
@@ -1163,4 +1162,15 @@ const styles = StyleSheet.create({
     acceptanceStatusLabel: { fontWeight: '600' },
     acceptanceStatusValue: { fontWeight: 'bold', fontSize: 14 },
     dateText: { fontSize: 12, marginTop: 2 },
+    badge: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4,
+        marginLeft: 8,
+    },
+    badgeText: {
+        color: '#FFFFFF',
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
 });

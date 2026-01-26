@@ -7,6 +7,44 @@ import { getApiKeyFromRequest } from '@/lib/api-key-helper'
 // For server-side, we'll return the JSON data and the mobile app will handle it, 
 // OR we move proforma logic to a shared helper.
 
+/**
+ * @openapi
+ * /api/v1/jobs/{id}/proforma:
+ *   get:
+ *     summary: [TR] İş Proforması Getir [EN] Get Job Proforma
+ *     description: [TR] Belirli bir iş için proforma detaylarını JSON olarak getirir. [EN] Gets proforma details for a specific job as JSON.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: [TR] İş ID'si [EN] Job ID
+ *     responses:
+ *       200:
+ *         description: [TR] Başarılı [EN] Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id: { type: 'string' }
+ *                 title: { type: 'string' }
+ *                 customer:
+ *                   type: 'object'
+ *                   properties:
+ *                     company: { type: 'string' }
+ *                     address: { type: 'string' }
+ *                 items:
+ *                   type: 'array'
+ *                   items:
+ *                     type: 'object'
+ *                     properties:
+ *                       description: { type: 'string' }
+ *                       price: { type: 'integer' }
+ *       404:
+ *         description: [TR] İş bulunamadı [EN] Job not found
+ */
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const apiKeyData = await getApiKeyFromRequest(req)

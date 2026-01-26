@@ -2,8 +2,9 @@ import { auth } from "@/lib/auth"
 import { redirect } from "@/lib/navigation"
 import { Link } from "@/lib/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, BarChart3, TrendingUp } from 'lucide-react'
+import { ArrowLeft, BarChart3, TrendingUp, FileIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { getJobsForReport, getReportStats, getWeeklyCompletedSteps } from "@/lib/data/reports"
 import WeeklyStepsChart from "@/components/admin/reports/charts/WeeklyStepsChart"
 
@@ -51,6 +52,12 @@ export default async function AdminReportsPage() {
                             </p>
                         </div>
                     </div>
+                    <Link href="/admin/reports/exports">
+                        <Button className="flex items-center gap-2">
+                            <FileIcon className="w-4 h-4" />
+                            Dışa Aktarmalar
+                        </Button>
+                    </Link>
                 </div>
 
                 {/* Performance Chart Section */}

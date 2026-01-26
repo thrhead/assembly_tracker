@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { sendJobNotification } from '@/lib/notification-helper'
 import { EventBus } from '@/lib/event-bus'
+import { sanitizeHtml, stripHtml } from '@/lib/security'
 
 const jobSchema = z.object({
   title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
@@ -75,11 +76,11 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
       // 1. Create Job
       const newJob = await tx.job.create({
         data: {
-          title: validated.data.title,
-          description: validated.data.description,
+          title: stripHtml(validated.data.title),
+          description: validated.data.description ? sanitizeHtml(validated.data.description) : null,
           customerId: validated.data.customerId,
           priority: validated.data.priority,
-          location: validated.data.location,
+          location: validated.data.location ? stripHtml(validated.data.location) : null,
           scheduledDate: validated.data.scheduledDate ? new Date(validated.data.scheduledDate) : null,
           scheduledEndDate: validated.data.scheduledEndDate ? new Date(validated.data.scheduledEndDate) : null,
           creatorId: session.user.id,
@@ -104,8 +105,8 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
           const newStep = await tx.jobStep.create({
             data: {
               jobId: newJob.id,
-              title: step.title,
-              description: step.description,
+              title: stripHtml(step.title),
+              description: step.description ? sanitizeHtml(step.description) : null,
               order: i + 1
             }
           })
@@ -114,7 +115,7 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
             await tx.jobSubStep.createMany({
               data: step.subSteps.map((ss, index) => ({
                 stepId: newStep.id,
-                title: ss.title,
+                title: stripHtml(ss.title),
                 order: index + 1
               }))
             })
@@ -126,7 +127,7 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
     })
 
     await EventBus.emit('job.created', job);
-    
+
     revalidatePath('/admin/jobs')
     return { success: true }
   } catch (error) {
@@ -172,13 +173,13 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
       await tx.job.update({
         where: { id },
         data: {
-          title,
-          description,
+          title: title ? stripHtml(title) : undefined,
+          description: description ? sanitizeHtml(description) : (description === null ? null : undefined),
           customerId,
           priority,
           status: status || undefined,
           acceptanceStatus: acceptanceStatus || undefined,
-          location,
+          location: location ? stripHtml(location) : (location === null ? null : undefined),
           scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
           scheduledEndDate: scheduledEndDate ? new Date(scheduledEndDate) : null,
           startedAt: startedAt ? new Date(startedAt) : null,
@@ -231,8 +232,8 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
             await tx.jobStep.update({
               where: { id: stepId },
               data: {
-                title: stepData.title,
-                description: stepData.description,
+                title: stepData.title ? stripHtml(stepData.title) : undefined,
+                description: stepData.description ? sanitizeHtml(stepData.description) : (stepData.description === null ? null : undefined),
                 order: i + 1
               }
             })
@@ -241,8 +242,8 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
             const newStep = await tx.jobStep.create({
               data: {
                 jobId: id,
-                title: stepData.title,
-                description: stepData.description,
+                title: stripHtml(stepData.title),
+                description: stepData.description ? sanitizeHtml(stepData.description) : null,
                 order: i + 1
               }
             })
@@ -273,13 +274,13 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
               if (subData.id) {
                 await tx.jobSubStep.update({
                   where: { id: subData.id },
-                  data: { title: subData.title, order: j + 1 }
+                  data: { title: stripHtml(subData.title), order: j + 1 }
                 })
               } else {
                 await tx.jobSubStep.create({
                   data: {
                     stepId: stepId!, // Asserted because we created it or it existed
-                    title: subData.title,
+                    title: stripHtml(subData.title),
                     order: j + 1
                   }
                 })
@@ -297,6 +298,12 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
         // If steps is empty, incomingStepIds is empty, so all existingStepIds are deleted. Correct.
       }
     })
+
+    // Emit events after success
+    await EventBus.emit('job.updated', { id, status, acceptanceStatus });
+    if (status === 'COMPLETED') {
+      await EventBus.emit('job.completed', { id });
+    }
 
     revalidatePath('/admin/jobs')
     revalidatePath(`/admin/jobs/${id}`)

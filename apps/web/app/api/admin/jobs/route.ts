@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { jobCreationSchema } from '@/lib/validations-edge'
 import { sendJobNotification } from '@/lib/notification-helper';
 import { EventBus } from '@/lib/event-bus';
+import { sanitizeHtml, stripHtml } from '@/lib/security';
 
 // Helper function to build where clause for filtering
 function buildJobFilter(searchParams: URLSearchParams) {
@@ -139,25 +140,25 @@ export async function POST(req: Request) {
 
         const newJob = await prisma.job.create({
             data: {
-                title: data.title,
-                description: data.description,
+                title: stripHtml(data.title),
+                description: data.description ? sanitizeHtml(data.description) : null,
                 customerId: data.customerId,
                 creatorId: session.user.id,
                 priority: data.priority,
-                location: data.location,
+                location: data.location ? stripHtml(data.location) : null,
                 scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : null,
                 status: 'PENDING',
                 steps: data.steps
                     ? {
                         create: data.steps.map((step, idx) => ({
-                            title: step.title,
-                            description: step.description,
+                            title: stripHtml(step.title),
+                            description: step.description ? sanitizeHtml(step.description) : null,
                             order: idx + 1,
                             subSteps: step.subSteps
                                 ? {
                                     create: step.subSteps.map((sub, sIdx) => ({
-                                        title: sub.title,
-                                        description: sub.description,
+                                        title: stripHtml(sub.title),
+                                        description: sub.description ? sanitizeHtml(sub.description) : null,
                                         order: sIdx + 1
                                     }))
                                 }

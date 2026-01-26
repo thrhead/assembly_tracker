@@ -14,6 +14,17 @@ const eslintConfig = [
     ignores: [".next/*", "dist/*", "coverage/*", "check_db.js", "check_db.ts"]
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["warn", {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }],
+      "@typescript-eslint/no-require-imports": "off", // Allow for seed scripts
+      "@typescript-eslint/no-explicit-any": "warn",
+    }
+  }
 ];
 
 export default eslintConfig;

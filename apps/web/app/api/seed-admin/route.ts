@@ -18,7 +18,15 @@ export async function GET() {
     }
 
     // Yeni admin kullanıcısı oluştur
-    const adminPassword = await hash('admin123', 10)
+    const rawPassword = process.env.ADMIN_PASSWORD;
+    if (!rawPassword) {
+      return NextResponse.json({
+        success: false,
+        error: 'ADMIN_PASSWORD environment variable is not set!'
+      }, { status: 500 });
+    }
+
+    const adminPassword = await hash(rawPassword, 10)
     const admin = await prisma.user.create({
       data: {
         email: 'admin@montaj.com',
@@ -36,7 +44,7 @@ export async function GET() {
       user: { email: admin.email, name: admin.name, role: admin.role },
       credentials: {
         email: 'admin@montaj.com',
-        password: 'admin123'
+        password: '*** REMOVED ***'
       }
     })
   } catch (error) {

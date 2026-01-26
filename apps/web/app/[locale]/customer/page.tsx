@@ -10,14 +10,15 @@ import {
   BriefcaseIcon,
   ClockIcon,
   CheckCircle2Icon,
-  AlertCircleIcon
+  AlertCircleIcon,
+  DownloadIcon
 } from 'lucide-react'
 import { Link } from '@/lib/navigation'
- // Keep next/link for internal links inside server components for now or switch to @/lib/navigation Link
+// Keep next/link for internal links inside server components for now or switch to @/lib/navigation Link
 import { getTranslations } from 'next-intl/server'
 
 async function getCustomerDashboardData(userId: string) {
-// ...
+  // ...
   const response = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/customer/jobs`, {
     headers: {
       cookie: `next-auth.session-token=${userId}` // This won't work, we need to use server-side fetch
@@ -27,7 +28,7 @@ async function getCustomerDashboardData(userId: string) {
 
   // Since we can't easily pass auth in server component, let's use prisma directly
   const { prisma } = await import('@/lib/db')
-  
+
   const customer = await prisma.customer.findUnique({
     where: { userId }
   })
@@ -61,7 +62,7 @@ async function getCustomerDashboardData(userId: string) {
     pendingJobs: allJobs.filter(j => j.status === 'PENDING').length,
     inProgressJobs: allJobs.filter(j => j.status === 'IN_PROGRESS').length,
     completedJobs: allJobs.filter(j => j.status === 'COMPLETED').length,
-    completionRate: allJobs.length > 0 
+    completionRate: allJobs.length > 0
       ? Math.round((allJobs.filter(j => j.status === 'COMPLETED').length / allJobs.length) * 100)
       : 0
   }
@@ -176,6 +177,20 @@ export default async function CustomerDashboard() {
                         <span>{job.progress}%</span>
                       </div>
                       <Progress value={job.progress} className="h-1.5" />
+                    </div>
+                    <div className="mt-3 flex justify-end">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-[10px] relative z-10"
+                        asChild
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <a href={`/api/v1/jobs/${job.id}/report`} download>
+                          <DownloadIcon className="w-3 h-3 mr-1" />
+                          PDF İndir
+                        </a>
+                      </Button>
                     </div>
                   </Link>
                 ))}

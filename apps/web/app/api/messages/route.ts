@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { auth } from '@/lib/auth' // Assuming we have auth helper, usually next-auth
 import { emitToJob, emitToUser } from '@/lib/socket'
+import { sanitizeHtml } from '@/lib/security'
 
 // Force dynamic since we use query params and auth
 export const dynamic = 'force-dynamic'
@@ -52,12 +53,16 @@ export async function POST(request: Request) {
     try {
         // const session = await auth()
         // if (!session?.user) return new NextResponse('Unauthorized', { status: 401 })
-        
+
         // Mock user ID for now if auth is missing
-        const senderId = "user_id_placeholder" 
+        const senderId = "user_id_placeholder"
 
         const body = await request.json()
-        const { content, jobId, conversationId, receiverId, isEncrypted } = body
+        let { content, jobId, conversationId, receiverId, isEncrypted } = body
+
+        if (content && !isEncrypted) {
+            content = sanitizeHtml(content)
+        }
 
         if (!content || (!jobId && !receiverId && !conversationId)) {
             return new NextResponse('Missing required fields', { status: 400 })
@@ -71,7 +76,7 @@ export async function POST(request: Request) {
             const existingConv = await prisma.conversation.findFirst({
                 where: { jobId }
             })
-            
+
             if (existingConv) {
                 targetConversationId = existingConv.id
             } else {

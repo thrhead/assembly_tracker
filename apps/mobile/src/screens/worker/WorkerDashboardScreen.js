@@ -82,7 +82,7 @@ export default function WorkerDashboardScreen({ navigation }) {
             console.log('[Dashboard] Fetching jobs...');
             const jobs = await jobService.getMyJobs();
             console.log('[Dashboard] Jobs received:', jobs ? jobs.length : 0);
-            
+
             console.log('[Dashboard] Fetching costs...');
             const costs = await costService.getMyCosts();
             console.log('[Dashboard] Costs received:', costs ? costs.length : 0);
@@ -488,10 +488,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 8,
-    },
-    trendText: {
-        fontSize: 12,
-        fontWeight: 'bold',
     },
     progressLabel: {
         fontSize: 12,

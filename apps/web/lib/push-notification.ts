@@ -1,12 +1,12 @@
 import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk'
 
-let expo = new Expo()
+const expo = new Expo()
 
 export interface PushNotificationPayload {
     to: string
     title: string
     body: string
-    data?: Record<string, any>
+    data?: Record<string, unknown>
     sound?: 'default' | null
 }
 

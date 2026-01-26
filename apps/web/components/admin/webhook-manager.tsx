@@ -11,6 +11,7 @@ import { ActivityIcon, GlobeIcon, PlusIcon, Trash2Icon, ZapIcon } from 'lucide-r
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
+import { WebhookLogsDialog } from './webhook-logs-dialog'
 
 interface Webhook {
     id: string
@@ -31,6 +32,8 @@ export function WebhookManager() {
     const [loading, setLoading] = useState(true)
     const [formData, setFormData] = useState({ url: '', event: 'job.updated', secret: '' })
     const [submitting, setSubmitting] = useState(false)
+    const [logsOpen, setLogsOpen] = useState(false)
+    const [selectedWebhookId, setSelectedWebhookId] = useState<string | undefined>()
 
     useEffect(() => {
         fetchWebhooks()
@@ -46,6 +49,11 @@ export function WebhookManager() {
         } finally {
             setLoading(false)
         }
+    }
+
+    const openLogs = (id?: string) => {
+        setSelectedWebhookId(id)
+        setLogsOpen(true)
     }
 
     const createWebhook = async (e: React.FormEvent) => {
@@ -99,14 +107,20 @@ export function WebhookManager() {
     return (
         <div className="space-y-6">
             <Card className="p-6 border-border bg-card/50 backdrop-blur-sm">
-                <div className="flex items-center gap-4 mb-6">
-                    <div className="p-2 bg-emerald-100 rounded-lg">
-                        <ZapIcon className="w-5 h-5 text-emerald-600" />
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="p-2 bg-emerald-100 rounded-lg">
+                            <ZapIcon className="w-5 h-5 text-emerald-600" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold">Webhooks</h3>
+                            <p className="text-xs text-muted-foreground">Olay bazlı anlık veri akışı (HTTP POST) tanımlayın.</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 className="text-lg font-bold">Webhooks</h3>
-                        <p className="text-xs text-muted-foreground">Olay bazlı anlık veri akışı (HTTP POST) tanımlayın.</p>
-                    </div>
+                    <Button variant="outline" size="sm" onClick={() => openLogs()}>
+                        <ActivityIcon className="w-4 h-4 mr-2" />
+                        Tüm Günlükleri Gör
+                    </Button>
                 </div>
 
                 <form onSubmit={createWebhook} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -169,6 +183,14 @@ export function WebhookManager() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
+                                    className="text-[10px] h-8 text-primary"
+                                    onClick={() => openLogs(webhook.id)}
+                                >
+                                    Günlükler
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
                                     className={`text-[10px] h-8 ${webhook.isActive ? 'text-amber-600' : 'text-emerald-600'}`}
                                     onClick={() => toggleStatus(webhook.id, webhook.isActive)}
                                 >
@@ -191,6 +213,12 @@ export function WebhookManager() {
                     </div>
                 )}
             </div>
+
+            <WebhookLogsDialog
+                open={logsOpen}
+                onOpenChange={setLogsOpen}
+                webhookId={selectedWebhookId}
+            />
         </div>
     )
 }

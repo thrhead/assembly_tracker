@@ -7,7 +7,8 @@ import {
     TouchableOpacity,
     Alert,
     Platform,
-    Modal
+    Modal,
+    KeyboardAvoidingView
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from '../../components/CustomDateTimePicker';
@@ -94,7 +95,7 @@ export default function CreateJobScreen({ navigation }) {
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
                 style={{ flex: 1 }}
             >
-                <ScrollView 
+                <ScrollView
                     style={{ flex: 1 }}
                     contentContainerStyle={[styles.content, { flexGrow: 1 }]}
                 >

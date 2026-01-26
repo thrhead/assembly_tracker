@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Platform } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useApprovals } from '../../hooks/useApprovals';
 import ApprovalCard from '../../components/admin/ApprovalCard';
@@ -67,7 +67,7 @@ export default function ApprovalsScreen({ navigation }) {
                 style={{ flex: 1 }}
                 data={filteredApprovals}
                 renderItem={renderItem}
-                keyExtractor={item => `${item.type}-${item.id}`}
+                keyExtractor={item => `${item.type} -${item.id} `}
                 contentContainerStyle={[styles.listContent, { flexGrow: 1 }]}
                 refreshControl={
                     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.colors.primary} />

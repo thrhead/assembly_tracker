@@ -1,0 +1,7 @@
+{
+    "id": "security-xss-hardening",
+    "title": "Security Hardening: XSS & Input Sanitization",
+    "status": "completed",
+    "priority": "high",
+    "createdAt": "2026-01-26T19:55:00.000Z"
+}

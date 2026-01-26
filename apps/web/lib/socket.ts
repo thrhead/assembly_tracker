@@ -41,7 +41,7 @@ export const initSocketServer = (httpServer: HTTPServer): SocketIOServer => {
 
         // Handle sending messages (Real-time distribution)
         // Note: Persistence should ideally happen via API call, but we can handle it here too
-        socket.on('send:message', (message: any) => {
+        socket.on('send:message', (message: Record<string, any>) => {
             // Broadcast to the specific job room or user
             if (message.jobId) {
                 socket.to(`job:${message.jobId}`).emit('receive:message', message)

@@ -58,7 +58,7 @@ async function main() {
         headers: { 'Authorization': `Bearer ${adminToken}` }
     });
     const customers = await customersRes.json();
-    let customerId = customers[0]?.id;
+    const customerId = customers[0]?.id;
 
     if (!customerId) {
         console.log('Creating customer...');

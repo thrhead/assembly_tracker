@@ -3,6 +3,37 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { getApiKeyFromRequest } from '@/lib/api-key-helper'
 
+/**
+ * @openapi
+ * /api/v1/jobs:
+ *   get:
+ *     summary: [TR] Tüm İşleri Listele [EN] List All Jobs
+ *     description: [TR] Sistemdeki tüm işleri filtreleyerek listeler. [EN] Lists all jobs in the system with optional filtering.
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *         description: [TR] Filtrelemek için iş durumu [EN] Job status to filter by
+ *       - in: query
+ *         name: customerId
+ *         schema:
+ *           type: string
+ *         description: [TR] Belirli bir müşteri için işler [EN] Jobs for a specific customer
+ *     responses:
+ *       200:
+ *         description: [TR] Başarılı [EN] Success
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 count: { type: 'integer' }
+ *                 jobs:
+ *                   type: 'array'
+ *                   items:
+ *                     $ref: '#/components/schemas/Job'
+ */
 export async function GET(req: Request) {
     try {
         const apiKeyData = await getApiKeyFromRequest(req)
