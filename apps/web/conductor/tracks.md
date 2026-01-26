@@ -9,4 +9,5 @@
 ## Archived Tracks (2026)
 | ID | Title | Date |
 |----|-------|------|
+| [admin-job-editing](./archive/admin_job_editing_20260126/metadata.json) | Admin İş Düzenleme Yetkisi | 2026-01-26 |
 | [admin-dashboard-modernization](./archive/admin_dashboard_modernization_20260126/metadata.json) | Admin Dashboard Modernizasyonu ve Hatalar | 2026-01-26 |
