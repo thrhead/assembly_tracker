@@ -48,3 +48,38 @@ export async function PATCH(
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
+
+export async function DELETE(
+    req: Request,
+    props: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await verifyAuth(req)
+        if (!session || session.user.role !== 'ADMIN') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const params = await props.params
+        
+        // Check if job exists
+        const job = await prisma.job.findUnique({
+            where: { id: params.id }
+        })
+
+        if (!job) {
+            return NextResponse.json({ error: 'Job not found' }, { status: 404 })
+        }
+
+        await prisma.job.delete({
+            where: { id: params.id }
+        })
+
+        // Trigger side effects
+        await EventBus.emit('job.deleted', { id: params.id });
+
+        return NextResponse.json({ success: true, message: 'Job deleted successfully' })
+    } catch (error) {
+        console.error('Delete job error:', error)
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    }
+}

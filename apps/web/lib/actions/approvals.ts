@@ -47,17 +47,23 @@ export async function processApprovalAction(data: z.infer<typeof approvalActionS
                 }
             })
 
-            // Update related entity based on approval type
-            // Assuming simplified logic: if approval is for a job completion or similar
-            // In a real scenario, approval.type would dictate the action
-            // For now, let's assume if approved, we might update job status or similar if needed.
-            // Based on previous code, it seems approvals are generic.
-            // If the approval is linked to a JobStep or Cost, we should update those too.
-            // But the current schema doesn't strictly enforce a link to Step/Cost in Approval model (it has jobId).
-            // Let's stick to updating the Approval record as the primary action.
-
-            // If status is REJECTED, maybe update Job status to pending or similar if it was waiting?
-            // Leaving specific business logic minimal to match existing behavior which just updated the approval.
+            // If it's a job completion approval, update the job status
+            if (approval.type === 'JOB_COMPLETION') {
+                if (status === 'APPROVED') {
+                    await tx.job.update({
+                        where: { id: approval.jobId },
+                        data: { 
+                            status: 'COMPLETED',
+                            completedDate: new Date() // Final confirmation date
+                        }
+                    })
+                } else if (status === 'REJECTED') {
+                    await tx.job.update({
+                        where: { id: approval.jobId },
+                        data: { status: 'IN_PROGRESS' } // Send back to worker
+                    })
+                }
+            }
         })
 
         revalidatePath('/admin/approvals')

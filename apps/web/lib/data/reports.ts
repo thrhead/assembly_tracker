@@ -313,6 +313,70 @@ export async function getTeamPerformance(startDate: Date, endDate: Date, jobStat
     }));
 }
 
+export async function getWeeklyCompletedSteps() {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    
+    const last7Days = new Date(today);
+    last7Days.setDate(today.getDate() - 7);
+    last7Days.setHours(0, 0, 0, 0);
+
+    const prev7Days = new Date(last7Days);
+    prev7Days.setDate(last7Days.getDate() - 7);
+    prev7Days.setHours(0, 0, 0, 0);
+
+    // Fetch steps completed in the last 14 days
+    const steps = await prisma.jobStep.findMany({
+        where: {
+            isCompleted: true,
+            completedAt: { gte: prev7Days, lte: today }
+        },
+        include: {
+            job: {
+                select: { title: true }
+            }
+        },
+        orderBy: { completedAt: 'asc' }
+    });
+
+    const categories = ['Hazırlık', 'Montaj', 'Test', 'Paketleme', 'Diğer'];
+    
+    const formatData = (startDate: Date, endDate: Date) => {
+        const days: Record<string, any> = {};
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(startDate);
+            d.setDate(startDate.getDate() + i + 1);
+            const dateStr = d.toISOString().split('T')[0];
+            days[dateStr] = { date: dateStr, total: 0 };
+            categories.forEach(cat => days[dateStr][cat] = 0);
+            days[dateStr].jobs = [];
+        }
+
+        steps.filter(s => s.completedAt! >= startDate && s.completedAt! <= endDate).forEach(step => {
+            const dateStr = step.completedAt!.toISOString().split('T')[0];
+            if (days[dateStr]) {
+                const cat = categories.find(c => step.title.toLowerCase().includes(c.toLowerCase())) || 'Diğer';
+                days[dateStr][cat]++;
+                days[dateStr].total++;
+                if (!days[dateStr].jobs.find((j: any) => j.id === step.jobId)) {
+                    days[dateStr].jobs.push({ id: step.jobId, title: step.job.title });
+                }
+            }
+        });
+
+        return Object.values(days);
+    };
+
+    const currentWeek = formatData(last7Days, today);
+    const previousWeek = formatData(prev7Days, last7Days);
+
+    return {
+        currentWeek,
+        previousWeek,
+        categories
+    };
+}
+
 export async function getCostList(startDate: Date, endDate: Date, status?: string, jobStatus?: string, jobId?: string, category?: string) {
     const where: any = {
         date: { gte: startDate, lte: endDate }

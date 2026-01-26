@@ -131,14 +131,35 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const toggleSubStep = async (stepId: string, subStepId: string) => {
+    // Fotoğraf kontrolü (tamamlanmaya çalışılıyorsa)
+    const step = job?.steps.find(s => s.id === stepId)
+    const subStep = step?.subSteps.find(ss => ss.id === subStepId)
+
+    if (subStep && !subStep.isCompleted) {
+      // Substep için yüklenen fotoğrafları kontrol et
+      // Not: step.photos içinde subStepId bazlı filtreleme yapılması gerekebilir
+      // Ancak mevcut JobDetail interface'inde photos sadece step düzeyinde görünüyor.
+      // API tarafı subStepId'yi kontrol ediyor, biz de burada en azından genel bir uyarı verebiliriz 
+      // veya API'den gelen hatayı yakalayabiliriz.
+    }
+
     try {
       const res = await apiClient.post(`/api/worker/jobs/${params.id}/steps/${stepId}/substeps/${subStepId}/toggle`, {})
 
-      if (res.ok) {
-        fetchJob()
+      if (!res.ok) {
+        const data = await res.json()
+        if (data.error && data.error.includes('fotoğraf')) {
+          toast.error("bu iş emrini kapatabilmeniz için öncelikle en az 1 adet fotoğraf yüklemeniz gerekmektedir")
+        } else {
+          toast.error(data.error || 'İşlem başarısız')
+        }
+        return
       }
+
+      fetchJob()
     } catch (error) {
       console.error(error)
+      toast.error('Bir hata oluştu')
     }
   }
 
@@ -187,6 +208,16 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
   }
 
   const completeJob = async () => {
+    // Tüm alt iş emirlerinin tamamlanıp tamamlanmadığını kontrol et
+    const allSubStepsCompleted = job?.steps.every(step => 
+      step.subSteps.length === 0 || step.subSteps.every(ss => ss.isCompleted)
+    )
+
+    if (!allSubStepsCompleted) {
+      toast.error("bu montajı tamamlayarak kapatmak için tüm alt iş emirlerini tamamlamanız gerekiyor")
+      return
+    }
+
     if (!confirm('İşi tamamlamak istediğinizden emin misiniz? Bu işlem onay için gönderilecektir.')) {
       return
     }
@@ -199,7 +230,11 @@ export default function JobDetailPage(props: { params: Promise<{ id: string }> }
         router.push('/worker')
       } else {
         const data = await res.json()
-        toast.error(data.error || 'İş tamamlanamadı')
+        if (data.error && data.error.includes('alt iş emirlerini')) {
+          toast.error("bu montajı tamamlayarak kapatmak için tüm alt iş emirlerini tamamlamanız gerekiyor")
+        } else {
+          toast.error(data.error || 'İş tamamlanamadı')
+        }
       }
     } catch (error) {
       console.error(error)

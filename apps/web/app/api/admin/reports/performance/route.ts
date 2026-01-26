@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth-helper';
-import { getJobStatusDistribution, getTeamPerformance, getReportStats } from '@/lib/data/reports';
+import { getJobStatusDistribution, getTeamPerformance, getReportStats, getWeeklyCompletedSteps } from '@/lib/data/reports';
 
 export async function GET(request: Request) {
     try {
@@ -20,16 +20,18 @@ export async function GET(request: Request) {
         from.setHours(0, 0, 0, 0);
         to.setHours(23, 59, 59, 999);
 
-        const [jobDistribution, teamPerformance, stats] = await Promise.all([
+        const [jobDistribution, teamPerformance, stats, weeklySteps] = await Promise.all([
             getJobStatusDistribution(from, to, 'all', 'all'),
             getTeamPerformance(from, to, 'all', 'all'),
-            getReportStats(from, to)
+            getReportStats(from, to),
+            getWeeklyCompletedSteps()
         ]);
 
         return NextResponse.json({
             jobDistribution,
             teamPerformance,
-            stats
+            stats,
+            weeklySteps
         });
     } catch (error) {
         console.error('Mobile Performance Report Error:', error);

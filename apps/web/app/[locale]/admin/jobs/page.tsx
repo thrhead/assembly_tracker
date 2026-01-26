@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db"
 import { JobDialog } from "@/components/admin/job-dialog"
 import { BulkUploadDialog } from "@/components/admin/bulk-upload-dialog"
 import { AdvancedFilter } from "@/components/admin/advanced-filter"
+import { DeleteJobButton } from "@/components/admin/delete-job-button"
 import {
   Table,
   TableBody,
@@ -276,9 +277,12 @@ export default async function JobsPage(props: {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Link href={`/admin/jobs/${job.id}`} className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors">
-                      <EditIcon className="h-4 w-4" />
-                    </Link>
+                    <div className="flex items-center gap-1">
+                      <Link href={`/admin/jobs/${job.id}`} className="inline-flex items-center justify-center p-2 text-gray-400 hover:text-blue-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        <EditIcon className="h-4 w-4" />
+                      </Link>
+                      <DeleteJobButton jobId={job.id} jobTitle={job.title} />
+                    </div>
                   </TableCell>
                 </TableRow>
               )

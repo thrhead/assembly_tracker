@@ -8,6 +8,7 @@ import { AdminJobDetailsTabs } from "@/components/admin/job-details-tabs"
 import { ApprovalActionCard } from "@/components/admin/approval-action-card"
 import { getJob } from "@/lib/data/jobs"
 import { JobDialog } from "@/components/admin/job-dialog"
+import { DeleteJobButton } from "@/components/admin/delete-job-button"
 import { EditIcon } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { ChatPanel } from "@/components/chat/ChatPanel"
@@ -89,18 +90,27 @@ export default async function AdminJobDetailsPage(props: {
                         <p className="text-gray-500">İşin ilerleme durumunu ve detaylarını görüntüleyin.</p>
                     </div>
                 </div>
-                <JobDialog
-                    job={JSON.parse(JSON.stringify(job))}
-                    customers={dialogCustomers}
-                    teams={teams}
-                    templates={dialogTemplates}
-                    trigger={
-                        <Button variant="outline" className="gap-2">
-                            <EditIcon className="h-4 w-4" />
-                            Düzenle
-                        </Button>
-                    }
-                />
+                <div className="flex items-center gap-2">
+                    <JobDialog
+                        job={JSON.parse(JSON.stringify(job))}
+                        customers={dialogCustomers}
+                        teams={teams}
+                        templates={dialogTemplates}
+                        trigger={
+                            <Button variant="outline" className="gap-2">
+                                <EditIcon className="h-4 w-4" />
+                                Düzenle
+                            </Button>
+                        }
+                    />
+                    <DeleteJobButton 
+                        jobId={job.id} 
+                        jobTitle={job.title} 
+                        variant="destructive" 
+                        size="default"
+                        showText={true}
+                    />
+                </div>
             </div>
 
             {pendingApproval && (

@@ -3,22 +3,28 @@ import { Alert } from 'react-native';
 import jobService from '../services/job.service';
 import { CHECKLIST_TEMPLATES } from '../constants/templates';
 
-export const useJobForm = () => {
+export const useJobForm = (job = null) => {
     const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        customerId: '',
-        teamId: '',
-        priority: 'MEDIUM',
-        location: '',
-        scheduledDate: new Date(),
-        scheduledEndDate: new Date(new Date().getTime() + 2 * 60 * 60 * 1000), // +2 hours
+        title: job?.title || '',
+        description: job?.description || '',
+        customerId: job?.customerId || '',
+        teamId: job?.assignments?.[0]?.teamId || '',
+        priority: job?.priority || 'MEDIUM',
+        status: job?.status || 'PENDING',
+        acceptanceStatus: job?.acceptanceStatus || 'PENDING',
+        location: job?.location || '',
+        scheduledDate: job?.scheduledDate ? new Date(job.scheduledDate) : new Date(),
+        scheduledEndDate: job?.scheduledEndDate ? new Date(job.scheduledEndDate) : new Date(new Date().getTime() + 2 * 60 * 60 * 1000),
+        startedAt: job?.startedAt ? new Date(job.startedAt) : null,
+        completedDate: job?.completedDate ? new Date(job.completedDate) : null,
     });
 
-    const [steps, setSteps] = useState([]);
+    const [steps, setSteps] = useState(job?.steps ? JSON.parse(JSON.stringify(job.steps)) : []);
     const [loading, setLoading] = useState(false);
 
-    // Checklist Logic
+    // ... existing logic (addStep, removeStep, etc.) ...
+    
+    // Copy existing methods from current file
     const addStep = () => {
         setSteps([...steps, { title: '', description: '', subSteps: [] }]);
     };
@@ -81,27 +87,39 @@ export const useJobForm = () => {
         try {
             const validSteps = steps.filter(step => step.title.trim() !== '')
                 .map(step => ({
-                    ...step,
+                    id: step.id, // Preserve ID for updates
+                    title: step.title,
+                    description: step.description,
                     subSteps: step.subSteps?.filter(sub => sub.title.trim() !== '')
+                        .map(sub => ({ id: sub.id, title: sub.title })) // Preserve ID for substeps
                 }));
 
             const jobData = {
                 ...formData,
-                teamId: formData.teamId || undefined,
+                teamId: formData.teamId || 'none',
                 location: formData.location || undefined,
                 description: formData.description || undefined,
                 scheduledDate: formData.scheduledDate.toISOString(),
                 scheduledEndDate: formData.scheduledEndDate.toISOString(),
+                startedAt: formData.startedAt?.toISOString() || null,
+                completedDate: formData.completedDate?.toISOString() || null,
                 steps: validSteps.length > 0 ? validSteps : null
             };
 
-            await jobService.create(jobData);
-            Alert.alert('Başarılı', 'İş başarıyla oluşturuldu', [
-                { text: 'Tamam', onPress: onSuccess }
-            ]);
+            if (job) {
+                await jobService.update(job.id, jobData);
+                Alert.alert('Başarılı', 'İş başarıyla güncellendi', [
+                    { text: 'Tamam', onPress: onSuccess }
+                ]);
+            } else {
+                await jobService.create(jobData);
+                Alert.alert('Başarılı', 'İş başarıyla oluşturuldu', [
+                    { text: 'Tamam', onPress: onSuccess }
+                ]);
+            }
         } catch (error) {
-            console.error('Create job error:', error);
-            const errorMessage = error.response?.data?.error || error.message || 'İş oluşturulurken bir hata oluştu';
+            console.error('Submit job error:', error);
+            const errorMessage = error.response?.data?.error || error.message || 'Bir hata oluştu';
             Alert.alert('Hata', errorMessage);
         } finally {
             setLoading(false);

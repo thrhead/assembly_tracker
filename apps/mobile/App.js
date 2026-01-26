@@ -25,6 +25,7 @@ import UserManagementScreen from './src/screens/admin/UserManagementScreen';
 import CustomerManagementScreen from './src/screens/admin/CustomerManagementScreen';
 import ApprovalsScreen from './src/screens/admin/ApprovalsScreen';
 import CreateJobScreen from './src/screens/admin/CreateJobScreen';
+import EditJobScreen from './src/screens/admin/EditJobScreen';
 import CalendarScreen from './src/screens/admin/CalendarScreen';
 import AdvancedPlanningScreen from './src/screens/admin/AdvancedPlanningScreen';
 import ReportsScreen from './src/screens/admin/ReportsScreen';
@@ -169,6 +170,11 @@ function AppNavigator() {
                 name="CreateJob"
                 component={CreateJobScreen}
                 options={{ title: t('navigation.createJob') || 'Create Job' }}
+              />
+              <Stack.Screen
+                name="EditJob"
+                component={EditJobScreen}
+                options={{ title: 'İşi Düzenle' }}
               />
               <Stack.Screen
                 name="Calendar"

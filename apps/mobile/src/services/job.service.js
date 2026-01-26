@@ -196,6 +196,11 @@ const jobService = {
         const response = await api.put(`/api/admin/jobs/${jobId}`, jobData);
         return response.data;
     },
+
+    deleteJob: async (jobId) => {
+        const response = await api.delete(`/api/admin/jobs/${jobId}`);
+        return response.data;
+    },
 };
 
 export default jobService;

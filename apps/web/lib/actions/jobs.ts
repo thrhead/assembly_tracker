@@ -5,6 +5,7 @@ import { prisma } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { sendJobNotification } from '@/lib/notification-helper'
+import { EventBus } from '@/lib/event-bus'
 
 const jobSchema = z.object({
   title: z.string().min(3, 'İş başlığı en az 3 karakter olmalıdır'),
@@ -28,7 +29,11 @@ const jobSchema = z.object({
 })
 
 const updateJobSchema = jobSchema.extend({
-  id: z.string()
+  id: z.string(),
+  status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
+  acceptanceStatus: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']).optional(),
+  startedAt: z.string().optional(),
+  completedDate: z.string().optional(),
 })
 
 export type CreateJobState = {
@@ -37,108 +42,96 @@ export type CreateJobState = {
   errors?: Record<string, string[]>
 }
 
-export async function createJob(prevState: CreateJobState, formData: FormData): Promise<CreateJobState> {
-  // This is a placeholder for form action if needed, but we use createJobAction directly
-  return { error: 'Not implemented for direct form action' }
-}
-
-// Redefining to be called directly from Client Component (RHF submit handler)
-export async function createJobAction(data: z.infer<typeof jobSchema>) {
+export async function createJobAction(prevState: CreateJobState, formData: FormData): Promise<CreateJobState> {
   const session = await auth()
 
   if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
-    throw new Error('Yetkisiz işlem')
+    return { error: 'Yetkisiz işlem' }
   }
 
-  const validated = jobSchema.safeParse(data)
+  const rawData = {
+    title: formData.get('title'),
+    description: formData.get('description'),
+    customerId: formData.get('customerId'),
+    teamId: formData.get('teamId'),
+    workerId: formData.get('workerId'),
+    priority: formData.get('priority'),
+    location: formData.get('location'),
+    scheduledDate: formData.get('scheduledDate'),
+    scheduledEndDate: formData.get('scheduledEndDate'),
+    steps: JSON.parse(formData.get('steps') as string || '[]')
+  }
+
+  const validated = jobSchema.safeParse(rawData)
 
   if (!validated.success) {
-    throw new Error('Geçersiz veri: ' + JSON.stringify(validated.error.flatten()))
+    return {
+      errors: validated.error.flatten().fieldErrors as any
+    }
   }
-
-  const {
-    title,
-    description,
-    customerId,
-    teamId,
-    priority,
-    location,
-    scheduledDate,
-    scheduledEndDate,
-    steps,
-    workerId
-  } = validated.data
 
   try {
     const job = await prisma.$transaction(async (tx) => {
-      const createdJob = await tx.job.create({
+      // 1. Create Job
+      const newJob = await tx.job.create({
         data: {
-          title,
-          description,
-          customerId,
+          title: validated.data.title,
+          description: validated.data.description,
+          customerId: validated.data.customerId,
+          priority: validated.data.priority,
+          location: validated.data.location,
+          scheduledDate: validated.data.scheduledDate ? new Date(validated.data.scheduledDate) : null,
+          scheduledEndDate: validated.data.scheduledEndDate ? new Date(validated.data.scheduledEndDate) : null,
           creatorId: session.user.id,
-          priority,
-          location,
-          status: 'PENDING',
-          scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
-          scheduledEndDate: scheduledEndDate ? new Date(scheduledEndDate) : null,
         }
       })
 
-      // Assign Team or Worker
-      if ((teamId && teamId !== 'none') || (workerId && workerId !== 'none')) {
+      // 2. Create Assignment
+      if ((validated.data.teamId && validated.data.teamId !== 'none') || (validated.data.workerId && validated.data.workerId !== 'none')) {
         await tx.jobAssignment.create({
           data: {
-            jobId: createdJob.id,
-            teamId: teamId === 'none' ? undefined : teamId,
-            workerId: workerId === 'none' ? undefined : workerId
+            jobId: newJob.id,
+            teamId: validated.data.teamId === 'none' ? undefined : validated.data.teamId,
+            workerId: validated.data.workerId === 'none' ? undefined : validated.data.workerId
           }
         })
       }
 
-      // Create Steps
-      if (steps && steps.length > 0) {
-        for (let i = 0; i < steps.length; i++) {
-          const stepData = steps[i]
-          const step = await tx.jobStep.create({
+      // 3. Create Steps & Substeps
+      if (validated.data.steps && validated.data.steps.length > 0) {
+        for (let i = 0; i < validated.data.steps.length; i++) {
+          const step = validated.data.steps[i]
+          const newStep = await tx.jobStep.create({
             data: {
-              jobId: createdJob.id,
-              title: stepData.title,
-              description: stepData.description,
-              order: i + 1,
+              jobId: newJob.id,
+              title: step.title,
+              description: step.description,
+              order: i + 1
             }
           })
 
-          if (stepData.subSteps && stepData.subSteps.length > 0) {
+          if (step.subSteps && step.subSteps.length > 0) {
             await tx.jobSubStep.createMany({
-              data: stepData.subSteps.map((sub, j) => ({
-                stepId: step.id,
-                title: sub.title,
-                order: j + 1
+              data: step.subSteps.map((ss, index) => ({
+                stepId: newStep.id,
+                title: ss.title,
+                order: index + 1
               }))
             })
           }
         }
       }
-      return createdJob
+
+      return newJob
     })
 
-    // Send Notification after transaction commits
-    if ((teamId && teamId !== 'none') || (workerId && workerId !== 'none')) {
-      await sendJobNotification(
-        job.id,
-        'Yeni İş Atandı',
-        `"${job.title}" başlıklı yeni bir iş size atandı.`,
-        'INFO',
-        `/worker/jobs/${job.id}`
-      );
-    }
-
+    await EventBus.emit('job.created', job);
+    
     revalidatePath('/admin/jobs')
     return { success: true }
   } catch (error) {
     console.error('Job creation error:', error)
-    throw new Error('İş oluşturulurken bir hata oluştu')
+    return { error: 'İş oluşturulurken bir hata oluştu' }
   }
 }
 
@@ -163,9 +156,13 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
     teamId,
     workerId,
     priority,
+    status,
+    acceptanceStatus,
     location,
     scheduledDate,
     scheduledEndDate,
+    startedAt,
+    completedDate,
     steps
   } = validated.data
 
@@ -179,9 +176,13 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
           description,
           customerId,
           priority,
+          status: status || undefined,
+          acceptanceStatus: acceptanceStatus || undefined,
           location,
           scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
           scheduledEndDate: scheduledEndDate ? new Date(scheduledEndDate) : null,
+          startedAt: startedAt ? new Date(startedAt) : null,
+          completedDate: completedDate ? new Date(completedDate) : null,
         }
       })
 
@@ -305,3 +306,27 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
     throw new Error('İş güncellenirken bir hata oluştu')
   }
 }
+
+export async function deleteJobAction(id: string) {
+  const session = await auth()
+
+  if (!session || session.user.role !== 'ADMIN') {
+    throw new Error('Yetkisiz işlem: Sadece yöneticiler iş silebilir.')
+  }
+
+  try {
+    await prisma.job.delete({
+      where: { id }
+    })
+
+    // Yan etkileri tetikle
+    await EventBus.emit('job.deleted', { id })
+
+    revalidatePath('/admin/jobs')
+    return { success: true }
+  } catch (error) {
+    console.error('Job deletion error:', error)
+    throw new Error('İş silinirken bir hata oluştu')
+  }
+}
+

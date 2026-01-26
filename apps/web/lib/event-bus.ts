@@ -1,7 +1,7 @@
 
 import { triggerWebhook } from './webhook-service'
 
-type EventType = 'job.created' | 'job.updated' | 'job.completed' | 'cost.created'
+type EventType = 'job.created' | 'job.updated' | 'job.completed' | 'job.deleted' | 'cost.created'
 
 /**
  * Central event bus for the application to trigger side effects like Webhooks.

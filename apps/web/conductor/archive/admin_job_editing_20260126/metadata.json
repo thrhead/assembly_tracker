@@ -1,0 +1,8 @@
+{
+  "id": "admin-job-editing",
+  "title": "Admin İş Düzenleme Yetkisi (Web ve Mobil)",
+  "status": "Completed",
+  "createdAt": "2026-01-26",
+  "completedAt": "2026-01-26",
+  "description": "Admin ve yöneticilerin iş detaylarını (müşteri, ekip, tarihler, durum vb.) web ve mobil üzerinden düzenleyebilme yetkisi."
+}

@@ -46,6 +46,28 @@ export const createCustomerSchema = z.object({
     address: z.string().optional(),
 })
 
+// Job Creation Schema (Edge Safe)
+export const jobCreationSchema = z.object({
+    title: z.string().min(1, 'Title is required'),
+    description: z.string().optional(),
+    customerId: z.string().min(1, 'Customer is required'),
+    teamId: z.string().optional(),
+    workerId: z.string().optional(),
+    priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
+    location: z.string().optional(),
+    scheduledDate: z.string().min(1, 'Scheduled date is required'),
+    steps: z.array(z.object({
+      title: z.string().min(1, 'Step title is required'),
+      description: z.string().optional(),
+      order: z.number().optional(),
+      subSteps: z.array(z.object({
+        title: z.string().min(1, 'Sub-step title is required'),
+        description: z.string().optional(),
+        order: z.number().optional()
+      })).optional()
+    })).optional().nullable()
+})
+
 // Notification Schema
 export const createNotificationSchema = z.object({
     userId: z.string().cuid(),

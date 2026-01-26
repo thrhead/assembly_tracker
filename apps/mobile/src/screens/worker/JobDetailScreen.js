@@ -84,6 +84,7 @@ export default function JobDetailScreen({ route, navigation }) {
     const [successMessage, setSuccessMessage] = useState('');
     const [confirmationModalVisible, setConfirmationModalVisible] = useState(false);
     const [signatureModalVisible, setSignatureModalVisible] = useState(false);
+    const [choiceModalVisible, setChoiceModalVisible] = useState(false);
 
     // Cost State
     const [costModalVisible, setCostModalVisible] = useState(false);
@@ -185,27 +186,12 @@ export default function JobDetailScreen({ route, navigation }) {
                 const step = job.steps.find(s => s.id === stepId);
                 const substep = step?.subSteps.find(ss => ss.id === substepId);
 
-
-                console.log('[Mobile] Checking photos for substep:', {
-                    substepId,
-                    hasPhotosArray: !!substep?.photos,
-                    photoCount: substep?.photos?.length
-                });
-
-
                 const hasPhotos = substep?.photos && Array.isArray(substep.photos) && substep.photos.length > 0;
-
-                console.log('[Mobile] Substup Toggle Check:', {
-                    substepId,
-                    hasPhotos,
-                    photosRaw: substep?.photos,
-                    photoCount: substep?.photos?.length
-                });
 
                 if (!hasPhotos) {
                     Alert.alert(
                         t('common.warning'),
-                        "Bu alt iş emrini tamamlamak için ÖNCE fotoğraf yüklemelisiniz. Lütfen yandaki kamera ikonuna tıklayarak fotoğraf ekleyin."
+                        "bu iş emrini kapatabilmeniz için öncelikle en az 1 adet fotoğraf yüklemeniz gerekmektedir"
                     );
                     return;
                 }
@@ -445,6 +431,32 @@ export default function JobDetailScreen({ route, navigation }) {
         }
     };
 
+    const handleDeleteJob = async () => {
+        Alert.alert(
+            t('common.delete'),
+            t('common.confirmDelete') || "Bu işi tamamen silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.",
+            [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                    text: t('common.delete'),
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            setLoading(true);
+                            await jobService.deleteJob(jobId);
+                            navigation.goBack();
+                        } catch (error) {
+                            console.error('Error deleting job:', error);
+                            Alert.alert(t('common.error'), "İş silinemedi.");
+                        } finally {
+                            setLoading(false);
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     const openRejectionModal = (stepId) => {
         setSelectedStepId(stepId);
         setRejectionModalVisible(true);
@@ -580,15 +592,54 @@ export default function JobDetailScreen({ route, navigation }) {
     const [completing, setCompleting] = useState(false);
 
     const handleCompleteJob = async () => {
-        const allStepsCompleted = job.steps.every(step => step.isCompleted);
-
-        if (!allStepsCompleted) {
-            Alert.alert(t('common.warning'), t('alerts.photoRequired'));
+        console.log('[Mobile] handleCompleteJob triggered');
+        
+        if (!job || !job.steps) {
+            console.error('[Mobile] Job or steps missing:', job);
             return;
         }
 
-        // Trigger Signature Capture instead of immediate confirmation
-        setSignatureModalVisible(true);
+        // Tüm ana adımların ve bağlı tüm alt adımların (sub-steps) tamamlanmış olması gerekir
+        const allStepsCompleted = job.steps.length > 0 && job.steps.every(step => {
+            const anaAdimTamam = step.isCompleted;
+            const altAdimlarTamam = !step.subSteps || step.subSteps.length === 0 || step.subSteps.every(ss => ss.isCompleted);
+            return anaAdimTamam && altAdimlarTamam;
+        });
+
+        console.log('[Mobile] All steps and sub-steps completed:', allStepsCompleted);
+
+        if (!allStepsCompleted) {
+            Alert.alert(
+                t('common.warning'), 
+                "bu montajı tamamlayarak kapatmak için tüm alt iş emirlerini tamamlamanız gerekiyor"
+            );
+            return;
+        }
+
+        // Use custom modal instead of Alert.alert for web compatibility
+        setChoiceModalVisible(true);
+    };
+
+    const handleConfirmComplete = async () => {
+        try {
+            setCompleting(true);
+            setConfirmationModalVisible(false);
+
+            await jobService.completeJob(
+                jobId,
+                job.signature || null,
+                job.signatureCoords || null
+            );
+
+            setSuccessMessage("İş başarıyla bitirildi ve admin onayına gönderildi.");
+            setSuccessModalVisible(true);
+            loadJobDetails();
+        } catch (error) {
+            console.error('Error completing job:', error);
+            Alert.alert(t('common.error'), "İş tamamlanırken bir hata oluştu.");
+        } finally {
+            setCompleting(false);
+        }
     };
 
     const handleSaveSignature = async (signatureBase64) => {
@@ -682,9 +733,25 @@ Assembly Tracker Ltd. Şti.
                 <Text style={[styles.headerTitle, { color: theme.colors.text }]}>{t('worker.jobDetails')}</Text>
                 <View style={{ flexDirection: 'row', gap: 12 }}>
                     {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && (
-                        <TouchableOpacity onPress={handleExportProforma} style={styles.chatButton}>
-                            <MaterialIcons name="description" size={24} color={theme.colors.primary} />
-                        </TouchableOpacity>
+                        <>
+                            {user?.role?.toUpperCase() === 'ADMIN' && (
+                                <TouchableOpacity 
+                                    onPress={handleDeleteJob} 
+                                    style={styles.chatButton}
+                                >
+                                    <MaterialIcons name="delete" size={24} color={theme.colors.error} />
+                                </TouchableOpacity>
+                            )}
+                            <TouchableOpacity 
+                                onPress={() => navigation.navigate('EditJob', { job })} 
+                                style={styles.chatButton}
+                            >
+                                <MaterialIcons name="edit" size={24} color={theme.colors.primary} />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handleExportProforma} style={styles.chatButton}>
+                                <MaterialIcons name="description" size={24} color={theme.colors.primary} />
+                            </TouchableOpacity>
+                        </>
                     )}
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Chat', { jobId: job.id, jobTitle: job.title })}
@@ -886,15 +953,21 @@ Assembly Tracker Ltd. Şti.
                         </TouchableOpacity>
                     ) : (
                         <TouchableOpacity
-                            style={[styles.mainCompleteButton, (job.status === 'COMPLETED' || completing) && styles.disabledButton, { backgroundColor: (job.status === 'COMPLETED' || completing) ? theme.colors.border : theme.colors.primary }]}
+                            style={[
+                                styles.mainCompleteButton, 
+                                (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL' || completing) && styles.disabledButton, 
+                                { backgroundColor: (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL' || completing) ? theme.colors.border : theme.colors.primary }
+                            ]}
                             onPress={handleCompleteJob}
-                            disabled={job.status === 'COMPLETED' || completing}
+                            disabled={job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL' || completing}
                         >
                             {completing ? (
                                 <ActivityIndicator color={theme.colors.textInverse} />
                             ) : (
                                 <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>
-                                    {job.status === 'COMPLETED' ? t('common.success') : t('worker.completeJob')}
+                                    {job.status === 'COMPLETED' ? t('common.success') : 
+                                     job.status === 'PENDING_APPROVAL' ? "Onay Bekliyor" : 
+                                     t('worker.completeJob')}
                                 </Text>
                             )}
                         </TouchableOpacity>
@@ -987,6 +1060,55 @@ Assembly Tracker Ltd. Şti.
             </AppModal>
 
             <SuccessModal visible={successModalVisible} message={successMessage} onClose={() => setSuccessModalVisible(false)} />
+
+            <AppModal visible={choiceModalVisible} transparent={true} animationType="slide">
+                <View style={styles.modalContainer}>
+                    <View style={[styles.formCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+                        <Text style={[styles.modalTitle, { color: theme.colors.text }]}>İşi Bitir</Text>
+                        <Text style={{ color: theme.colors.subText, textAlign: 'center', marginBottom: 24, fontSize: 16 }}>
+                            Müşteri imzası almak ister misiniz?
+                        </Text>
+                        <View style={{ gap: 12 }}>
+                            <TouchableOpacity 
+                                style={[styles.modalButton, { backgroundColor: theme.colors.primary, paddingVertical: 16 }]}
+                                onPress={() => {
+                                    setChoiceModalVisible(false);
+                                    setSignatureModalVisible(true);
+                                }}
+                            >
+                                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>İmza Al</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                style={[styles.modalButton, { backgroundColor: theme.colors.secondary, paddingVertical: 16 }]}
+                                onPress={() => {
+                                    setChoiceModalVisible(false);
+                                    setJob(prev => ({ ...prev, signature: null, signatureCoords: null }));
+                                    setConfirmationModalVisible(true);
+                                }}
+                            >
+                                <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>İmzasız Bitir</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity 
+                                style={[styles.modalButton, styles.cancelButton, { paddingVertical: 16 }]}
+                                onPress={() => setChoiceModalVisible(false)}
+                            >
+                                <Text style={[styles.cancelButtonText, { fontSize: 16 }]}>Vazgeç</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </AppModal>
+
+            <ConfirmationModal
+                visible={confirmationModalVisible}
+                title="İşi Bitir"
+                message="Tüm adımların tamamlandığını ve işin bittiğini onaylıyor musunuz? Bu işlem geri alınamaz."
+                onConfirm={handleConfirmComplete}
+                onCancel={() => setConfirmationModalVisible(false)}
+                confirmText="Evet, Bitir"
+                cancelText="Vazgeç"
+                theme={theme}
+            />
 
             <SignaturePad
                 visible={signatureModalVisible}

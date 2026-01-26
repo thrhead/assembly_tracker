@@ -327,7 +327,7 @@ model Message {
   deliveredAt    DateTime?
   readAt         DateTime?
   conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  job            Job?          @relation(fields: [jobId], references: [id])
+  job            Job?          @relation(fields: [jobId], references: [id], onDelete: Cascade)
   receiver       User?         @relation("MessageReceiver", fields: [receiverId], references: [id])
   sender         User          @relation("MessageSender", fields: [senderId], references: [id])
 

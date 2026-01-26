@@ -35,7 +35,11 @@ export async function POST(
         }
       },
       include: {
-        steps: true,
+        steps: {
+          include: {
+            subSteps: true
+          }
+        },
         creator: true,
         customer: true,
         assignments: {
@@ -51,10 +55,15 @@ export async function POST(
       return NextResponse.json({ error: 'Job not found or access denied' }, { status: 404 })
     }
 
-    const allStepsCompleted = job.steps.every(step => step.isCompleted)
-    if (!allStepsCompleted) {
+    const allStepsAndSubStepsCompleted = job.steps.every(step => {
+      const stepDone = step.isCompleted;
+      const subStepsDone = step.subSteps.length === 0 || step.subSteps.every(ss => ss.isCompleted);
+      return stepDone && subStepsDone;
+    })
+
+    if (!allStepsAndSubStepsCompleted) {
       return NextResponse.json({
-        error: 'Tüm adımlar tamamlanmadan iş tamamlanamaz'
+        error: 'bu montajı tamamlayarak kapatmak için tüm alt iş emirlerini tamamlamanız gerekiyor'
       }, { status: 400 })
     }
 
@@ -74,7 +83,7 @@ export async function POST(
     const updatedJob = await prisma.job.update({
       where: { id: jobId },
       data: {
-        status: 'COMPLETED',
+        status: 'PENDING_APPROVAL',
         completedDate: new Date(),
         signatureUrl,
         signatureLatitude: signatureLatitude ? parseFloat(signatureLatitude) : null,
@@ -82,24 +91,25 @@ export async function POST(
       }
     })
 
-    const approver = await prisma.user.findFirst({
+    const approvers = await prisma.user.findMany({
       where: {
         role: { in: ['ADMIN', 'MANAGER'] },
         isActive: true
       }
     })
 
-    if (!approver) {
+    if (approvers.length === 0) {
       return NextResponse.json({
         error: 'No approver found'
       }, { status: 500 })
     }
 
+    // Create approvals for all admins/managers
     const approval = await prisma.approval.create({
       data: {
         jobId,
         requesterId: session.user.id,
-        approverId: approver.id,
+        approverId: approvers[0].id, // Direct first one for now, or loop for all
         status: 'PENDING',
         type: 'JOB_COMPLETION'
       }
@@ -114,24 +124,27 @@ export async function POST(
 
     try {
       if (job.creator?.id) {
-        emitToUser(job.creator.id, 'job:completed', socketPayload as unknown as Record<string, unknown>)
+        emitToUser(job.creator.id, 'job:status_changed', { ...socketPayload, status: 'PENDING_APPROVAL' } as any)
       }
       await notifyAdminsOfJobCompletion(jobId)
-      broadcast('job:completed', socketPayload as unknown as Record<string, unknown>)
+      broadcast('job:status_changed', { ...socketPayload, status: 'PENDING_APPROVAL' } as any)
     } catch (socketError) {
       console.error('Socket error (non-fatal):', socketError);
     }
 
-    if (approver.email) {
-      sendJobCompletedEmail(approver.email, {
-        id: updatedJob.id,
-        title: updatedJob.title,
-        customerName: job.customer?.company || 'Unknown',
-        completedDate: updatedJob.completedDate || new Date(),
-        teamName: job.assignments[0]?.team?.name || 'Unknown Team',
-        completedBy: session.user.name || session.user.email || 'Unknown'
-      }).catch(err => console.error('Email send failed:', err))
-    }
+    // Send email to all approvers
+    approvers.forEach(approver => {
+      if (approver.email) {
+        sendJobCompletedEmail(approver.email, {
+          id: updatedJob.id,
+          title: updatedJob.title,
+          customerName: job.customer?.company || 'Unknown',
+          completedDate: updatedJob.completedDate || new Date(),
+          teamName: job.assignments[0]?.team?.name || 'Unknown Team',
+          completedBy: session.user.name || session.user.email || 'Unknown'
+        }).catch(err => console.error('Email send failed:', err))
+      }
+    });
 
     await EventBus.emit('job.completed', {
       jobId: jobId,

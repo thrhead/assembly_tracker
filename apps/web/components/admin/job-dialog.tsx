@@ -33,10 +33,14 @@ const jobSchema = z.object({
   description: z.string().optional(),
   customerId: z.string().min(1, 'Müşteri seçilmelidir'),
   teamId: z.string().optional().nullable(),
+  status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
+  acceptanceStatus: z.enum(['PENDING', 'ACCEPTED', 'REJECTED']).optional(),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   location: z.string().optional(),
   scheduledDate: z.string().optional(),
   scheduledEndDate: z.string().optional(),
+  startedAt: z.string().optional(),
+  completedDate: z.string().optional(),
   steps: z.array(z.object({
     id: z.string().optional(),
     title: z.string(),
@@ -95,22 +99,35 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
     formState: { errors },
     reset,
     setValue,
+    watch,
   } = useForm<FormData>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
       priority: 'MEDIUM',
+      status: 'PENDING',
+      acceptanceStatus: 'PENDING',
       ...job && {
         title: job.title,
         description: job.description || '',
         customerId: job.customerId,
         teamId: job.assignments?.[0]?.teamId || 'none', // Handle existing assignment
         priority: job.priority,
+        status: job.status,
+        acceptanceStatus: job.acceptanceStatus,
         location: job.location || '',
         scheduledDate: job.scheduledDate ? new Date(job.scheduledDate).toISOString().slice(0, 16) : '',
         scheduledEndDate: job.scheduledEndDate ? new Date(job.scheduledEndDate).toISOString().slice(0, 16) : '',
+        startedAt: job.startedAt ? new Date(job.startedAt).toISOString().slice(0, 16) : '',
+        completedDate: job.completedDate ? new Date(job.completedDate).toISOString().slice(0, 16) : '',
       }
     }
   })
+
+  const customerId = watch('customerId')
+  const teamId = watch('teamId')
+  const priority = watch('priority')
+  const status = watch('status')
+  const acceptanceStatus = watch('acceptanceStatus')
 
   // Initialize steps if job provided
   useEffect(() => {
@@ -135,15 +152,15 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
       setValue('title', job.title)
       setValue('description', job.description || '')
       setValue('customerId', job.customerId)
-      setValue('teamId', job.assignments?.[0]?.teamId || job.assignments?.[0]?.workerId ? (job.assignments[0].teamId || 'none') : 'none')
-      // Note: Logic for Worker vs Team assignment in select is tricky if both supported. 
-      // Existing Select only supports Team. For now assuming Team.
-      // If workerId exists but teamId doesn't, we might need adjustments, 
-      // but current UI only shows "Atanacak Ekip" (Team) selection.
+      setValue('teamId', job.assignments?.[0]?.teamId || (job.assignments?.[0]?.workerId ? 'none' : 'none'))
       setValue('priority', job.priority)
+      setValue('status', job.status)
+      setValue('acceptanceStatus', job.acceptanceStatus)
       setValue('location', job.location || '')
       setValue('scheduledDate', job.scheduledDate ? new Date(job.scheduledDate).toISOString().slice(0, 16) : '')
       setValue('scheduledEndDate', job.scheduledEndDate ? new Date(job.scheduledEndDate).toISOString().slice(0, 16) : '')
+      setValue('startedAt', job.startedAt ? new Date(job.startedAt).toISOString().slice(0, 16) : '')
+      setValue('completedDate', job.completedDate ? new Date(job.completedDate).toISOString().slice(0, 16) : '')
     }
   }, [job, setValue])
 
@@ -224,10 +241,20 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
         })
         toast.success('İş başarıyla güncellendi')
       } else {
-        await createJobAction({
-          ...data,
-          steps: validSteps.length > 0 ? validSteps : null
+        const formData = new FormData()
+        Object.entries(data).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formData.append(key, value as string)
+          }
         })
+        formData.append('steps', JSON.stringify(validSteps))
+        
+        const result = await createJobAction({ success: false }, formData)
+        
+        if (result.error) {
+          throw new Error(result.error)
+        }
+        
         toast.success('İş başarıyla oluşturuldu')
       }
 
@@ -271,7 +298,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="customerId">Müşteri</Label>
-              <Select onValueChange={(val) => setValue('customerId', val)}>
+              <Select value={customerId} onValueChange={(val) => setValue('customerId', val)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Müşteri seçiniz" />
                 </SelectTrigger>
@@ -290,7 +317,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
 
             <div className="space-y-2">
               <Label htmlFor="teamId">Atanacak Ekip</Label>
-              <Select onValueChange={(val) => setValue('teamId', val === 'none' ? null : val)}>
+              <Select value={teamId || 'none'} onValueChange={(val) => setValue('teamId', val === 'none' ? null : val)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Ekip seçiniz (Opsiyonel)" />
                 </SelectTrigger>
@@ -306,10 +333,39 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="status">İş Durumu</Label>
+              <Select value={status} onValueChange={(val: any) => setValue('status', val)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Durum" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PENDING">Beklemede</SelectItem>
+                  <SelectItem value="IN_PROGRESS">Devam Ediyor</SelectItem>
+                  <SelectItem value="COMPLETED">Tamamlandı</SelectItem>
+                  <SelectItem value="CANCELLED">İptal Edildi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="acceptanceStatus">Kabul Durumu</Label>
+              <Select value={acceptanceStatus} onValueChange={(val: any) => setValue('acceptanceStatus', val)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Kabul Durumu" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PENDING">Onay Bekliyor</SelectItem>
+                  <SelectItem value="ACCEPTED">Kabul Edildi</SelectItem>
+                  <SelectItem value="REJECTED">Reddedildi</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="priority">Öncelik</Label>
-              <Select onValueChange={(val: any) => setValue('priority', val)} defaultValue="MEDIUM">
+              <Select value={priority} onValueChange={(val: any) => setValue('priority', val)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Öncelik" />
                 </SelectTrigger>
@@ -322,21 +378,40 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-2">
-                <Label htmlFor="scheduledDate">Başlangıç Tarihi</Label>
-                <Input id="scheduledDate" type="datetime-local" {...register('scheduledDate')} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="scheduledEndDate">Bitiş Tarihi</Label>
-                <Input id="scheduledEndDate" type="datetime-local" {...register('scheduledEndDate')} />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="location">Konum / Adres</Label>
+              <Input id="location" {...register('location')} placeholder="Montaj yapılacak adres" />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="location">Konum / Adres</Label>
-            <Input id="location" {...register('location')} placeholder="Montaj yapılacak adres" />
+          <div className="grid grid-cols-2 gap-6 border-y py-4">
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Planlanan Tarihler</h3>
+              <div className="grid grid-cols-1 gap-2">
+                <div className="space-y-1">
+                  <Label htmlFor="scheduledDate" className="text-xs">Başlangıç</Label>
+                  <Input id="scheduledDate" type="datetime-local" {...register('scheduledDate')} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="scheduledEndDate" className="text-xs">Bitiş</Label>
+                  <Input id="scheduledEndDate" type="datetime-local" {...register('scheduledEndDate')} />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Gerçekleşen Tarihler</h3>
+              <div className="grid grid-cols-1 gap-2">
+                <div className="space-y-1">
+                  <Label htmlFor="startedAt" className="text-xs">Gerçek Başlangıç</Label>
+                  <Input id="startedAt" type="datetime-local" {...register('startedAt')} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="completedDate" className="text-xs">Gerçek Bitiş</Label>
+                  <Input id="completedDate" type="datetime-local" {...register('completedDate')} />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="space-y-2">

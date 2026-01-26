@@ -2,9 +2,10 @@ import { auth } from "@/lib/auth"
 import { redirect } from "@/lib/navigation"
 import { Link } from "@/lib/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, BarChart3, TrendingUp } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { getJobsForReport, getReportStats } from "@/lib/data/reports"
+import { getJobsForReport, getReportStats, getWeeklyCompletedSteps } from "@/lib/data/reports"
+import WeeklyStepsChart from "@/components/admin/reports/charts/WeeklyStepsChart"
 
 export default async function AdminReportsPage() {
     const session = await auth()
@@ -13,9 +14,10 @@ export default async function AdminReportsPage() {
         redirect("/")
     }
 
-    const [stats, allJobs] = await Promise.all([
+    const [stats, allJobs, weeklySteps] = await Promise.all([
         getReportStats(new Date(0), new Date()),
-        getJobsForReport()
+        getJobsForReport(),
+        getWeeklyCompletedSteps()
     ])
 
     const { totalJobs, pendingJobs, inProgressJobs, completedJobs } = stats
@@ -30,7 +32,7 @@ export default async function AdminReportsPage() {
 
     return (
         <div className="bg-background-light dark:bg-background-dark min-h-screen">
-            <div className="max-w-4xl mx-auto p-6 space-y-6">
+            <div className="max-w-5xl mx-auto p-6 space-y-8">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -45,44 +47,51 @@ export default async function AdminReportsPage() {
                                 İş Raporları
                             </h1>
                             <p className="text-sm text-slate-500 dark:text-slate-400">
-                                Tüm işlerin durum ve aşama bilgileri
+                                Performans ve operasyonel analizler
                             </p>
                         </div>
                     </div>
                 </div>
 
+                {/* Performance Chart Section */}
+                <section className="animate-in fade-in slide-in-from-top-4 duration-500">
+                    <WeeklyStepsChart data={weeklySteps} categories={weeklySteps.categories} />
+                </section>
+
                 {/* Statistics Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                 Toplam İş
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-bold text-slate-900 dark:text-slate-100">
-                                {totalJobs}
+                            <div className="flex items-center justify-between">
+                                <span className="text-3xl font-bold text-slate-900 dark:text-slate-100">{totalJobs}</span>
+                                <Briefcase className="w-8 h-8 text-primary/20" />
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                Beklemede
+                    <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                Tamamlanan
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-500">
-                                {pendingJobs}
+                            <div className="flex items-center justify-between">
+                                <span className="text-3xl font-bold text-green-600 dark:text-green-500">{completedJobs}</span>
+                                <TrendingUp className="w-8 h-8 text-green-500/20" />
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                Devam Ediyor
+                    <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                Devam Eden
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -92,27 +101,30 @@ export default async function AdminReportsPage() {
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                Tamamlandı
+                    <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                Bekleyen
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-3xl font-bold text-green-600 dark:text-green-500">
-                                {completedJobs}
+                            <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-500">
+                                {pendingJobs}
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
                 {/* Jobs List */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Tüm İşler ve Aşamaları</CardTitle>
+                <Card className="border-none shadow-sm bg-white dark:bg-slate-900">
+                    <CardHeader className="border-b border-slate-50 dark:border-slate-800">
+                        <div className="flex items-center gap-2">
+                            <BarChart3 className="w-5 h-5 text-primary" />
+                            <CardTitle>Tüm İşler ve Aşamaları</CardTitle>
+                        </div>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
+                    <CardContent className="p-0">
+                        <div className="divide-y divide-slate-50 dark:divide-slate-800">
                             {allJobs.map((job) => {
                                 const totalSteps = job.steps.length
                                 const completedSteps = job.steps.filter(s => s.isCompleted).length
@@ -123,56 +135,49 @@ export default async function AdminReportsPage() {
                                 return (
                                     <div
                                         key={job.id}
-                                        className="border border-slate-200 dark:border-slate-700 rounded-lg p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        className="p-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                                     >
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div className="flex-1">
-                                                <Link
-                                                    href={`/admin/jobs/${job.id}`}
-                                                    className="text-lg font-semibold text-slate-900 dark:text-slate-100 hover:text-primary transition-colors"
-                                                >
-                                                    {job.title}
-                                                </Link>
-                                                <div className="flex items-center gap-3 mt-2 text-sm text-slate-500 dark:text-slate-400">
-                                                    <span>Müşteri: {job.customer.company}</span>
-                                                    <span>•</span>
-                                                    <span>Ekip: {teamName}</span>
+                                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
+                                            <div className="flex-1 space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <Link
+                                                        href={`/admin/jobs/${job.id}`}
+                                                        className="text-lg font-bold text-slate-900 dark:text-slate-100 hover:text-primary transition-colors"
+                                                    >
+                                                        {job.title}
+                                                    </Link>
+                                                    <Badge className={`${statusInfo.color} text-[10px]`}>
+                                                        {statusInfo.label}
+                                                    </Badge>
+                                                </div>
+                                                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
+                                                    <span className="flex items-center gap-1.5 font-medium">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                                                        Müşteri: {job.customer.company}
+                                                    </span>
+                                                    <span className="flex items-center gap-1.5">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300"></span>
+                                                        Ekip: {teamName}
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <Badge className={statusInfo.color}>
-                                                {statusInfo.label}
-                                            </Badge>
                                         </div>
 
-                                        {/* Progress Bar */}
-                                        <div className="space-y-2">
-                                            <div className="flex items-center justify-between text-sm">
-                                                <span className="text-slate-600 dark:text-slate-300">
-                                                    Aşama İlerlemesi
-                                                </span>
-                                                <span className="font-semibold text-slate-900 dark:text-slate-100">
-                                                    {completedSteps} / {totalSteps} Adım
+                                        {/* Progress Section */}
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between text-xs font-semibold text-slate-500">
+                                                <span>AŞAMA İLERLEMESİ</span>
+                                                <span className="text-slate-900 dark:text-slate-100">
+                                                    {completedSteps} / {totalSteps} Adım (%{progress})
                                                 </span>
                                             </div>
-                                            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
+                                            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
                                                 <div
-                                                    className="bg-primary h-2.5 rounded-full transition-all"
+                                                    className="bg-primary h-2.5 rounded-full transition-all duration-1000"
                                                     style={{ width: `${progress}%` }}
                                                 ></div>
                                             </div>
-                                            <div className="text-right text-sm font-medium text-slate-600 dark:text-slate-300">
-                                                %{progress}
-                                            </div>
                                         </div>
-
-                                        {/* Location Info */}
-                                        {job.location && (
-                                            <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-                                                <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                    📍 {job.location}
-                                                </p>
-                                            </div>
-                                        )}
                                     </div>
                                 )
                             })}
@@ -187,5 +192,26 @@ export default async function AdminReportsPage() {
                 </Card>
             </div>
         </div>
+    )
+}
+
+// Minimal Briefcase icon for cards if lucide-react doesn't have it
+function Briefcase(props: any) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+        </svg>
     )
 }
