@@ -80,8 +80,8 @@ export function ManagerSidebar({ isOpen, onClose }: ManagerSidebarProps) {
                                     )}
                                     onClick={onClose}
                                 >
-                      <item.icon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-gray-500")} />
-                      {item.name}
+                                    <item.icon className={cn("h-5 w-5", isActive ? "text-indigo-600" : "text-gray-500")} />
+                                    {item.title}
                                 </Link>
                             )
                         })}
