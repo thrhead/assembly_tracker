@@ -354,21 +354,33 @@ export default function EditJobScreen({ route, navigation }) {
                         <CustomButton
                             title="Güncelle"
                             onPress={() => {
-                                Alert.alert(
-                                    "Güncellemeyi Onayla",
-                                    "Bu iş emrindeki değişiklikleri kaydetmek istediğinize emin misiniz?",
-                                    [
-                                        { text: "İptal", style: "cancel" },
-                                        {
-                                            text: "Evet, Kaydet",
-                                            onPress: () => submitJob(() => {
-                                                Alert.alert("Başarılı", "İş başarıyla güncellendi.", [
-                                                    { text: "Tamam", onPress: () => navigation.goBack() }
-                                                ]);
-                                            })
+                                const onConfirm = () => {
+                                    submitJob(() => {
+                                        if (Platform.OS === 'web') {
+                                            window.alert("İş başarıyla güncellendi.");
+                                            navigation.goBack();
+                                        } else {
+                                            Alert.alert("Başarılı", "İş başarıyla güncellendi.", [
+                                                { text: "Tamam", onPress: () => navigation.goBack() }
+                                            ]);
                                         }
-                                    ]
-                                );
+                                    });
+                                };
+
+                                if (Platform.OS === 'web') {
+                                    if (window.confirm("Bu iş emrindeki değişiklikleri kaydetmek istediğinize emin misiniz?")) {
+                                        onConfirm();
+                                    }
+                                } else {
+                                    Alert.alert(
+                                        "Güncellemeyi Onayla",
+                                        "Bu iş emrindeki değişiklikleri kaydetmek istediğinize emin misiniz?",
+                                        [
+                                            { text: "İptal", style: "cancel" },
+                                            { text: "Evet, Kaydet", onPress: onConfirm }
+                                        ]
+                                    );
+                                }
                             }}
                             loading={loading}
                             style={{ flex: 1, backgroundColor: theme.colors.primary }}
