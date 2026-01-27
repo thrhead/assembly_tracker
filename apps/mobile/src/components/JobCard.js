@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { CircleDot, Clock, MoreHorizontal, MapPin } from 'lucide-react-native';
 import { useTheme } from '../context/ThemeContext';
+import { SPACING } from '../constants/theme';
 
 const { width } = Dimensions.get('window');
 
