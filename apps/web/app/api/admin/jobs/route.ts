@@ -38,7 +38,7 @@ function buildJobFilter(searchParams: URLSearchParams) {
 
 async function fetchJobs(where: any) {
     try {
-        console.log("DEBUG: Prisma query start");
+        console.log("DEBUG: Prisma query start with where:", JSON.stringify(where));
         const jobs = await prisma.job.findMany({
             where: where || {},
             orderBy: { createdAt: 'desc' },
@@ -66,12 +66,17 @@ async function fetchJobs(where: any) {
         console.log(`DEBUG: Prisma query success, found ${jobs.length} items`);
         return jobs;
     } catch (e: any) {
-        console.error("DEBUG: Prisma fetchJobs failed:", e.message);
-        // Fallback: minimal data without joins
-        return await prisma.job.findMany({
-            take: 20,
-            select: { id: true, title: true, status: true, priority: true, createdAt: true }
-        });
+        console.error("DEBUG: Prisma fetchJobs primary query failed:", e.message);
+        try {
+            // Very safe fallback
+            return await prisma.job.findMany({
+                take: 20,
+                select: { id: true, title: true, status: true, priority: true, createdAt: true }
+            });
+        } catch (innerError: any) {
+            console.error("DEBUG: Prisma fetchJobs fallback failed:", innerError.message);
+            return [];
+        }
     }
 }
 

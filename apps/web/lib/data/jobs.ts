@@ -95,35 +95,29 @@ export async function getJobs({ page = 1, limit = 20, filter }: GetJobsParams = 
               worker: { select: { id: true, name: true } }
             }
           },
-          steps: {
-            select: {
-              id: true,
-              isCompleted: true,
-              subSteps: {
-                select: { approvalStatus: true }
-              }
-            }
-          },
-          costs: {
-            select: {
-              id: true,
-              amount: true,
-              status: true
-            }
-          },
-          // Check if any step has started work
-          _count: {
-            select: {
-              steps: {
-                where: {
-                  startedAt: { not: null }
+                  steps: {
+                    select: {
+                      id: true,
+                      isCompleted: true,
+                      subSteps: {
+                        select: { approvalStatus: true }
+                      }
+                    }
+                  },
+                  costs: {
+                    select: {
+                      id: true,
+                      amount: true,
+                      status: true
+                    }
+                  },
+                  _count: {
+                    select: {
+                      steps: true
+                    }
+                  }
                 }
-              }
-            }
-          }
-        }
-      }),
-      prisma.job.count({ where })
+              }),      prisma.job.count({ where })
     ]);
 
     return {
