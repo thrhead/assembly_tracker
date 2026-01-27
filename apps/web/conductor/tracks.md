@@ -2,6 +2,12 @@
 
 | ID | Title | Status |
 |----|-------|--------|
+| [web-ui-semantic-buttons](./active/web_ui_semantic_buttons/metadata.json) | Web UI Semantic Button Refactor | Completed |
+| [web-ui-color-tokenization](./active/web_ui_color_tokenization/metadata.json) | Web UI Global Color Tokenization | Completed |
+| [web-ui-hardcoded-cleanup](./active/web_ui_hardcoded_cleanup/metadata.json) | Web UI Hardcoded Color Cleanup | Completed |
+| [mobile-ui-icons-standardization](./active/mobile_ui_icons_standardization/metadata.json) | Mobile UI Icon Standardization (Lucide) | Completed |
+| [mobile-ui-color-tokens](./active/mobile_ui_color_tokens/metadata.json) | Mobile UI Color & Opacity Tokenization | Completed |
+| [mobile-ui-spacing-standardization](./active/mobile_ui_spacing_standardization/metadata.json) | Mobile UI Spacing Standardization | Completed |
 
 ## Archived Tracks (2026)
 | ID | Title | Date |

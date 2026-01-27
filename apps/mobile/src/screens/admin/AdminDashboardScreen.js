@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, StatusBar, Alert, Platform, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialIcons } from '@expo/vector-icons';
+import {
+    Users, Building2, UsersRound, Briefcase, ClipboardCheck, Banknote,
+    Calendar, TrendingUp, BarChart3, Sun, Moon, PlusCircle, UserPlus, ChevronRight
+} from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -63,15 +66,15 @@ export default function AdminDashboardScreen({ navigation }) {
 
     // Navigation Items Data
     const navItems = [
-        { id: 'users', title: t('navigation.userManagement'), icon: 'people', route: 'UserManagement', color: theme.colors.primary },
-        { id: 'customers', title: t('navigation.customers'), icon: 'business', route: 'CustomerManagement', color: theme.colors.tertiary },
-        { id: 'teams', title: t('navigation.teams'), icon: 'groups', route: 'TeamManagement', color: theme.colors.secondary },
-        { id: 'jobs', title: t('navigation.jobs'), icon: 'work', route: 'Jobs', color: '#f97316' }, // Orange
-        { id: 'approvals', title: t('navigation.approvals'), icon: 'fact-check', route: 'Approvals', color: '#14b8a6' }, // Teal
-        { id: 'costs', title: t('worker.expenses'), icon: 'attach-money', route: 'CostManagement', color: '#22c55e' }, // Green
-        { id: 'calendar', title: t('navigation.calendar') || 'Calendar', icon: 'calendar-today', route: 'Calendar', color: '#a855f7' }, // Purple
-        { id: 'planning', title: t('navigation.planning') || 'Planning', icon: 'trending-up', route: 'AdvancedPlanning', color: theme.colors.primary },
-        { id: 'reports', title: t('navigation.reports') || 'Reports', icon: 'bar-chart', route: 'Reports', color: '#3b82f6' }, // Blue
+        { id: 'users', title: t('navigation.userManagement'), icon: Users, route: 'UserManagement', color: theme.colors.primary },
+        { id: 'customers', title: t('navigation.customers'), icon: Building2, route: 'CustomerManagement', color: theme.colors.tertiary },
+        { id: 'teams', title: t('navigation.teams'), icon: UsersRound, route: 'TeamManagement', color: theme.colors.secondary },
+        { id: 'jobs', title: t('navigation.jobs'), icon: Briefcase, route: 'Jobs', color: '#f97316' }, // Orange
+        { id: 'approvals', title: t('navigation.approvals'), icon: ClipboardCheck, route: 'Approvals', color: '#14b8a6' }, // Teal
+        { id: 'costs', title: t('worker.expenses'), icon: Banknote, route: 'CostManagement', color: '#22c55e' }, // Green
+        { id: 'calendar', title: t('navigation.calendar') || 'Calendar', icon: Calendar, route: 'Calendar', color: '#a855f7' }, // Purple
+        { id: 'planning', title: t('navigation.planning') || 'Planning', icon: TrendingUp, route: 'AdvancedPlanning', color: theme.colors.primary },
+        { id: 'reports', title: t('navigation.reports') || 'Reports', icon: BarChart3, route: 'Reports', color: '#3b82f6' }, // Blue
     ];
 
     const handleNavPress = (route) => {
@@ -128,7 +131,7 @@ export default function AdminDashboardScreen({ navigation }) {
                                             style={[styles.iconButton, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}
                                             onPress={toggleTheme}
                                         >
-                                            <MaterialIcons name={isDark ? "light-mode" : "dark-mode"} size={24} color={theme.colors.icon} />
+                                            {isDark ? <Sun size={24} color={theme.colors.icon} /> : <Moon size={24} color={theme.colors.icon} />}
                                         </TouchableOpacity>
 
                                         <TouchableOpacity
@@ -152,18 +155,21 @@ export default function AdminDashboardScreen({ navigation }) {
                                 <View style={styles.section}>
                                     <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Menu</Text>
                                     <View style={styles.navGrid}>
-                                        {navItems.map((item) => (
-                                            <View key={item.id} style={styles.navItemWrapper}>
-                                                <GlassCard
-                                                    theme={theme}
-                                                    onPress={() => handleNavPress(item.route)}
-                                                    style={styles.navActionCard}
-                                                >
-                                                    <MaterialIcons name={item.icon} size={32} color={item.color} />
-                                                    <Text style={[styles.navActionLabel, { color: theme.colors.text }]}>{item.title}</Text>
-                                                </GlassCard>
-                                            </View>
-                                        ))}
+                                        {navItems.map((item) => {
+                                            const IconComponent = item.icon;
+                                            return (
+                                                <View key={item.id} style={styles.navItemWrapper}>
+                                                    <GlassCard
+                                                        theme={theme}
+                                                        onPress={() => handleNavPress(item.route)}
+                                                        style={styles.navActionCard}
+                                                    >
+                                                        <IconComponent size={32} color={item.color} />
+                                                        <Text style={[styles.navActionLabel, { color: theme.colors.text }]}>{item.title}</Text>
+                                                    </GlassCard>
+                                                </View>
+                                            );
+                                        })}
                                     </View>
                                 </View>
 
@@ -172,22 +178,22 @@ export default function AdminDashboardScreen({ navigation }) {
                                     <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Quick Actions</Text>
                                     <View style={styles.quickActions}>
                                         <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('CreateJob')}>
-                                            <View style={{ padding: 12, borderRadius: 12, backgroundColor: 'rgba(6, 182, 212, 0.1)' }}>
-                                                <MaterialIcons name="add-task" size={28} color="#06b6d4" />
+                                            <View style={{ padding: 12, borderRadius: 12, backgroundColor: theme.colors.cyanBg }}>
+                                                <PlusCircle size={28} color="#06b6d4" />
                                             </View>
                                             <Text style={{ color: theme.colors.text, fontWeight: '600' }}>{t('navigation.createJob')}</Text>
                                         </GlassCard>
 
                                         <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('UserManagement', { openCreate: true })}>
-                                            <View style={{ padding: 12, borderRadius: 12, backgroundColor: 'rgba(236, 72, 153, 0.1)' }}>
-                                                <MaterialIcons name="person-add" size={28} color="#ec4899" />
+                                            <View style={{ padding: 12, borderRadius: 12, backgroundColor: theme.colors.pinkBg }}>
+                                                <UserPlus size={28} color="#ec4899" />
                                             </View>
                                             <Text style={{ color: theme.colors.text, fontWeight: '600' }}>{t('navigation.userManagement')}</Text>
                                         </GlassCard>
 
                                         <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 8 }} onPress={() => navigation.navigate('CustomerManagement', { openCreate: true })}>
-                                            <View style={{ padding: 12, borderRadius: 12, backgroundColor: 'rgba(20, 184, 166, 0.1)' }}>
-                                                <MaterialIcons name="business" size={28} color="#14b8a6" />
+                                            <View style={{ padding: 12, borderRadius: 12, backgroundColor: theme.colors.tealBg }}>
+                                                <Building2 size={28} color="#14b8a6" />
                                             </View>
                                             <Text style={{ color: theme.colors.text, fontWeight: '600' }}>{t('navigation.customers')}</Text>
                                         </GlassCard>
@@ -227,9 +233,9 @@ export default function AdminDashboardScreen({ navigation }) {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     marginRight: 12,
-                                    backgroundColor: isDark ? 'rgba(204, 255, 4, 0.1)' : 'rgba(45, 91, 255, 0.1)'
+                                    backgroundColor: theme.colors.primaryBg
                                 }}>
-                                    <MaterialIcons name="work" size={20} color={theme.colors.primary} />
+                                    <Briefcase size={20} color={theme.colors.primary} />
                                 </View>
                                 <View style={{ flex: 1 }}>
                                     <Text style={{ fontSize: 14, fontWeight: '600', marginBottom: 2, color: theme.colors.text }} numberOfLines={1}>
@@ -239,7 +245,7 @@ export default function AdminDashboardScreen({ navigation }) {
                                         {item.status} • {new Date(item.createdAt).toLocaleDateString('tr-TR')}
                                     </Text>
                                 </View>
-                                <MaterialIcons name="chevron-right" size={20} color={theme.colors.subText} />
+                                <ChevronRight size={20} color={theme.colors.subText} />
                             </TouchableOpacity>
                         </View>
                     )}

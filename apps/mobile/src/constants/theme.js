@@ -64,7 +64,14 @@ export const lightTheme = {
         gradientEnd: { x: 0, y: 0 },
         textInverse: COLORS.white,
         error: COLORS.red500,
-        surface: COLORS.white
+        surface: COLORS.white,
+
+        // Status & Action Backgrounds (Opacity Tokens)
+        primaryBg: "rgba(45, 91, 255, 0.1)", // Electric Blue 0.1
+        warningBg: "rgba(245, 158, 11, 0.1)", // Amber 0.1
+        cyanBg: "rgba(6, 182, 212, 0.1)",
+        pinkBg: "rgba(236, 72, 153, 0.1)",
+        tealBg: "rgba(20, 184, 166, 0.1)"
     }
 };
 
@@ -89,7 +96,14 @@ export const darkTheme = {
         gradientEnd: { x: 0.5, y: 1 },
         textInverse: COLORS.black,
         error: COLORS.red500,
-        surface: COLORS.slate900
+        surface: COLORS.slate900,
+
+        // Status & Action Backgrounds (Opacity Tokens)
+        primaryBg: "rgba(204, 255, 4, 0.1)", // Neon Green 0.1
+        warningBg: "rgba(245, 158, 11, 0.1)", // Amber 0.1
+        cyanBg: "rgba(6, 182, 212, 0.1)",
+        pinkBg: "rgba(236, 72, 153, 0.1)",
+        tealBg: "rgba(20, 184, 166, 0.1)"
     }
 };
 
@@ -118,8 +132,11 @@ export const RADIUS = {
 };
 
 export const SPACING = {
+    xs: 4,  // New: Extra Small for tight gaps
     s: 8,
+    sm: 12, // New: Small-Medium for gaps/padding
     m: 16,
+    ml: 20, // New: Medium-Large for card padding
     l: 24,
     xl: 32,
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { LogOut } from 'lucide-react-native';
 import { COLORS } from '../../constants/theme';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -30,19 +30,22 @@ const CustomDrawer = ({ visible, onClose, user, navItems, onNavigate, onLogout }
                         <Text style={styles.drawerRole}>Yönetici</Text>
                     </View>
                     <View style={styles.drawerItems}>
-                        {navItems.map((item) => (
-                            <TouchableOpacity
-                                key={item.id}
-                                style={styles.drawerItem}
-                                onPress={() => onNavigate(item.route)}
-                            >
-                                <MaterialIcons name={item.icon} size={24} color={item.color} />
-                                <Text style={styles.drawerItemText}>{item.title}</Text>
-                            </TouchableOpacity>
-                        ))}
+                        {navItems.map((item) => {
+                            const IconComponent = item.icon;
+                            return (
+                                <TouchableOpacity
+                                    key={item.id}
+                                    style={styles.drawerItem}
+                                    onPress={() => onNavigate(item.route)}
+                                >
+                                    <IconComponent size={24} color={item.color} />
+                                    <Text style={styles.drawerItemText}>{item.title}</Text>
+                                </TouchableOpacity>
+                            );
+                        })}
                     </View>
                     <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
-                        <MaterialIcons name="logout" size={24} color={COLORS.red500} />
+                        <LogOut size={24} color={COLORS.red500} />
                         <Text style={styles.logoutText}>Çıkış Yap</Text>
                     </TouchableOpacity>
                 </View>
