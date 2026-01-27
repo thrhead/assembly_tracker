@@ -153,7 +153,7 @@ export default async function AdminDashboard() {
               style={{ width: `${budgetPercentage}%` }}
             ></div>
           </div>
-          <p className="text-muted-foreground text-xs">Günlük bütçenin <span className="font-medium text-foreground">%{budgetPercentage}</span>'i kullanıldı</p>
+          <p className="text-muted-foreground text-xs">Günlük bütçenin <span className="font-medium text-foreground">%{budgetPercentage}</span>&apos;i kullanıldı</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4 mt-4">

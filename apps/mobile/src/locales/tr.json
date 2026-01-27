@@ -12,7 +12,10 @@
     "next": "İleri",
     "confirm": "Onayla",
     "info": "Bilgi",
-    "warning": "Uyarı"
+    "warning": "Uyarı",
+    "all": "Hepsi",
+    "status": "Durum",
+    "confirmDelete": "Silmek istediğinize emin misiniz?"
   },
   "alerts": {
     "jobNotFound": "İş bulunamadı",
@@ -75,7 +78,10 @@
     "notifications": "Bildirimler",
     "teamDetails": "Ekip Detayları",
     "planning": "Planlama",
-    "reports": "Raporlar"
+    "reports": "Raporlar",
+    "teams": "Ekipler",
+    "calendar": "Takvim",
+    "logout": "Çıkış Yap"
   },
   "profile": {
     "title": "Profil",
@@ -191,5 +197,18 @@
     "planned": "Planlandı",
     "assigned": "Atandı",
     "inProgress": "Devam Ediyor"
+  },
+  "worker": {
+    "expenses": "Masraflar",
+    "jobDetails": "İş Detayları",
+    "steps": "Adımlar",
+    "started": "Başlatıldı",
+    "finished": "Tamamlandı",
+    "startJob": "İşi Başlat",
+    "completeJob": "İşi Tamamla",
+    "rejectionReason": "Red Sebebi"
+  },
+  "settings": {
+    "language": "Dil"
   }
 }

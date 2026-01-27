@@ -132,7 +132,7 @@ export function BulkUploadDialog() {
                             <p>1. Şablonu indirin.</p>
                             <p>2. İşlerinizi şablona uygun şekilde doldurun.</p>
                             <p>3. Doldurduğunuz dosyayı buraya yükleyin.</p>
-                            <p className="mt-2 text-xs opacity-80">* Aynı "Job Title"a sahip satırlar tek bir iş olarak gruplanır.</p>
+                            <p className="mt-2 text-xs opacity-80">* Aynı &quot;Job Title&quot;a sahip satırlar tek bir iş olarak gruplanır.</p>
                             <p className="text-xs opacity-80">* Müşteri ismi sistemde kayıtlı olmalıdır.</p>
                         </div>
                     </div>

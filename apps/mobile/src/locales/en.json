@@ -12,7 +12,10 @@
     "next": "Next",
     "confirm": "Confirm",
     "info": "Info",
-    "warning": "Warning"
+    "warning": "Warning",
+    "all": "All",
+    "status": "Status",
+    "confirmDelete": "Are you sure you want to delete?"
   },
   "alerts": {
     "jobNotFound": "Job not found",
@@ -75,7 +78,10 @@
     "notifications": "Notifications",
     "teamDetails": "Team Details",
     "planning": "Planning",
-    "reports": "Reports"
+    "reports": "Reports",
+    "teams": "Teams",
+    "calendar": "Calendar",
+    "logout": "Log Out"
   },
   "profile": {
     "title": "Profile",
@@ -191,5 +197,18 @@
     "planned": "Planned",
     "assigned": "Assigned",
     "inProgress": "In Progress"
+  },
+  "worker": {
+    "expenses": "Expenses",
+    "jobDetails": "Job Details",
+    "steps": "Steps",
+    "started": "Started",
+    "finished": "Finished",
+    "startJob": "Start Job",
+    "completeJob": "Complete Job",
+    "rejectionReason": "Rejection Reason"
+  },
+  "settings": {
+    "language": "Language"
   }
 }

@@ -2,31 +2,33 @@ import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import StatCard from '../StatCard';
 import { useTheme } from '../../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 const DashboardStatsGrid = ({ statsData }) => {
     const { theme } = useTheme();
+    const { t } = useTranslation();
 
     const stats = [
         {
-            title: 'Toplam İş',
+            title: t('admin.stats.totalJobs'),
             value: (statsData?.totalJobs || 0).toString(),
             icon: 'work',
             color: theme.colors.primary,
         },
         {
-            title: 'Aktif Ekipler',
+            title: t('admin.stats.activeTeams'),
             value: (statsData?.activeTeams || 0).toString(),
             icon: 'groups',
             color: '#3b82f6', // Keep semantic colors distinct if needed, or map to theme.secondary
         },
         {
-            title: 'Tamamlanan',
+            title: t('admin.stats.completedJobs'),
             value: (statsData?.completedJobs || 0).toString(),
             icon: 'check-circle',
             color: '#22c55e',
         },
         {
-            title: 'Bekleyen',
+            title: t('admin.stats.pendingJobs'),
             value: (statsData?.pendingJobs || 0).toString(),
             icon: 'access-time',
             color: '#f59e0b',
@@ -35,7 +37,7 @@ const DashboardStatsGrid = ({ statsData }) => {
 
     return (
         <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Genel Durum</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('common.info')}</Text>
             <View style={styles.statsGrid}>
                 {stats.map((stat) => (
                     <StatCard

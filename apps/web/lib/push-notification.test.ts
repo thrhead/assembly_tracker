@@ -12,7 +12,7 @@ vi.mock('expo-server-sdk', () => {
         }
     }
     
-    // @ts-ignore
+    // @ts-expect-error - isExpoPushToken is a static property on Expo class, but we are mocking it as a function
     MockExpo.isExpoPushToken = vi.fn().mockImplementation((token) => token.startsWith('ExponentPushToken'))
     
     return {

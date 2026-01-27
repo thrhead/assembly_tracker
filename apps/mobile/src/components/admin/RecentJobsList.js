@@ -2,22 +2,24 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 const RecentJobsList = ({ jobs = [], onJobPress, onViewAll }) => {
     const { theme, isDark } = useTheme();
+    const { t } = useTranslation();
     const jobsList = Array.isArray(jobs) ? jobs : [];
 
     return (
         <View style={styles.section}>
             <View style={styles.sectionHeader}>
-                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Son İşler</Text>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>{t('admin.recentJobs')}</Text>
                 <TouchableOpacity onPress={onViewAll} hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}>
-                    <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>Tümü</Text>
+                    <Text style={[styles.seeAllText, { color: theme.colors.primary }]}>{t('common.all')}</Text>
                 </TouchableOpacity>
             </View>
             <View style={styles.recentList}>
                 {jobsList.length === 0 ? (
-                    <Text style={{ color: theme.colors.subText, fontStyle: 'italic', padding: 8 }}>Henüz iş bulunmuyor.</Text>
+                    <Text style={{ color: theme.colors.subText, fontStyle: 'italic', padding: 8 }}>{t('admin.noJobs')}</Text>
                 ) : (
                     jobsList.map((job) => (
                         <TouchableOpacity

@@ -123,3 +123,5 @@ Bu proje özel kullanım içindir. Ticari kullanım ve dağıtım hakları sakl�
 
 **Son Güncelleme:** 28 Aralık 2025
 **Versiyon:** 2.6.0 (Advanced Reporting & TDD Setup)
+
+<!-- Trigger Vercel Build: 2026-01-27 -->

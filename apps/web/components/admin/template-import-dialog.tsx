@@ -121,7 +121,7 @@ export function TemplateImportDialog() {
                         <div className="text-sm text-blue-800">
                             <p className="font-medium mb-1">Bilgilendirme</p>
                             <p>1. Şablon formatını indirin.</p>
-                            <p>2. "Template Name" (Şablon Adı) aynı olan satırlar gruplanır.</p>
+                            <p>2. &quot;Template Name&quot; (Şablon Adı) aynı olan satırlar gruplanır.</p>
                             <p>3. Aynı şablona ait adımlar ve alt adımlar otomatik oluşturulur.</p>
                         </div>
                     </div>

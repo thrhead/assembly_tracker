@@ -815,7 +815,7 @@ Assembly Tracker Ltd. Şti.
                                     <TouchableOpacity
                                         style={[styles.checkbox, step.isCompleted && styles.checkedBox]}
                                         onPress={() => handleToggleStep(step.id, step.isCompleted)}
-                                        disabled={isLocked}
+                                        disabled={isLocked || user?.role?.toUpperCase() === 'ADMIN'}
                                     >
                                         {step.isCompleted && <MaterialIcons name="check" size={16} color="#FFFFFF" />}
                                     </TouchableOpacity>
@@ -873,7 +873,7 @@ Assembly Tracker Ltd. Şti.
                                                         <TouchableOpacity
                                                             style={[styles.checkbox, { width: 20, height: 20 }, substep.isCompleted && styles.checkedBox]}
                                                             onPress={() => handleSubstepToggle(step.id, substep.id, substep.isCompleted)}
-                                                            disabled={isSubstepLocked}
+                                                            disabled={isSubstepLocked || user?.role?.toUpperCase() === 'ADMIN'}
                                                         >
                                                             {substep.isCompleted && <MaterialIcons name="check" size={14} color="#FFFFFF" />}
                                                         </TouchableOpacity>
@@ -883,8 +883,8 @@ Assembly Tracker Ltd. Şti.
                                                                     {substep.title}
                                                                 </Text>
 
-                                                                {/* Alt adım için fotoğraf yükleme butonu */}
-                                                                {!isSubstepLocked && !substep.isCompleted && (
+                                                                {/* Alt adım için fotoğraf yükleme butonu - Sadece saha personeli için */}
+                                                                {!isSubstepLocked && !substep.isCompleted && user?.role?.toUpperCase() !== 'ADMIN' && (
                                                                     <TouchableOpacity
                                                                         onPress={() => pickImage(step.id, substep.id, 'camera')}
                                                                         style={[styles.actionButton, { padding: 4, marginLeft: 8 }]}

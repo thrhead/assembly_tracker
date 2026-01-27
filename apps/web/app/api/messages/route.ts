@@ -58,7 +58,8 @@ export async function POST(request: Request) {
         const senderId = "user_id_placeholder"
 
         const body = await request.json()
-        let { content, jobId, conversationId, receiverId, isEncrypted } = body
+        let { content } = body
+        const { jobId, conversationId, receiverId, isEncrypted } = body
 
         if (content && !isEncrypted) {
             content = sanitizeHtml(content)
