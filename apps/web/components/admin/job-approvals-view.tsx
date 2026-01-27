@@ -224,19 +224,19 @@ function ApprovalCard({ item, type, onApprove, onReject, loading }: any) {
                                 rel="noopener noreferrer"
                                 className="relative aspect-square rounded-md overflow-hidden border bg-gray-200 group"
                             >
-                                                        <img
-                                                            src={photo.url}
-                                                            alt="İşlem fotoğrafı"
-                                                            className="object-cover w-full h-full transition-opacity group-hover:opacity-90"
-                                                        />
+                                <img
+                                    src={photo.url}
+                                    alt="İşlem fotoğrafı"
+                                    className="object-cover w-full h-full transition-opacity group-hover:opacity-90"
+                                />
                                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/0 transition-colors" />
                             </a>
                         ))}
                     </div>
                 ) : (
-                                            <div className="p-3 mb-4 text-xs italic text-gray-500 border border-dashed rounded-md bg-white/50">
-                                                {step.notes}
-                                            </div>
+                    <div className="p-3 mb-4 text-xs italic text-gray-500 border border-dashed rounded-md bg-white/50">
+                        {item.notes}
+                    </div>
                 )}
 
                 <div className="flex gap-2">
