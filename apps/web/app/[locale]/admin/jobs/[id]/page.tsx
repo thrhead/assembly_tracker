@@ -76,7 +76,7 @@ export default async function AdminJobDetailsPage(props: {
         )
     }
 
-    const pendingApproval = job.approvals[0]
+    const pendingApproval = job.approvals?.[0]
 
     return (
         <div className="space-y-6">

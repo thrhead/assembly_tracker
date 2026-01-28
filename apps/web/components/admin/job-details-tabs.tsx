@@ -220,7 +220,7 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                                             <span>{a.team.name}</span>
                                                             {a.team.members && a.team.members.length > 0 ? (
                                                                 <span className="text-sm text-gray-600">
-                                                                    ({a.team.members.map((m: any) => m.user.name).join(', ')})
+                                                                    ({a.team.members.map((m: any) => m.user?.name || 'İsimsiz').join(', ')})
                                                                 </span>
                                                             ) : (
                                                                 <span className="text-xs text-red-500">
@@ -229,7 +229,7 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                                             )}
                                                         </div>
                                                     ) : (
-                                                        a.worker?.name
+                                                        a.worker?.name || 'Atanmamış'
                                                     )}
                                                 </div>
                                             ))
@@ -288,19 +288,19 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                             <CardContent className="space-y-2 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Şirket:</span>
-                                    <span className="font-medium">{job.customer.company}</span>
+                                    <span className="font-medium">{job.customer?.company || '-'}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">İsim:</span>
-                                    <span className="font-medium">{job.customer.user.name}</span>
+                                    <span className="font-medium">{job.customer?.user?.name || '-'}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Email:</span>
-                                    <span className="font-medium">{job.customer.user.email}</span>
+                                    <span className="font-medium">{job.customer?.user?.email || '-'}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Telefon:</span>
-                                    <span className="font-medium">{job.customer.user.phone}</span>
+                                    <span className="font-medium">{job.customer?.user?.phone || '-'}</span>
                                 </div>
                             </CardContent>
                         </Card>
