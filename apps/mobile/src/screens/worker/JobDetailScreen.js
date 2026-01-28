@@ -784,6 +784,40 @@ Assembly Tracker Ltd. Şti.
                             style={{ flex: 1 }}
                             contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]}
                         >
+                            {/* Job Approval Card (Manager/Admin only) */}
+                            {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && 
+                             job.status === 'COMPLETED' && 
+                             job.acceptanceStatus === 'PENDING' && (
+                                <GlassCard style={[styles.card, { borderColor: theme.colors.warning, backgroundColor: theme.colors.warningBg }]} theme={theme}>
+                                    <View style={styles.infoRow}>
+                                        <MaterialIcons name="error-outline" size={24} color={theme.colors.tertiary} />
+                                        <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 0, marginLeft: 8 }]}>Onay Bekliyor</Text>
+                                    </View>
+                                    <Text style={[styles.infoText, { color: theme.colors.subText, marginLeft: 0, marginBottom: 16 }]}>
+                                        Bu iş tamamlandı olarak işaretlendi ve yönetici onayını bekliyor. Lütfen detayları inceleyip karar verin.
+                                    </Text>
+                                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                                        <TouchableOpacity
+                                            style={[styles.managerButton, { backgroundColor: theme.colors.error, paddingVertical: 12 }]}
+                                            onPress={() => {
+                                                setRejectionType('JOB');
+                                                setRejectionModalVisible(true);
+                                            }}
+                                        >
+                                            <MaterialIcons name="close" size={20} color="#fff" />
+                                            <Text style={styles.managerButtonText}>Reddet</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.managerButton, { backgroundColor: theme.colors.success, paddingVertical: 12 }]}
+                                            onPress={handleAcceptJob}
+                                        >
+                                            <MaterialIcons name="check" size={20} color="#fff" />
+                                            <Text style={styles.managerButtonText}>Onayla</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </GlassCard>
+                            )}
+
                             <JobInfoCard job={job} />
 
                             <CostSection
@@ -1074,34 +1108,39 @@ Assembly Tracker Ltd. Şti.
                             )
                         ) : (
                             <View style={{ width: '100%' }}>
-                                <View style={[styles.acceptanceStatusContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
-                                    <Text style={[styles.acceptanceStatusLabel, { color: theme.colors.text }]}>{t('common.status')}:</Text>
-                                    <Text style={[
-                                        styles.acceptanceStatusValue,
-                                        job.acceptanceStatus === 'ACCEPTED' ? { color: theme.colors.success } :
-                                            job.acceptanceStatus === 'REJECTED' ? { color: theme.colors.error } : { color: theme.colors.warning }
-                                    ]}>
-                                        {job.acceptanceStatus === 'ACCEPTED' ? t('common.confirm') :
-                                            job.acceptanceStatus === 'REJECTED' ? t('common.error') : t('common.loading')}
-                                    </Text>
-                                </View>
-                                <View style={{ flexDirection: 'row', gap: 8 }}>
-                                    <TouchableOpacity
-                                        style={[styles.mainCompleteButton, styles.rejectButton, { flex: 1, padding: 12, backgroundColor: theme.colors.error }]}
-                                        onPress={() => setRejectionModalVisible(true)}
-                                    >
-                                        <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>{t('common.delete')}</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={[styles.mainCompleteButton, styles.acceptJobButton, { flex: 1, padding: 12, backgroundColor: theme.colors.success }]}
-                                        onPress={handleAcceptJob}
-                                    >
-                                        <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>{t('common.confirm')}</Text>
-                                    </TouchableOpacity>
-                                </View>
+                        <View style={[styles.acceptanceStatusContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+                            <Text style={[styles.acceptanceStatusLabel, { color: theme.colors.text }]}>Montaj Onay Durumu:</Text>
+                            <Text style={[
+                                styles.acceptanceStatusValue,
+                                job.acceptanceStatus === 'ACCEPTED' ? { color: theme.colors.success } :
+                                    job.acceptanceStatus === 'REJECTED' ? { color: theme.colors.error } : { color: theme.colors.warning }
+                            ]}>
+                                {job.acceptanceStatus === 'ACCEPTED' ? 'KABUL EDİLDİ' :
+                                    job.acceptanceStatus === 'REJECTED' ? 'REDDEDİLDİ' : 'ONAY BEKLİYOR'}
+                            </Text>
+                        </View>
+                        {job.acceptanceStatus === 'PENDING' && job.status === 'COMPLETED' && (
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                                <TouchableOpacity
+                                    style={[styles.mainCompleteButton, styles.rejectButton, { flex: 1, padding: 12, backgroundColor: theme.colors.error }]}
+                                    onPress={() => {
+                                        setRejectionType('JOB');
+                                        setRejectionModalVisible(true);
+                                    }}
+                                >
+                                    <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>Reddet</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.mainCompleteButton, styles.acceptJobButton, { flex: 1, padding: 12, backgroundColor: theme.colors.success }]}
+                                    onPress={handleAcceptJob}
+                                >
+                                    <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>Kabul Et</Text>
+                                </TouchableOpacity>
                             </View>
                         )}
                     </View>
+                )}
+            </View>
                 </>
             )}
 
@@ -1137,7 +1176,10 @@ Assembly Tracker Ltd. Şti.
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.modalContainer}>
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                         <View style={[styles.formCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
-                            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>{t('common.delete')}</Text>
+                            <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
+                                {rejectionType === 'JOB' ? 'İşi Reddet' : 
+                                 rejectionType === 'STEP' ? 'Adımı Reddet' : 'Alt Adımı Reddet'}
+                            </Text>
                             <Text style={[styles.inputLabel, { color: theme.colors.subText }]}>{t('worker.rejectionReason')}</Text>
                             <TextInput
                                 style={[styles.input, { backgroundColor: theme.colors.background, color: theme.colors.text, borderColor: theme.colors.border }]}
@@ -1160,7 +1202,7 @@ Assembly Tracker Ltd. Şti.
                                         else handleRejectJob();
                                     }}
                                 >
-                                    <Text style={[styles.submitButtonText, { color: theme.colors.textInverse }]}>{t('common.delete')}</Text>
+                                    <Text style={[styles.submitButtonText, { color: theme.colors.textInverse }]}>Reddet ve Geri Gönder</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>

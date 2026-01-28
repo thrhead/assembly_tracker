@@ -64,6 +64,8 @@ export const lightTheme = {
         gradientEnd: { x: 0, y: 0 },
         textInverse: COLORS.white,
         error: COLORS.red500,
+        success: COLORS.green500,
+        warning: COLORS.amber500,
         surface: COLORS.white,
 
         // Status & Action Backgrounds (Opacity Tokens)
@@ -96,6 +98,8 @@ export const darkTheme = {
         gradientEnd: { x: 0.5, y: 1 },
         textInverse: COLORS.black,
         error: COLORS.red500,
+        success: COLORS.green500,
+        warning: COLORS.amber500,
         surface: COLORS.slate900,
 
         // Status & Action Backgrounds (Opacity Tokens)
