@@ -12,12 +12,7 @@ import { DeleteJobButton } from "@/components/admin/delete-job-button"
 import { EditIcon } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { ChatPanel } from "@/components/chat/ChatPanel"
-import dynamic from 'next/dynamic'
-
-const AdminJobDetailsTabs = dynamic(
-    () => import('@/components/admin/job-details-tabs').then(mod => mod.AdminJobDetailsTabs),
-    { ssr: false, loading: () => <div className="h-96 w-full animate-pulse bg-gray-100 rounded-lg" /> }
-)
+import { JobDetailsClientWrapper } from "@/components/admin/job-details-client-wrapper"
 
 export const dynamicParams = true
 
@@ -125,7 +120,7 @@ export default async function AdminJobDetailsPage(props: {
                 <ApprovalActionCard approval={pendingApproval} />
             )}
 
-            <AdminJobDetailsTabs
+            <JobDetailsClientWrapper
                 job={JSON.parse(JSON.stringify(job))}
                 workers={workers}
                 teams={teams}
