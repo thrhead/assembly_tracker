@@ -195,9 +195,9 @@ export default async function JobsPage(props: {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="font-medium">{job.customer.company}</div>
-                    <div className="text-sm text-gray-500">{job.customer.user.name}</div>
-                    {job._count.steps === 0 && job.status === 'PENDING' && (
+                    <div className="font-medium">{job.customer?.company || 'Bilinmeyen Müşteri'}</div>
+                    <div className="text-sm text-gray-500">{job.customer?.user?.name || ''}</div>
+                    {job._count?.steps === 0 && job.status === 'PENDING' && (
                       <div className="mt-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
                         <Ban className="h-3 w-3 mr-1" /> İşe Başlanmadı
                       </div>

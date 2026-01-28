@@ -83,9 +83,9 @@ export function ApprovalDialog({ approval }: ApprovalDialogProps) {
           </DialogTitle>
           <DialogDescription>
             <div className="space-y-2 mt-2">
-              <p><span className="font-medium">İş:</span> {approval.job.title}</p>
-              <p><span className="font-medium">Müşteri:</span> {approval.job.customer.company}</p>
-              <p><span className="font-medium">Talep Eden:</span> {approval.requester.name}</p>
+              <p><span className="font-medium">İş:</span> {approval.job?.title || 'Bilinmiyor'}</p>
+              <p><span className="font-medium">Müşteri:</span> {approval.job?.customer?.company || 'Bilinmiyor'}</p>
+              <p><span className="font-medium">Talep Eden:</span> {approval.requester?.name || approval.requester?.email || 'Bilinmiyor'}</p>
             </div>
           </DialogDescription>
         </DialogHeader>

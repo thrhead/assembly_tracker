@@ -68,7 +68,7 @@ export function ApprovalActionCard({ approval }: ApprovalActionCardProps) {
             </CardHeader>
             <CardContent className="space-y-4">
                 <Alert className="bg-white border-yellow-200">
-                    <AlertTitle>Talep Eden: {approval.requester.name}</AlertTitle>
+                    <AlertTitle>Talep Eden: {approval.requester?.name || approval.requester?.email || 'Bilinmiyor'}</AlertTitle>
                     <AlertDescription className="text-gray-600">
                         Bu iş tamamlandı olarak işaretlendi ve onayınızı bekliyor.
                         İşin detaylarını aşağıdan inceleyebilir, uygunsa onaylayabilir veya reddedebilirsiniz.

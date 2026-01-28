@@ -43,7 +43,7 @@ export default async function ApprovalsPage() {
           <Card key={approval.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between gap-2">
-                <CardTitle className="text-lg line-clamp-2">{approval.job.title}</CardTitle>
+                <CardTitle className="text-lg line-clamp-2">{approval.job?.title || 'Bilinmeyen İş'}</CardTitle>
                 <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 shrink-0">
                   Bekliyor
                 </Badge>
@@ -52,17 +52,17 @@ export default async function ApprovalsPage() {
             <CardContent className="space-y-3">
               <div>
                 <p className="text-sm text-gray-600">
-                  <span className="font-medium">Müşteri:</span> {approval.job.customer.company}
+                  <span className="font-medium">Müşteri:</span> {approval.job?.customer?.company || 'Bilinmeyen Müşteri'}
                 </p>
                 <p className="text-sm text-gray-600">
-                  <span className="font-medium">Talep Eden:</span> {approval.requester.name}
+                  <span className="font-medium">Talep Eden:</span> {approval.requester?.name || approval.requester?.email || 'Bilinmiyor'}
                 </p>
                 <p className="text-sm text-gray-600">
                   <span className="font-medium">Talep Tarihi:</span>{' '}
-                  {formatDistanceToNow(new Date(approval.createdAt), {
+                  {approval.createdAt ? formatDistanceToNow(new Date(approval.createdAt), {
                     addSuffix: true,
                     locale: tr
-                  })}
+                  }) : '-'}
                 </p>
               </div>
 
@@ -75,11 +75,13 @@ export default async function ApprovalsPage() {
               )}
 
               <div className="flex gap-2">
-                <Button variant="outline" className="flex-1" asChild>
-                  <Link href={`/admin/jobs/${approval.job.id}`}>
-                    Detayları İncele
-                  </Link>
-                </Button>
+                {approval.job && (
+                  <Button variant="outline" className="flex-1" asChild>
+                    <Link href={`/admin/jobs/${approval.job.id}`}>
+                      Detayları İncele
+                    </Link>
+                  </Button>
+                )}
                 <ApprovalDialog approval={approval} />
               </div>
             </CardContent>
