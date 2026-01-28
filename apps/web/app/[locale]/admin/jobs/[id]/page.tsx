@@ -27,7 +27,7 @@ export default async function AdminJobDetailsPage(props: {
     // We fetch workers and teams here for the assignment dialogs that might be inside tabs
     // Ideally these should be fetched by the components that need them or inside a data layer
     // For now, keeping the pattern but using cleaner fetch
-    const [job, workers, teams, customers, templates] = await Promise.all([
+    const [jobResult, workers, teams, customers, templates] = await Promise.all([
         getJob(params.id),
         prisma.user.findMany({
             where: { role: 'WORKER', isActive: true },
@@ -45,7 +45,9 @@ export default async function AdminJobDetailsPage(props: {
         })
     ])
 
-    // Map data for JobDialog
+    const job = jobResult as any
+
+    // Map templates
     const dialogCustomers = customers.map(c => ({
         id: c.id,
         company: c.company,
