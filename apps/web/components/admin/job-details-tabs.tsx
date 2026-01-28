@@ -14,7 +14,6 @@ import { MapPin, Save } from 'lucide-react'
 import { PDFDownloadButton } from '@/components/pdf-download-button'
 import { ExcelDownloadButton } from '@/components/excel-download-button'
 import { ProformaDownloadButton } from '@/components/proforma-download-button'
-import { JobApprovalsView } from '@/components/admin/job-approvals-view'
 
 // Dynamic imports to avoid SSR issues
 const JobLocationMap = dynamic(
@@ -24,6 +23,11 @@ const JobLocationMap = dynamic(
 
 const ProgressCharts = dynamic(
     () => import('@/components/charts/progress-charts').then(mod => mod.ProgressCharts),
+    { ssr: false, loading: () => <div className="h-[300px] bg-gray-100 rounded-lg animate-pulse" /> }
+)
+
+const JobApprovalsView = dynamic(
+    () => import('@/components/admin/job-approvals-view').then(mod => mod.JobApprovalsView),
     { ssr: false, loading: () => <div className="h-[300px] bg-gray-100 rounded-lg animate-pulse" /> }
 )
 
