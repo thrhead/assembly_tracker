@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { JobEditView } from '@/components/admin/job-edit-view'
-import { JobTimeline } from '@/components/charts/job-timeline'
 import dynamic from 'next/dynamic'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -15,7 +13,7 @@ import { PDFDownloadButton } from '@/components/pdf-download-button'
 import { ExcelDownloadButton } from '@/components/excel-download-button'
 import { ProformaDownloadButton } from '@/components/proforma-download-button'
 
-// Dynamic imports to avoid SSR issues
+// Dynamic imports to avoid SSR issues and React hydration errors
 const JobLocationMap = dynamic(
     () => import('@/components/map/job-location-map').then(mod => mod.JobLocationMap),
     { ssr: false, loading: () => <div className="h-[400px] bg-gray-100 rounded-lg animate-pulse" /> }
@@ -29,6 +27,16 @@ const ProgressCharts = dynamic(
 const JobApprovalsView = dynamic(
     () => import('@/components/admin/job-approvals-view').then(mod => mod.JobApprovalsView),
     { ssr: false, loading: () => <div className="h-[300px] bg-gray-100 rounded-lg animate-pulse" /> }
+)
+
+const JobEditView = dynamic(
+    () => import('@/components/admin/job-edit-view').then(mod => mod.JobEditView),
+    { ssr: false, loading: () => <div className="h-[400px] bg-gray-100 rounded-lg animate-pulse" /> }
+)
+
+const JobTimeline = dynamic(
+    () => import('@/components/charts/job-timeline').then(mod => mod.JobTimeline),
+    { ssr: false, loading: () => <div className="h-[400px] bg-gray-100 rounded-lg animate-pulse" /> }
 )
 
 interface AdminJobDetailsTabsProps {
