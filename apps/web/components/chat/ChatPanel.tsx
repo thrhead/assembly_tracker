@@ -36,9 +36,15 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
     const [inputText, setInputText] = useState('')
     const [loading, setLoading] = useState(true)
     const [isTyping, setIsTyping] = useState(false)
+    const [mounted, setMounted] = useState(false)
     const scrollRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    useEffect(() => {
+        if (!mounted) return
         loadMessages()
         
         if (socket && isConnected) {
@@ -68,7 +74,7 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
                 socket.off('typing:stop')
             }
         }
-    }, [socket, isConnected, jobId])
+    }, [socket, isConnected, jobId, mounted])
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -154,7 +160,7 @@ export function ChatPanel({ jobId, title }: ChatPanelProps) {
         }
     }
 
-    if (loading) {
+    if (!mounted || loading) {
         return (
             <div className="flex h-[400px] items-center justify-center rounded-lg border bg-card">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
