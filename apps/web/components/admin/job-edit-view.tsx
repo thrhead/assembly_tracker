@@ -204,7 +204,7 @@ export function JobEditView({ job, workers, teams }: JobEditViewProps) {
                                         {assignment.team && assignment.team.members && assignment.team.members.length > 0 ? (
                                             <div className="mt-1 text-sm text-gray-600">
                                                 <span className="font-semibold">Üyeler: </span>
-                                                {assignment.team.members.map((m: any) => m.user.name).join(', ')}
+                                                {assignment.team.members.map((m: any) => m.user?.name || 'Bilinmiyor').join(', ')}
                                             </div>
                                         ) : assignment.team ? (
                                             <div className="mt-1 text-sm text-red-500">
@@ -242,7 +242,7 @@ export function JobEditView({ job, workers, teams }: JobEditViewProps) {
                                     <div>
                                         <p className="font-medium">{cost.description}</p>
                                         <p className="text-xs text-gray-500">
-                                            {cost.category} • {cost.createdBy.name} • {format(new Date(cost.date), 'd MMM', { locale: tr })}
+                                            {cost.category} • {cost.createdBy?.name || 'Silinmiş Kullanıcı'} • {format(new Date(cost.date), 'd MMM', { locale: tr })}
                                         </p>
                                     </div>
                                 </div>

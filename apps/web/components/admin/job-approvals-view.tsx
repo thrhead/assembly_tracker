@@ -202,7 +202,14 @@ function ApprovalCard({ item, type, onApprove, onReject, loading }: any) {
                             </div>
                             <div className="flex items-center text-[10px] text-gray-500">
                                 <Clock className="w-3 h-3 mr-1" />
-                                {item.completedAt ? format(new Date(item.completedAt), 'PPp', { locale: tr }) : '-'}
+                                {(() => {
+                                    if (!item.completedAt) return '-'
+                                    try {
+                                        return format(new Date(item.completedAt), 'PPp', { locale: tr })
+                                    } catch (e) {
+                                        return '-'
+                                    }
+                                })()}
                             </div>
                         </div>
                     </div>
