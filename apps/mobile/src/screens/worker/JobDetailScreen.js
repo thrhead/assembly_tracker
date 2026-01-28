@@ -1113,10 +1113,12 @@ Assembly Tracker Ltd. Şti.
                             <Text style={[
                                 styles.acceptanceStatusValue,
                                 job.acceptanceStatus === 'ACCEPTED' ? { color: theme.colors.success } :
-                                    job.acceptanceStatus === 'REJECTED' ? { color: theme.colors.error } : { color: theme.colors.warning }
+                                    (job.status === 'COMPLETED' && job.acceptanceStatus === 'PENDING') ? { color: theme.colors.warning } :
+                                        job.acceptanceStatus === 'REJECTED' ? { color: theme.colors.error } : { color: theme.colors.subText }
                             ]}>
-                                {job.acceptanceStatus === 'ACCEPTED' ? 'KABUL EDİLDİ' :
-                                    job.acceptanceStatus === 'REJECTED' ? 'REDDEDİLDİ' : 'ONAY BEKLİYOR'}
+                                {job.acceptanceStatus === 'ACCEPTED' ? 'ONAYLANMIŞ' :
+                                    job.acceptanceStatus === 'REJECTED' ? 'REDDEDİLMİŞ' :
+                                        job.status === 'COMPLETED' ? 'ONAY BEKLİYOR' : 'MONTAJ DEVAM EDİYOR'}
                             </Text>
                         </View>
                         {job.acceptanceStatus === 'PENDING' && job.status === 'COMPLETED' && (

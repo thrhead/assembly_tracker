@@ -21,6 +21,10 @@ export const useJobFiltering = (jobs) => {
             result = result.filter(j => j.status === 'IN_PROGRESS');
         } else if (selectedFilter === 'Bekleyen') {
             result = result.filter(j => j.status === 'PENDING');
+        } else if (selectedFilter === 'Onay Bekleyen') {
+            result = result.filter(j => j.status === 'COMPLETED' && j.acceptanceStatus === 'PENDING');
+        } else if (selectedFilter === 'Onaylanan') {
+            result = result.filter(j => j.acceptanceStatus === 'ACCEPTED');
         } else if (selectedFilter === 'Tamamlanan') {
             result = result.filter(j => j.status === 'COMPLETED');
         }
