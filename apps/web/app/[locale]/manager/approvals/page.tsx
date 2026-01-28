@@ -40,22 +40,9 @@ export default async function ManagerApprovalsPage() {
 
     const approvals = await getApprovals()
 
-    // Serialize dates for client components
-    const serializedApprovals = approvals.map(approval => ({
-        ...approval,
-        createdAt: approval.createdAt?.toISOString() ?? null,
-        updatedAt: approval.updatedAt ? approval.updatedAt.toISOString() : null,
-        job: {
-            ...approval.job,
-            createdAt: approval.job.createdAt?.toISOString() ?? null,
-            updatedAt: approval.job.updatedAt?.toISOString() ?? null,
-            startedAt: approval.job.startedAt?.toISOString() ?? null,
-            scheduledDate: approval.job.scheduledDate?.toISOString() ?? null,
-            scheduledEndDate: approval.job.scheduledEndDate?.toISOString() ?? null,
-            completedDate: approval.job.completedDate?.toISOString() ?? null,
-            acceptedAt: approval.job.acceptedAt?.toISOString() ?? null,
-        }
-    }))
+    // Serialize all dates for client components using JSON parse/stringify
+    // This handles all nested Date objects automatically
+    const serializedApprovals = JSON.parse(JSON.stringify(approvals))
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
