@@ -99,6 +99,7 @@ export async function GET(req: Request) {
                     id: job.id,
                     title: job.title || '',
                     status: job.status || 'PENDING',
+                    acceptanceStatus: job.acceptanceStatus || 'PENDING',
                     priority: job.priority || 'MEDIUM',
                     location: job.location || '',
                     scheduledDate: job.scheduledDate ? new Date(job.scheduledDate).toISOString() : null,
