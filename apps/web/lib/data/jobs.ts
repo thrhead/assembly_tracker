@@ -163,7 +163,6 @@ export async function getJob(id: string) {
             user: true
           }
         },
-        acceptanceStatus: true,
         assignments: {
           include: {
             team: {
