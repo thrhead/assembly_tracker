@@ -74,7 +74,9 @@ export default async function AdminJobDetailsPage(props: {
         )
     }
 
-    const pendingApproval = job.approvals[0]
+    // Serialize pending approval to handle Date objects
+    const rawPendingApproval = job.approvals[0]
+    const pendingApproval = rawPendingApproval ? JSON.parse(JSON.stringify(rawPendingApproval)) : null
 
     return (
         <div className="space-y-6">
@@ -103,10 +105,10 @@ export default async function AdminJobDetailsPage(props: {
                             </Button>
                         }
                     />
-                    <DeleteJobButton 
-                        jobId={job.id} 
-                        jobTitle={job.title} 
-                        variant="destructive" 
+                    <DeleteJobButton
+                        jobId={job.id}
+                        jobTitle={job.title}
+                        variant="destructive"
                         size="default"
                         showText={true}
                     />
