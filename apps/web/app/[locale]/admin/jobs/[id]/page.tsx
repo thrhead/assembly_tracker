@@ -57,23 +57,27 @@ export default async function AdminJobDetailsPage(props: {
         )
     }
 
-    // Serialize job to avoid Date object issues between Server and Client components
+    // Serialize ALL data to avoid Date object issues between Server and Client components
     const job = JSON.parse(JSON.stringify(jobResult))
+    const serializedWorkers = JSON.parse(JSON.stringify(workers))
+    const serializedTeams = JSON.parse(JSON.stringify(teams))
+    const serializedCustomers = JSON.parse(JSON.stringify(customers))
+    const serializedTemplates = JSON.parse(JSON.stringify(templates))
 
-    // Map templates with safety
-    const dialogCustomers = customers.map(c => ({
+    // Map templates with safety using serialized data
+    const dialogCustomers = serializedCustomers.map((c: any) => ({
         id: c.id,
         company: c.company,
         user: { name: c.user?.name || '' }
     }))
 
-    const dialogTemplates = templates.map(t => ({
+    const dialogTemplates = serializedTemplates.map((t: any) => ({
         id: t.id,
         name: t.name,
-        steps: (t.steps || []).map(s => ({
+        steps: (t.steps || []).map((s: any) => ({
             title: s.title,
             description: '',
-            subSteps: (s.subSteps || []).map(ss => ({ title: ss.title }))
+            subSteps: (s.subSteps || []).map((ss: any) => ({ title: ss.title }))
         }))
     }))
 
@@ -95,9 +99,9 @@ export default async function AdminJobDetailsPage(props: {
                 </div>
                 <div className="flex items-center gap-2">
                     <JobDialog
-                        job={JSON.parse(JSON.stringify(job))}
+                        job={job}
                         customers={dialogCustomers}
-                        teams={teams}
+                        teams={serializedTeams}
                         templates={dialogTemplates}
                         trigger={
                             <Button variant="outline" className="gap-2">
@@ -122,8 +126,8 @@ export default async function AdminJobDetailsPage(props: {
 
             <AdminJobDetailsTabs
                 job={job}
-                workers={workers}
-                teams={teams}
+                workers={serializedWorkers}
+                teams={serializedTeams}
             />
 
             <Card>
