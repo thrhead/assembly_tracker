@@ -43,14 +43,14 @@ export default async function ManagerApprovalsPage() {
     // Define type for serialized approval data
     type SerializedApproval = {
         id: string
-        notes: string | null
-        createdAt: string | null
-        job: {
-            id: string
-            title: string
-            customer: { company: string } | null
+        notes?: string | null
+        createdAt?: string | null
+        job?: {
+            id?: string
+            title?: string
+            customer?: { company?: string } | null
         } | null
-        requester: { name: string | null; email: string } | null
+        requester?: { name?: string | null; email?: string } | null
     }
 
     // Serialize all dates for client components using JSON parse/stringify
