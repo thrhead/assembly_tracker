@@ -1,0 +1,8 @@
+{
+  "id": "mobile-ui-color-tokens",
+  "title": "Mobile UI Color & Opacity Tokenization",
+  "status": "Completed",
+  "createdAt": "2026-01-28",
+  "completedAt": "2026-01-28",
+  "description": "Mobil tema sistemine renk ve opaklık tokenları eklendi, magic string kullanımları temizlendi."
+}

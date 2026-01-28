@@ -1,0 +1,8 @@
+{
+  "id": "mobile-job-update-fix",
+  "title": "Mobile Job Update Fix & Confirmation",
+  "status": "Completed",
+  "createdAt": "2026-01-28",
+  "completedAt": "2026-01-28",
+  "description": "Mobil uygulama üzerinden iş güncelleme hatası (405) giderildi ve güncelleme öncesi onay mekanizması eklendi."
+}

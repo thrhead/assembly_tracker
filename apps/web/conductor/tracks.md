@@ -2,16 +2,18 @@
 
 | ID | Title | Status |
 |----|-------|--------|
-| [web-ui-semantic-buttons](./active/web_ui_semantic_buttons/metadata.json) | Web UI Semantic Button Refactor | Completed |
-| [web-ui-color-tokenization](./active/web_ui_color_tokenization/metadata.json) | Web UI Global Color Tokenization | Completed |
-| [web-ui-hardcoded-cleanup](./active/web_ui_hardcoded_cleanup/metadata.json) | Web UI Hardcoded Color Cleanup | Completed |
-| [mobile-ui-icons-standardization](./active/mobile_ui_icons_standardization/metadata.json) | Mobile UI Icon Standardization (Lucide) | Completed |
-| [mobile-ui-color-tokens](./active/mobile_ui_color_tokens/metadata.json) | Mobile UI Color & Opacity Tokenization | Completed |
-| [mobile-ui-spacing-standardization](./active/mobile_ui_spacing_standardization/metadata.json) | Mobile UI Spacing Standardization | Completed |
+| [mobile-pwa-routing-fix](./tracks/mobile_pwa_routing_fix/metadata.json) | Mobile PWA Routing 404 Fix | In Progress |
 
 ## Archived Tracks (2026)
 | ID | Title | Date |
 |----|-------|------|
+| [web-ui-semantic-buttons](./archive/web_ui_semantic_buttons_20260128/metadata.json) | Web UI Semantic Button Refactor | 2026-01-28 |
+| [web-ui-color-tokenization](./archive/web_ui_color_tokenization_20260128/metadata.json) | Web UI Global Color Tokenization | 2026-01-28 |
+| [web-ui-hardcoded-cleanup](./archive/web_ui_hardcoded_cleanup_20260128/metadata.json) | Web UI Hardcoded Color Cleanup | 2026-01-28 |
+| [mobile-job-update-fix](./archive/mobile_job_update_fix_20260128/metadata.json) | Mobile Job Update Fix & Confirmation | 2026-01-28 |
+| [mobile-ui-icons-standardization](./archive/mobile_ui_icons_standardization_20260128/metadata.json) | Mobile UI Icon Standardization (Lucide) | 2026-01-28 |
+| [mobile-ui-color-tokens](./archive/mobile_ui_color_tokens_20260128/metadata.json) | Mobile UI Color & Opacity Tokenization | 2026-01-28 |
+| [mobile-ui-spacing-standardization](./archive/mobile_ui_spacing_standardization_20260128/metadata.json) | Mobile UI Spacing Standardization | 2026-01-28 |
 | [mobile-ui-i18n-fix](./archive/mobile_ui_i18n_fix_20260127/metadata.json) | Mobile Dashboard i18n & UI Consistency Fix | 2026-01-27 |
 | [lint-quality-overhaul](./archive/lint_quality_overhaul_20260127/metadata.json) | Lint & Kod Kalitesi İyileştirmesi | 2026-01-27 |
 | [resilient-webhook](./archive/resilient_webhook_20260127/metadata.json) | Resilient Webhook & Retry Mechanism | 2026-01-27 |

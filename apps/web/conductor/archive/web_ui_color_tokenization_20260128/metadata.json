@@ -1,0 +1,8 @@
+{
+  "id": "web-ui-color-tokenization",
+  "title": "Web UI Global Color Tokenization",
+  "status": "Completed",
+  "createdAt": "2026-01-28",
+  "completedAt": "2026-01-28",
+  "description": "globals.css dosyasına semantik renk tokenları (warning, success, info) eklendi ve Badge bileşeni güncellendi."
+}

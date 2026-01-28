@@ -1,0 +1,8 @@
+{
+  "id": "web-ui-semantic-buttons",
+  "title": "Web UI Semantic Button Refactor",
+  "status": "Completed",
+  "createdAt": "2026-01-28",
+  "completedAt": "2026-01-28",
+  "description": "Button bileşeni tamamen semantik CSS değişkenlerini kullanacak şekilde refaktör edildi."
+}
