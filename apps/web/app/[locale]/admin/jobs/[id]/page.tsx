@@ -11,10 +11,10 @@ import { JobDialog } from "@/components/admin/job-dialog"
 import { DeleteJobButton } from "@/components/admin/delete-job-button"
 import { EditIcon } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import dynamic from 'next/dynamic'
+import NextDynamic from 'next/dynamic'
 
 // Dynamically import ChatPanel with SSR disabled because it uses browser-only APIs
-const ChatPanel = dynamic(
+const ChatPanel = NextDynamic(
     () => import("@/components/chat/ChatPanel").then(mod => mod.ChatPanel),
     { ssr: false, loading: () => <div className="h-[500px] bg-gray-100 rounded-lg animate-pulse" /> }
 )
