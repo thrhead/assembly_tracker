@@ -22,16 +22,28 @@ export interface SyncQueueItem {
     retryCount?: number
 }
 
+export interface LocalLog {
+    id?: number
+    level: string
+    message: string
+    context?: any
+    stack?: string
+    platform: 'web' | 'mobile' | 'server'
+    createdAt: string
+}
+
 class OfflineDatabase extends Dexie {
     messages!: Table<LocalMessage>
     syncQueue!: Table<SyncQueueItem>
+    systemLogs!: Table<LocalLog>
 
     constructor() {
         super('AssemblyTrackerOfflineDB')
-        
-        this.version(1).stores({
+
+        this.version(2).stores({
             messages: 'id, jobId, conversationId, sentAt, status', // Indexes
-            syncQueue: '++id, createdAt'
+            syncQueue: '++id, createdAt',
+            systemLogs: '++id, level, createdAt'
         })
     }
 }

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import { verifyAuth } from '@/lib/auth-helper';
 import { sendAdminNotification } from '@/lib/notification-helper';
 import { triggerWebhook } from '@/lib/webhook-service';
+import { checkConflict } from '@/lib/conflict-check';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -20,6 +21,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         if (!job) {
             return NextResponse.json({ error: 'Job not found' }, { status: 404 });
         }
+
+        const conflict = await checkConflict(request, job.updatedAt);
+        if (conflict) return conflict;
 
         if (job.status !== 'PENDING') {
             return NextResponse.json({ error: 'Job already started or completed' }, { status: 400 });

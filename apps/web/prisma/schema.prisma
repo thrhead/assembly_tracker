@@ -40,6 +40,7 @@ model User {
   sentMessages       Message[]       @relation("MessageSender")
   receivedMessages   Message[]       @relation("MessageReceiver")
   apiKeys            ApiKey[]
+  systemLogs         SystemLog[]
 
   @@map("users")
 }
@@ -401,4 +402,20 @@ model WebhookLog {
   webhook       Webhook   @relation(fields: [webhookId], references: [id], onDelete: Cascade)
 
   @@map("webhook_logs")
+}
+
+model SystemLog {
+  id        String   @id @default(cuid())
+  level     String   // DEBUG, INFO, WARN, ERROR, AUDIT
+  message   String
+  context   Json?    // Optional JSON context (device info, user agent, etc.)
+  stack     String?  // Error stack trace
+  platform  String   // "web", "mobile", "server"
+  userId    String?  // Associated user (optional)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([level, createdAt])
+  @@index([platform, createdAt])
+  @@map("system_logs")
 }

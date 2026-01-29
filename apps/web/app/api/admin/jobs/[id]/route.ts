@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { EventBus } from '@/lib/event-bus'
+import { checkConflict } from '@/lib/conflict-check'
 
 const updateJobSchema = z.object({
     startedAt: z.string().optional().nullable(),
@@ -42,6 +43,14 @@ export async function PUT(
 
         // Parse body with full schema
         const data = fullUpdateJobSchema.parse(body)
+
+        // Seviye 3: Çatışma Kontrolü
+        const currentJob = await prisma.job.findUnique({
+            where: { id: params.id },
+            select: { updatedAt: true }
+        })
+        const conflict = await checkConflict(req, currentJob?.updatedAt)
+        if (conflict) return conflict
 
         // Handle Steps Logic if provided (Simplistic approach: Transactional replace or upsert)
         // For now, focusing on core fields as requested. 
@@ -96,6 +105,14 @@ export async function PATCH(
         const params = await props.params
         const body = await req.json()
         const { startedAt, completedDate, scheduledDate, scheduledEndDate } = updateJobSchema.parse(body)
+
+        // Seviye 3: Çatışma Kontrolü
+        const currentJob = await prisma.job.findUnique({
+            where: { id: params.id },
+            select: { updatedAt: true }
+        })
+        const conflict = await checkConflict(req, currentJob?.updatedAt)
+        if (conflict) return conflict
 
         const updatedJob = await prisma.job.update({
             where: { id: params.id },

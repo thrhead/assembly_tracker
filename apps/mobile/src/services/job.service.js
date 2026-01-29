@@ -44,16 +44,17 @@ const jobService = {
     },
 
     // Mutations - Job Status & Flow
-    startJob: async (jobId) => {
-        const response = await api.post(`/api/worker/jobs/${jobId}/start`);
+    startJob: async (jobId, updatedAt) => {
+        const response = await api.post(`/api/worker/jobs/${jobId}/start`, { updatedAt });
         return response.data;
     },
 
-    completeJob: async (jobId, signature, coords) => {
+    completeJob: async (jobId, signature, coords, updatedAt) => {
         const response = await api.post(`/api/worker/jobs/${jobId}/complete`, {
             signature,
             signatureLatitude: coords?.latitude,
-            signatureLongitude: coords?.longitude
+            signatureLongitude: coords?.longitude,
+            updatedAt
         });
         return response.data;
     },
@@ -74,13 +75,13 @@ const jobService = {
     },
 
     // Mutations - Steps
-    toggleStep: async (jobId, stepId, isCompleted) => {
-        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/toggle`, { isCompleted });
+    toggleStep: async (jobId, stepId, isCompleted, updatedAt) => {
+        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/toggle`, { isCompleted, updatedAt });
         return response.data;
     },
 
-    startStep: async (jobId, stepId) => {
-        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/start`);
+    startStep: async (jobId, stepId, updatedAt) => {
+        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/start`, { updatedAt });
         return response.data;
     },
 
@@ -95,8 +96,8 @@ const jobService = {
     },
 
     // Mutations - Substeps
-    toggleSubstep: async (jobId, stepId, substepId, isCompleted) => {
-        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/substeps/${substepId}/toggle`, { isCompleted });
+    toggleSubstep: async (jobId, stepId, substepId, isCompleted, updatedAt) => {
+        const response = await api.post(`/api/worker/jobs/${jobId}/steps/${stepId}/substeps/${substepId}/toggle`, { isCompleted, updatedAt });
         return response.data;
     },
 

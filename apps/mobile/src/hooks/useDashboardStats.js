@@ -5,8 +5,12 @@ export const useDashboardStats = () => {
     const [statsData, setStatsData] = useState({
         totalJobs: 0,
         activeTeams: 0,
-        completedJobs: 0,
-        pendingJobs: 0
+        totalCostToday: 0,
+        budgetPercentage: 0,
+        totalPendingCost: 0,
+        totalApprovedCost: 0,
+        weeklyStats: [],
+        activeWorkers: []
     });
     const [recentJobs, setRecentJobs] = useState([]);
     const [loading, setLoading] = useState(false);

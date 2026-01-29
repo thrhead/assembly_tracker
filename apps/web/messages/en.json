@@ -127,5 +127,19 @@
       "CANCELLED": "Cancelled",
       "ON_HOLD": "On Hold"
     }
+  },
+  "Admin": {
+    "logs": {
+      "title": "System Logs",
+      "subtitle": "Monitor errors and system activities.",
+      "level": "Level",
+      "platform": "Platform",
+      "message": "Message",
+      "user": "User",
+      "time": "Time",
+      "prune": "Prune Old Logs",
+      "pruneConfirm": "Technical logs older than 90 days will be deleted. Do you confirm?",
+      "noLogs": "No log records found."
+    }
   }
 }

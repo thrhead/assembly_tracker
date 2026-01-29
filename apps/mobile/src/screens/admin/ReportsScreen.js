@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
-import { LucideIcon, BarChart3, TrendingUp, DollarSign, Briefcase, Users, CheckCircle2, Calendar, ArrowRight } from 'lucide-react-native';
+import { BarChart3, TrendingUp, DollarSign, Briefcase, Users, CheckCircle2, Calendar, ArrowRight, FileIcon, ShieldCheck } from 'lucide-react-native';
 import { useTheme } from '../../context/ThemeContext';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,7 +16,15 @@ const ReportsScreen = () => {
     const [perfData, setPerfData] = useState(null);
     const [costData, setCostData] = useState(null);
     const [activeTab, setActiveTab] = useState('performance');
+    const [selectedTemplate, setSelectedTemplate] = useState('standard');
     const [selectedDay, setSelectedDay] = useState(null);
+
+    const templates = [
+        { id: 'standard', title: 'Standart', icon: FileIcon },
+        { id: 'audit', title: 'Denetim', icon: ShieldCheck },
+        { id: 'efficiency', title: 'Verimlilik', icon: TrendingUp },
+        { id: 'cost_breakdown', title: 'Maliyet', icon: DollarSign },
+    ];
 
     useEffect(() => {
         fetchReports();
@@ -32,7 +40,7 @@ const ReportsScreen = () => {
             ]);
             setPerfData(perfRes.data);
             setCostData(costRes.data);
-            
+
             // Set initial selected day to today
             if (perfRes.data.weeklySteps?.currentWeek?.length > 0) {
                 setSelectedDay(perfRes.data.weeklySteps.currentWeek[perfRes.data.weeklySteps.currentWeek.length - 1]);
@@ -58,7 +66,7 @@ const ReportsScreen = () => {
         const label = date.toLocaleDateString('tr-TR', { weekday: 'short' });
         const categories = perfData.weeklySteps.categories;
         const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-        
+
         return {
             stacks: categories.map((cat, cIdx) => ({
                 value: day[cat] || 0,
@@ -75,6 +83,42 @@ const ReportsScreen = () => {
             <View style={styles.header}>
                 <Text style={[styles.title, { color: theme.colors.text }]}>Analiz & Raporlar</Text>
                 <Text style={{ color: theme.colors.subText, fontSize: 14 }}>Performans ve Maliyet Analizi</Text>
+            </View>
+
+            {/* Template Selection */}
+            <View style={{ marginBottom: 20 }}>
+                <Text style={[styles.sectionTitle, { color: theme.colors.text, marginLeft: 20, marginBottom: 12 }]}>Rapor Taslağı</Text>
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+                >
+                    {templates.map((temp) => (
+                        <TouchableOpacity
+                            key={temp.id}
+                            onPress={() => {
+                                setSelectedTemplate(temp.id);
+                                if (temp.id === 'cost_breakdown') setActiveTab('costs');
+                                else setActiveTab('performance');
+                            }}
+                            style={[
+                                styles.templateChip,
+                                {
+                                    backgroundColor: selectedTemplate === temp.id ? theme.colors.primary : theme.colors.card,
+                                    borderColor: selectedTemplate === temp.id ? theme.colors.primary : theme.colors.cardBorder
+                                }
+                            ]}
+                        >
+                            <temp.icon size={16} color={selectedTemplate === temp.id ? '#fff' : theme.colors.primary} />
+                            <Text style={[
+                                styles.templateText,
+                                { color: selectedTemplate === temp.id ? '#fff' : theme.colors.text }
+                            ]}>
+                                {temp.title}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
             </View>
 
             <View style={styles.tabContainer}>
@@ -115,7 +159,7 @@ const ReportsScreen = () => {
                                 <Text style={[styles.cardTitle, { color: theme.colors.text }]}>Haftalık Tamamlanan Adımlar</Text>
                             </View>
                         </View>
-                        
+
                         <View style={{ marginTop: 20, alignItems: 'center' }}>
                             <BarChart
                                 stackData={stackData}
@@ -238,7 +282,21 @@ const styles = StyleSheet.create({
     teamList: { gap: 12 },
     teamRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, paddingBottom: 12 },
     teamName: { fontSize: 14, fontWeight: '500' },
-    teamVal: { fontSize: 14, fontWeight: '700' }
+    teamVal: { fontSize: 14, fontWeight: '700' },
+    sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 8 },
+    templateChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 20,
+        borderWidth: 1,
+        gap: 8,
+    },
+    templateText: {
+        fontSize: 14,
+        fontWeight: '600',
+    },
 });
 
 export default ReportsScreen;

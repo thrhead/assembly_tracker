@@ -46,13 +46,23 @@ api.interceptors.request.use(
 
             // Action Queue Logic: Queue non-GET requests when offline
             const writeMethods = ['post', 'put', 'patch', 'delete'];
-            if (writeMethods.includes(config.method.toLowerCase()) && !netState.isConnected) {
+            const isWrite = writeMethods.includes(config.method.toLowerCase());
+
+            // Seviye 3: Payloaddan versiyon bilgisini yakala
+            let clientVersion = null;
+            if (isWrite && config.data && config.data.updatedAt) {
+                clientVersion = config.data.updatedAt;
+            }
+
+            if (isWrite && !netState.isConnected) {
                 console.log(`[API] Offline - queueing ${config.method.toUpperCase()} request: ${config.url}`);
+
                 const queueItem = {
                     type: config.method.toUpperCase(),
                     url: config.url,
                     payload: config.data,
                     headers: config.headers,
+                    clientVersion, // Seviye 3 için eklendi
                 };
                 await QueueService.addItem(queueItem);
 
@@ -66,15 +76,20 @@ api.interceptors.request.use(
                 };
             }
 
+            // ONLINE CASE: Add X-Client-Version header if we have a version
+            if (isWrite && clientVersion) {
+                config.headers['X-Client-Version'] = clientVersion;
+            }
+
             if (!config.headers.Authorization) {
                 const token = await AsyncStorage.getItem('authToken');
                 if (token) {
                     config.headers.Authorization = `Bearer ${token}`;
                 }
             }
-            
+
             console.log(`[API Request] ${config.method.toUpperCase()} ${config.baseURL}${config.url}`);
-            
+
             if (__DEV__) {
                 console.log(`[API Trace] Params:`, config.params);
             }

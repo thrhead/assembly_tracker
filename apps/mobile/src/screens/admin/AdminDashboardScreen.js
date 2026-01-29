@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, S
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     Users, Building2, UsersRound, Briefcase, ClipboardCheck, Banknote,
-    Calendar, TrendingUp, BarChart3, Sun, Moon, PlusCircle, UserPlus, ChevronRight
+    Calendar, TrendingUp, BarChart3, Sun, Moon, PlusCircle, UserPlus, ChevronRight, ShieldCheck
 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -12,9 +12,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from '../../components/ui/GlassCard';
 import { useDashboardStats } from '../../hooks/useDashboardStats';
 import CustomDrawer from '../../components/admin/CustomDrawer';
-import DashboardStatsGrid from '../../components/admin/DashboardStatsGrid'; // You might need to check if this component supports theme props or styling
-import RecentJobsList from '../../components/admin/RecentJobsList'; // Same here
+import DashboardStatsGrid from '../../components/admin/DashboardStatsGrid';
+import { BarChart } from 'react-native-gifted-charts';
+import RecentJobsList from '../../components/admin/RecentJobsList';
 import DashboardBottomNav from '../../components/admin/DashboardBottomNav';
+import { API_URL } from '../../config';
+
+const { width } = Dimensions.get('window');
 
 export default function AdminDashboardScreen({ navigation }) {
     const { t } = useTranslation();
@@ -34,6 +38,17 @@ export default function AdminDashboardScreen({ navigation }) {
         await fetchStats();
         setRefreshing(false);
     };
+
+    // Prepare chart data from statsData.weeklyStats
+    const chartData = (statsData?.weeklyStats || []).map(stat => ({
+        value: stat.count,
+        label: stat.name,
+        frontColor: theme.colors.primary,
+        gradientColor: theme.colors.primary,
+        topLabelComponent: () => (
+            <Text style={{ color: theme.colors.text, fontSize: 10, fontWeight: 'bold', marginBottom: 4 }}>{stat.count}</Text>
+        )
+    }));
 
     const handleLogout = async () => {
         const performLogout = async () => {
@@ -63,8 +78,6 @@ export default function AdminDashboardScreen({ navigation }) {
             );
         }
     };
-
-    // Navigation Items Data
     const navItems = [
         { id: 'users', title: t('navigation.userManagement'), icon: Users, route: 'UserManagement', color: theme.colors.primary },
         { id: 'customers', title: t('navigation.customers'), icon: Building2, route: 'CustomerManagement', color: theme.colors.tertiary },
@@ -75,6 +88,7 @@ export default function AdminDashboardScreen({ navigation }) {
         { id: 'calendar', title: t('navigation.calendar') || 'Calendar', icon: Calendar, route: 'Calendar', color: '#a855f7' }, // Purple
         { id: 'planning', title: t('navigation.planning') || 'Planning', icon: TrendingUp, route: 'AdvancedPlanning', color: theme.colors.primary },
         { id: 'reports', title: t('navigation.reports') || 'Reports', icon: BarChart3, route: 'Reports', color: '#3b82f6' }, // Blue
+        { id: 'webhooks', title: 'Webhook Monitoring', icon: ShieldCheck, route: 'Webhooks', color: '#6366f1' }, // Indigo
     ];
 
     const handleNavPress = (route) => {
@@ -149,7 +163,53 @@ export default function AdminDashboardScreen({ navigation }) {
                             </View>
 
                             <View style={styles.mainContent}>
+                                {/* Weekly Performance Chart (WEB PARITY) */}
+                                <View style={styles.section}>
+                                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Haftalık Tamamlanan Adımlar</Text>
+                                    <View style={[styles.chartContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}>
+                                        <BarChart
+                                            data={chartData}
+                                            width={width - 80}
+                                            height={180}
+                                            barWidth={24}
+                                            spacing={12}
+                                            noOfSections={3}
+                                            barBorderRadius={6}
+                                            hideRules
+                                            xAxisThickness={0}
+                                            yAxisThickness={0}
+                                            yAxisTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
+                                            xAxisLabelTextStyle={{ color: theme.colors.subText, fontSize: 10 }}
+                                            showGradient
+                                            isAnimated
+                                        />
+                                    </View>
+                                </View>
+
                                 <DashboardStatsGrid statsData={statsData} />
+
+                                {/* Active Workers (WEB PARITY) */}
+                                {statsData?.activeWorkers?.length > 0 && (
+                                    <View style={styles.section}>
+                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Aktif Çalışanlar</Text>
+                                            <TouchableOpacity onPress={() => navigation.navigate('TeamManagement')}>
+                                                <Text style={{ fontSize: 12, fontWeight: '600', color: theme.colors.primary }}>Tümünü Gör</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                                            {statsData.activeWorkers.map((worker) => (
+                                                <View key={worker.id} style={[styles.workerBadge, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}>
+                                                    <View style={[styles.badgeAvatar, { backgroundColor: theme.colors.primaryBg }]}>
+                                                        <Text style={{ color: theme.colors.primary, fontWeight: 'bold', fontSize: 12 }}>{worker.name?.charAt(0)}</Text>
+                                                        <View style={styles.onlineIndicator} />
+                                                    </View>
+                                                    <Text style={{ color: theme.colors.text, fontSize: 12, fontWeight: '500' }}>{worker.name?.split(' ')[0]}</Text>
+                                                </View>
+                                            ))}
+                                        </ScrollView>
+                                    </View>
+                                )}
 
                                 {/* Navigation Grid */}
                                 <View style={styles.section}>
@@ -356,5 +416,39 @@ const styles = StyleSheet.create({
     quickActions: {
         flexDirection: 'row',
         gap: 12,
+    },
+    chartContainer: {
+        padding: 20,
+        borderRadius: 24,
+        borderWidth: 1,
+        alignItems: 'center',
+    },
+    workerBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 10,
+        paddingRight: 16,
+        borderRadius: 100,
+        borderWidth: 1,
+        gap: 10,
+    },
+    badgeAvatar: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'relative',
+    },
+    onlineIndicator: {
+        position: 'absolute',
+        bottom: 0,
+        right: 0,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#22c55e',
+        borderWidth: 2,
+        borderColor: '#fff',
     },
 });

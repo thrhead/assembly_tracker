@@ -31,6 +31,9 @@ import AdvancedPlanningScreen from './src/screens/admin/AdvancedPlanningScreen';
 import ReportsScreen from './src/screens/admin/ReportsScreen';
 import TeamManagementScreen from './src/screens/admin/TeamManagementScreen';
 import TeamDetailScreen from './src/screens/admin/TeamDetailScreen';
+import WebhookScreen from './src/screens/admin/WebhookScreen';
+
+// ... rest of imports
 import CostManagementScreen from './src/screens/manager/CostManagementScreen';
 import NotificationsScreen from './src/screens/worker/NotificationsScreen';
 import ChatScreen from './src/screens/chat/ChatScreen';
@@ -208,6 +211,11 @@ function AppNavigator() {
                 name="TeamDetail"
                 component={TeamDetailScreen}
                 options={{ title: t('navigation.teamDetails') || 'Team Details' }}
+              />
+              <Stack.Screen
+                name="Webhooks"
+                component={WebhookScreen}
+                options={{ title: 'Webhook Monitoring' }}
               />
               {/* Profile Screen */}
               <Stack.Screen

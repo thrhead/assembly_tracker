@@ -7,6 +7,7 @@ import { sendJobCompletedEmail } from '@/lib/email'
 import { notifyAdminsOfJobCompletion } from '@/lib/notifications'
 import cloudinary from '@/lib/cloudinary'
 import { EventBus } from '@/lib/event-bus'
+import { checkConflict } from '@/lib/conflict-check'
 
 export async function POST(
   req: Request,
@@ -54,6 +55,9 @@ export async function POST(
     if (!job) {
       return NextResponse.json({ error: 'Job not found or access denied' }, { status: 404 })
     }
+
+    const conflict = await checkConflict(req, job.updatedAt)
+    if (conflict) return conflict
 
     const allStepsAndSubStepsCompleted = job.steps.every(step => {
       const stepDone = step.isCompleted;
