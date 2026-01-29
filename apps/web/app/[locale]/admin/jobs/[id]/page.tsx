@@ -92,9 +92,9 @@ export default async function AdminJobDetailsPage(props: {
                     <div>
                         <div className="flex items-center gap-2">
                             <h1 className="text-3xl font-bold text-gray-900">İş Detayları</h1>
-                            <Badge variant="outline" className="text-lg py-0 h-8 font-mono bg-orange-50 text-orange-700 border-orange-200">
+                            {/* <Badge variant="outline" className="text-lg py-0 h-8 font-mono bg-orange-50 text-orange-700 border-orange-200">
                                 {job.jobNo || 'NO-CODE'}
-                            </Badge>
+                            </Badge> */}
                         </div>
                         <p className="text-gray-500">İşin ilerleme durumunu ve detaylarını görüntüleyin.</p>
                     </div>

@@ -182,9 +182,9 @@ export default async function JobsPage(props: {
                         <BriefcaseIcon className="h-4 w-4" />
                       </div>
                       <div>
-                        <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-0.5">
+                        {/* <div className="text-[10px] font-bold text-orange-600 uppercase tracking-wider mb-0.5">
                           {job.jobNo || 'NO-CODE'}
-                        </div>
+                        </div> */}
                         <Link href={`/admin/jobs/${job.id}`} className="font-medium text-gray-900 hover:underline hover:text-blue-600 block leading-tight">
                           {job.title}
                         </Link>

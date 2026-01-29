@@ -73,14 +73,14 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
   }
 
   try {
-    // Benzersiz iş numarasını üretelim
-    const jobNo = await generateJobNumber();
+    // Benzersiz iş numarasını üretelim (Future use)
+    // const jobNo = await generateJobNumber();
 
     const job = await prisma.$transaction(async (tx) => {
       // 1. Create Job
       const newJob = await tx.job.create({
         data: {
-          jobNo: jobNo, // Numarayı atayalım
+          // jobNo: jobNo, // Numarayı atayalım (Schema revert nedeniyle kapalı)
           title: stripHtml(validated.data.title),
           description: validated.data.description ? sanitizeHtml(validated.data.description) : null,
           customerId: validated.data.customerId,
