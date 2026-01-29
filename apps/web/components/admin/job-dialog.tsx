@@ -226,6 +226,7 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true)
+    console.log('JobDialog onSubmit triggered with data:', data)
     try {
       const validSteps = steps.filter(step => step.title.trim() !== '')
         .map(step => ({
@@ -234,13 +235,20 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
         }))
 
       if (job) {
-        await updateJobAction({
+        console.log('Updating existing job:', job.id)
+        const updateData = {
           id: job.id,
           ...data,
-          steps: validSteps.length > 0 ? validSteps : null
-        })
+          steps: validSteps.length > 0 ? validSteps : []
+        }
+        console.log('Sending update request to updateJobAction:', updateData)
+        
+        const result = await updateJobAction(updateData)
+        console.log('Update result:', result)
+        
         toast.success('İş başarıyla güncellendi')
       } else {
+        console.log('Creating new job')
         const formData = new FormData()
         Object.entries(data).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
@@ -265,8 +273,8 @@ export function JobDialog({ customers, teams, templates, job, trigger }: JobDial
       }
       router.refresh()
     } catch (error: any) {
-      console.error(error)
-      toast.error(error.message || 'İş oluşturulurken bir hata oluştu')
+      console.error('JobDialog submission error:', error)
+      toast.error(error.message || 'Bir hata oluştu')
     } finally {
       setIsLoading(false)
     }

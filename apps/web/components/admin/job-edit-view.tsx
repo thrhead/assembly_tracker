@@ -148,17 +148,91 @@ export function JobEditView({ job, workers, teams }: JobEditViewProps) {
                             </div>
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-gray-500">Gerçekleşen Başlangıç</label>
-                                <div className="flex items-center p-2 bg-gray-50 rounded border">
-                                    <CalendarIcon className="h-4 w-4 mr-2 text-green-600" />
-                                    {job.startedAt ? format(new Date(job.startedAt), "PPP HH:mm", { locale: tr }) : 'Henüz başlamadı'}
-                                </div>
+                                {isEditing ? (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !startedAt && "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {startedAt ? format(startedAt, "PPP HH:mm", { locale: tr }) : <span>Tarih seçin</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar
+                                                mode="single"
+                                                selected={startedAt}
+                                                onSelect={setStartedAt}
+                                                initialFocus
+                                            />
+                                            <div className="p-3 border-t">
+                                                <Input 
+                                                    type="time" 
+                                                    value={startedAt ? format(startedAt, 'HH:mm') : ''}
+                                                    onChange={(e) => {
+                                                        const [hours, minutes] = e.target.value.split(':').map(Number);
+                                                        const newDate = startedAt ? new Date(startedAt) : new Date();
+                                                        newDate.setHours(hours, minutes);
+                                                        setStartedAt(newDate);
+                                                    }}
+                                                />
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                ) : (
+                                    <div className="flex items-center p-2 bg-gray-50 rounded border">
+                                        <CalendarIcon className="h-4 w-4 mr-2 text-green-600" />
+                                        {job.startedAt ? format(new Date(job.startedAt), "PPP HH:mm", { locale: tr }) : 'Henüz başlamadı'}
+                                    </div>
+                                )}
                             </div>
                             <div className="space-y-1">
                                 <label className="text-sm font-medium text-gray-500">Gerçekleşen Bitiş</label>
-                                <div className="flex items-center p-2 bg-gray-50 rounded border">
-                                    <CalendarIcon className="h-4 w-4 mr-2 text-blue-600" />
-                                    {job.completedDate ? format(new Date(job.completedDate), "PPP HH:mm", { locale: tr }) : 'Devam ediyor'}
-                                </div>
+                                {isEditing ? (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button
+                                                variant={"outline"}
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !completedDate && "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {completedDate ? format(completedDate, "PPP HH:mm", { locale: tr }) : <span>Tarih seçin</span>}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-auto p-0">
+                                            <Calendar
+                                                mode="single"
+                                                selected={completedDate}
+                                                onSelect={setCompletedDate}
+                                                initialFocus
+                                            />
+                                            <div className="p-3 border-t">
+                                                <Input 
+                                                    type="time" 
+                                                    value={completedDate ? format(completedDate, 'HH:mm') : ''}
+                                                    onChange={(e) => {
+                                                        const [hours, minutes] = e.target.value.split(':').map(Number);
+                                                        const newDate = completedDate ? new Date(completedDate) : new Date();
+                                                        newDate.setHours(hours, minutes);
+                                                        setCompletedDate(newDate);
+                                                    }}
+                                                />
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
+                                ) : (
+                                    <div className="flex items-center p-2 bg-gray-50 rounded border">
+                                        <CalendarIcon className="h-4 w-4 mr-2 text-blue-600" />
+                                        {job.completedDate ? format(new Date(job.completedDate), "PPP HH:mm", { locale: tr }) : 'Devam ediyor'}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

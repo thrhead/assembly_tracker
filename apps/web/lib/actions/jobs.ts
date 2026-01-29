@@ -137,15 +137,18 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
 }
 
 export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
+  console.log('updateJobAction called with:', JSON.stringify(data, null, 2))
   const session = await auth()
 
   if (!session || !['ADMIN', 'MANAGER'].includes(session.user.role)) {
+    console.log('Unauthorized access attempt:', session?.user?.role)
     throw new Error('Yetkisiz işlem')
   }
 
   const validated = updateJobSchema.safeParse(data)
 
   if (!validated.success) {
+    console.log('Validation failed:', JSON.stringify(validated.error.flatten(), null, 2))
     throw new Error('Geçersiz veri: ' + JSON.stringify(validated.error.flatten()))
   }
 
@@ -170,41 +173,47 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
   try {
     await prisma.$transaction(async (tx) => {
       // 1. Update Job Basic Info
+      // We use helper to convert empty strings or invalid dates to null
+      const parseDate = (d: string | undefined | null) => {
+        if (!d || d.trim() === '') return null;
+        const date = new Date(d);
+        return isNaN(date.getTime()) ? null : date;
+      };
+
       await tx.job.update({
         where: { id },
         data: {
           title: title ? stripHtml(title) : undefined,
-          description: description ? sanitizeHtml(description) : (description === null ? null : undefined),
-          customerId,
-          priority,
+          description: (description !== undefined) ? (description ? sanitizeHtml(description) : null) : undefined,
+          customerId: customerId,
+          priority: priority,
           status: status || undefined,
           acceptanceStatus: acceptanceStatus || undefined,
-          location: location ? stripHtml(location) : (location === null ? null : undefined),
-          scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
-          scheduledEndDate: scheduledEndDate ? new Date(scheduledEndDate) : null,
-          startedAt: startedAt ? new Date(startedAt) : null,
-          completedDate: completedDate ? new Date(completedDate) : null,
+          location: (location !== undefined) ? (location ? stripHtml(location) : null) : undefined,
+          scheduledDate: parseDate(scheduledDate),
+          scheduledEndDate: parseDate(scheduledEndDate),
+          startedAt: parseDate(startedAt),
+          completedDate: parseDate(completedDate),
         }
       })
 
       // 2. Update Assignment
-      // Delete existing assignments first for simplicity or update?
-      // Let's check existing assignment.
       await tx.jobAssignment.deleteMany({ where: { jobId: id } })
 
-      if ((teamId && teamId !== 'none') || (workerId && workerId !== 'none')) {
+      const effectiveTeamId = (teamId && teamId !== 'none') ? teamId : null;
+      const effectiveWorkerId = (workerId && workerId !== 'none') ? workerId : null;
+
+      if (effectiveTeamId || effectiveWorkerId) {
         await tx.jobAssignment.create({
           data: {
             jobId: id,
-            teamId: teamId === 'none' ? undefined : teamId,
-            workerId: workerId === 'none' ? undefined : workerId
+            teamId: effectiveTeamId,
+            workerId: effectiveWorkerId
           }
         })
       }
 
       // 3. Update Steps
-      // We need to handle deletions, updates, and creations.
-      // Fetch existing step IDs
       const existingSteps = await tx.jobStep.findMany({
         where: { jobId: id },
         select: { id: true }
@@ -214,7 +223,6 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
       const incomingStepIds = steps?.filter(s => s.id).map(s => s.id!) || []
       const stepsToDelete = existingStepIds.filter(id => !incomingStepIds.includes(id))
 
-      // Delete removed steps
       if (stepsToDelete.length > 0) {
         await tx.jobStep.deleteMany({
           where: { id: { in: stepsToDelete } }
@@ -224,11 +232,9 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
       if (steps && steps.length > 0) {
         for (let i = 0; i < steps.length; i++) {
           const stepData = steps[i]
-
           let stepId = stepData.id
 
           if (stepId) {
-            // Update existing step
             await tx.jobStep.update({
               where: { id: stepId },
               data: {
@@ -238,7 +244,6 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
               }
             })
           } else {
-            // Create new step
             const newStep = await tx.jobStep.create({
               data: {
                 jobId: id,
@@ -250,13 +255,7 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
             stepId = newStep.id
           }
 
-          // Handle SubSteps
           if (stepData.subSteps) {
-            // For sub-steps, simpler to delete all and recreate or handle similarily?
-            // Since sub-steps also have completion status, we should try to preserve IDs if possible.
-            // But existing schema for substeps in validation allows ID.
-
-            // Fetch existing substeps for THIS step
             const existingSubSteps = await tx.jobSubStep.findMany({
               where: { stepId: stepId },
               select: { id: true }
@@ -279,7 +278,7 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
               } else {
                 await tx.jobSubStep.create({
                   data: {
-                    stepId: stepId!, // Asserted because we created it or it existed
+                    stepId: stepId!,
                     title: stripHtml(subData.title),
                     order: j + 1
                   }
@@ -287,19 +286,12 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
               }
             }
           } else {
-            // If no substeps provided, delete all? 
-            // Or assumes empty array means delete all.
             await tx.jobSubStep.deleteMany({ where: { stepId: stepId } })
           }
         }
-      } else {
-        // If steps is empty array or null, delete all steps?
-        // But we already handled deletions via ID diff. 
-        // If steps is empty, incomingStepIds is empty, so all existingStepIds are deleted. Correct.
       }
     })
 
-    // Emit events after success
     await EventBus.emit('job.updated', { id, status, acceptanceStatus });
     if (status === 'COMPLETED') {
       await EventBus.emit('job.completed', { id });
@@ -310,7 +302,7 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
     return { success: true }
   } catch (error) {
     console.error('Job update error:', error)
-    throw new Error('İş güncellenirken bir hata oluştu')
+    throw error // Re-throw to be caught by client
   }
 }
 
