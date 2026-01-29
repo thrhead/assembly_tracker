@@ -4,7 +4,7 @@ import { FileDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { generateJobPDF, JobReportData } from '@/lib/pdf-generator'
+import type { JobReportData } from '@/lib/pdf-generator'
 
 interface PDFDownloadButtonProps {
     jobId?: string
