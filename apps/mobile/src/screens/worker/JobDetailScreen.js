@@ -72,6 +72,7 @@ const PageWrapper = ({ children }) => {
     );
 };
 
+// Force update for mobile split - 2026-01-29
 export default function JobDetailScreen({ route, navigation }) {
     const { jobId } = route.params;
     const { user } = useAuth();
