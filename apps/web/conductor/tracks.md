@@ -7,6 +7,7 @@
 ## Archived Tracks (2026)
 | ID | Title | Date |
 |----|-------|------|
+| [admin-job-overhaul](./archive/admin_job_overhaul_20260129/metadata.json) | Admin İş Yönetimi ve Hiyerarşik Numaralandırma | 2026-01-29 |
 | [mobile-approval-filtering-sync](./archive/mobile_approval_filtering_sync_20260128/metadata.json) | Mobile Approval & Filtering Synchronization | 2026-01-28 |
 | [mobile-pwa-navigation-fix](./archive/mobile_pwa_navigation_fix_20260128/metadata.json) | Mobile PWA Navigation & Back Button Fix | 2026-01-28 |
 | [mobile-pwa-routing-fix](./archive/mobile_pwa_routing_fix_20260128/metadata.json) | Mobile PWA Routing 404 Fix | 2026-01-28 |
