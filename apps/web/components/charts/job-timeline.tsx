@@ -128,7 +128,7 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                 </div>
                                 <div>
                                     <p className="font-medium">Planlanan Başlangıç</p>
-                                    <p className="text-sm text-gray-500">
+                                    <p className="text-sm text-gray-500" suppressHydrationWarning>
                                         {format(new Date(scheduledDate), 'd MMMM yyyy, HH:mm', { locale: tr })}
                                     </p>
                                 </div>
@@ -174,14 +174,14 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
 
                                             <div className="space-y-1 text-sm text-gray-600">
                                                 {step.startedAt && (
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-2" suppressHydrationWarning>
                                                         <Play className="h-3 w-3" />
                                                         <span>Başladı: {format(new Date(step.startedAt), 'd MMM, HH:mm', { locale: tr })}</span>
                                                     </div>
                                                 )}
                                                 {step.completedAt && (
                                                     <div className="flex flex-col gap-1">
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-2" suppressHydrationWarning>
                                                             <CheckCircle className="h-3 w-3 text-green-600" />
                                                             <span>Tamamlandı: {format(new Date(step.completedAt), 'd MMM, HH:mm', { locale: tr })}</span>
                                                         </div>
@@ -194,7 +194,7 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                                     </div>
                                                 )}
                                                 {step.blockedAt && (
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-2" suppressHydrationWarning>
                                                         <XCircle className="h-3 w-3 text-red-600" />
                                                         <span>Bloklandı: {format(new Date(step.blockedAt), 'd MMM, HH:mm', { locale: tr })}</span>
                                                     </div>
@@ -224,7 +224,7 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                                                         {subStep.title}
                                                                     </p>
                                                                     {subStep.completedAt && (
-                                                                        <p className="text-xs text-gray-500">
+                                                                        <p className="text-xs text-gray-500" suppressHydrationWarning>
                                                                             {format(new Date(subStep.completedAt), 'd MMM, HH:mm', { locale: tr })}
                                                                         </p>
                                                                     )}
@@ -315,7 +315,7 @@ export function JobTimeline({ steps, scheduledDate, completedDate, jobId }: JobT
                                 </div>
                                 <div>
                                     <p className="font-medium text-green-700">İş Tamamlandı</p>
-                                    <p className="text-sm text-gray-500">
+                                    <p className="text-sm text-gray-500" suppressHydrationWarning>
                                         {format(new Date(completedDate), 'd MMMM yyyy, HH:mm', { locale: tr })}
                                     </p>
                                 </div>

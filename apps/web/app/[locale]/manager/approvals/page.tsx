@@ -40,19 +40,36 @@ export default async function ManagerApprovalsPage() {
 
     const approvals = await getApprovals()
 
+    // Define type for serialized approval data
+    type SerializedApproval = {
+        id: string
+        notes?: string | null
+        createdAt?: string | null
+        job?: {
+            id?: string
+            title?: string
+            customer?: { company?: string } | null
+        } | null
+        requester?: { name?: string | null; email?: string } | null
+    }
+
+    // Serialize all dates for client components using JSON parse/stringify
+    // This handles all nested Date objects automatically
+    const serializedApprovals: SerializedApproval[] = JSON.parse(JSON.stringify(approvals))
+
     return (
         <div className="p-6 max-w-7xl mx-auto">
             {/* Header */}
             <div className="mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">Onay Bekleyen İşler</h1>
                 <p className="text-gray-600 mt-1">
-                    {approvals.length} iş onayınızı bekliyor
+                    {serializedApprovals.length} iş onayınızı bekliyor
                 </p>
             </div>
 
             {/* Approvals Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {approvals.length === 0 && (
+                {serializedApprovals.length === 0 && (
                     <div className="col-span-full text-center py-12 bg-white rounded-lg border border-dashed">
                         <div className="text-6xl mb-3">✅</div>
                         <h3 className="text-lg font-medium text-gray-900">Onay bekleyen iş bulunmuyor</h3>
@@ -60,11 +77,11 @@ export default async function ManagerApprovalsPage() {
                     </div>
                 )}
 
-                {approvals.map((approval) => (
+                {serializedApprovals.map((approval) => (
                     <Card key={approval.id} className="hover:shadow-md transition-shadow">
                         <CardHeader className="pb-3">
                             <div className="flex items-start justify-between gap-2">
-                                <CardTitle className="text-lg line-clamp-2">{approval.job.title}</CardTitle>
+                                <CardTitle className="text-lg line-clamp-2">{approval.job?.title || 'Bilinmeyen İş'}</CardTitle>
                                 <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 shrink-0">
                                     Bekliyor
                                 </Badge>
@@ -73,17 +90,17 @@ export default async function ManagerApprovalsPage() {
                         <CardContent className="space-y-3">
                             <div>
                                 <p className="text-sm text-gray-600">
-                                    <span className="font-medium">Müşteri:</span> {approval.job.customer.company}
+                                    <span className="font-medium">Müşteri:</span> {approval.job?.customer?.company || 'Bilinmeyen Müşteri'}
                                 </p>
                                 <p className="text-sm text-gray-600">
-                                    <span className="font-medium">Talep Eden:</span> {approval.requester.name}
+                                    <span className="font-medium">Talep Eden:</span> {approval.requester?.name || approval.requester?.email || 'Bilinmiyor'}
                                 </p>
                                 <p className="text-sm text-gray-600">
                                     <span className="font-medium">Talep Tarihi:</span>{' '}
-                                    {formatDistanceToNow(new Date(approval.createdAt), {
+                                    {approval.createdAt ? formatDistanceToNow(new Date(approval.createdAt), {
                                         addSuffix: true,
                                         locale: tr
-                                    })}
+                                    }) : '-'}
                                 </p>
                             </div>
 

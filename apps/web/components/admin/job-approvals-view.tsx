@@ -200,7 +200,7 @@ function ApprovalCard({ item, type, onApprove, onReject, loading }: any) {
                                 <User className="w-3 h-3 mr-1" />
                                 {item.completedBy?.name || 'Bilinmiyor'}
                             </div>
-                            <div className="flex items-center text-[10px] text-gray-500">
+                            <div className="flex items-center text-[10px] text-gray-500" suppressHydrationWarning>
                                 <Clock className="w-3 h-3 mr-1" />
                                 {(() => {
                                     if (!item.completedAt) return '-'

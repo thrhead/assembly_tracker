@@ -17,7 +17,7 @@ interface ApprovalActionCardProps {
             name: string | null
             email: string
         }
-        createdAt: Date
+        createdAt: string
     }
 }
 

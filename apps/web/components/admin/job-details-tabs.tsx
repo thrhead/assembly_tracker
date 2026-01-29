@@ -211,13 +211,13 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Başlangıç:</span>
-                                    <span className="font-medium">
+                                    <span className="font-medium" suppressHydrationWarning>
                                         {job.startedAt ? new Date(job.startedAt).toLocaleString('tr-TR') : '-'}
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Bitiş:</span>
-                                    <span className="font-medium">
+                                    <span className="font-medium" suppressHydrationWarning>
                                         {job.completedDate ? new Date(job.completedDate).toLocaleString('tr-TR') : '-'}
                                     </span>
                                 </div>
@@ -266,7 +266,7 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                     <div className="mt-4 pt-4 border-t space-y-2">
                                         <div className="flex justify-between text-xs">
                                             <span className="text-gray-500">Tahmini Bitiş:</span>
-                                            <span className="font-bold text-blue-600">
+                                            <span className="font-bold text-blue-600" suppressHydrationWarning>
                                                 {(() => {
                                                     try {
                                                         const start = new Date(job.startedAt).getTime()
@@ -342,7 +342,7 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                         />
                                     </div>
                                     <div className="mt-4 flex flex-col items-center gap-2">
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs text-gray-500" suppressHydrationWarning>
                                             İmza Tarihi: {job.completedDate ? new Date(job.completedDate).toLocaleString('tr-TR') : '-'}
                                         </p>
                                         {(job.signatureLatitude && job.signatureLongitude) && (

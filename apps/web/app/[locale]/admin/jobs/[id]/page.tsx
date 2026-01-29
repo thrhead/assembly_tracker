@@ -4,16 +4,17 @@ import { prisma } from "@/lib/db"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { Link } from "@/lib/navigation"
-import { AdminJobDetailsTabs } from "@/components/admin/job-details-tabs"
-import { ApprovalActionCard } from "@/components/admin/approval-action-card"
+// import { AdminJobDetailsTabs } from "@/components/admin/job-details-tabs"
+// import { ApprovalActionCard } from "@/components/admin/approval-action-card"
 import { getJob } from "@/lib/data/jobs"
 import { JobDialog } from "@/components/admin/job-dialog"
 import { DeleteJobButton } from "@/components/admin/delete-job-button"
 import { EditIcon } from "lucide-react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { ChatPanel } from "@/components/chat/ChatPanel"
+import { JobDetailsClientWrapper } from "@/components/admin/job-details-client-wrapper"
 
-export const dynamic = 'force-dynamic'
+export const dynamicParams = true
 
 export default async function AdminJobDetailsPage(props: {
     params: Promise<{ id: string }>
@@ -27,7 +28,7 @@ export default async function AdminJobDetailsPage(props: {
     // We fetch workers and teams here for the assignment dialogs that might be inside tabs
     // Ideally these should be fetched by the components that need them or inside a data layer
     // For now, keeping the pattern but using cleaner fetch
-    const [jobResult, workers, teams, customers, templates] = await Promise.all([
+    const [job, workers, teams, customers, templates] = await Promise.all([
         getJob(params.id),
         prisma.user.findMany({
             where: { role: 'WORKER', isActive: true },
@@ -45,7 +46,24 @@ export default async function AdminJobDetailsPage(props: {
         })
     ])
 
-    if (!jobResult) {
+    // Map data for JobDialog
+    const dialogCustomers = customers.map(c => ({
+        id: c.id,
+        company: c.company,
+        user: { name: c.user.name || '' }
+    }))
+
+    const dialogTemplates = templates.map(t => ({
+        id: t.id,
+        name: t.name,
+        steps: t.steps.map(s => ({
+            title: s.title,
+            description: '',
+            subSteps: s.subSteps.map(ss => ({ title: ss.title }))
+        }))
+    }))
+
+    if (!job) {
         return (
             <div className="p-8 text-center">
                 <h1 className="text-2xl font-bold text-gray-900">İş Bulunamadı</h1>
@@ -57,31 +75,9 @@ export default async function AdminJobDetailsPage(props: {
         )
     }
 
-    // Serialize ALL data to avoid Date object issues between Server and Client components
-    const job = JSON.parse(JSON.stringify(jobResult))
-    const serializedWorkers = JSON.parse(JSON.stringify(workers))
-    const serializedTeams = JSON.parse(JSON.stringify(teams))
-    const serializedCustomers = JSON.parse(JSON.stringify(customers))
-    const serializedTemplates = JSON.parse(JSON.stringify(templates))
-
-    // Map templates with safety using serialized data
-    const dialogCustomers = serializedCustomers.map((c: any) => ({
-        id: c.id,
-        company: c.company,
-        user: { name: c.user?.name || '' }
-    }))
-
-    const dialogTemplates = serializedTemplates.map((t: any) => ({
-        id: t.id,
-        name: t.name,
-        steps: (t.steps || []).map((s: any) => ({
-            title: s.title,
-            description: '',
-            subSteps: (s.subSteps || []).map((ss: any) => ({ title: ss.title }))
-        }))
-    }))
-
-    const pendingApproval = job.approvals?.[0]
+    // Serialize pending approval to handle Date objects
+    const rawPendingApproval = job.approvals[0]
+    const pendingApproval = rawPendingApproval ? JSON.parse(JSON.stringify(rawPendingApproval)) : null
 
     return (
         <div className="space-y-6">
@@ -99,9 +95,9 @@ export default async function AdminJobDetailsPage(props: {
                 </div>
                 <div className="flex items-center gap-2">
                     <JobDialog
-                        job={job}
+                        job={JSON.parse(JSON.stringify(job))}
                         customers={dialogCustomers}
-                        teams={serializedTeams}
+                        teams={teams}
                         templates={dialogTemplates}
                         trigger={
                             <Button variant="outline" className="gap-2">
@@ -110,24 +106,21 @@ export default async function AdminJobDetailsPage(props: {
                             </Button>
                         }
                     />
-                    <DeleteJobButton 
-                        jobId={job.id} 
-                        jobTitle={job.title} 
-                        variant="destructive" 
+                    <DeleteJobButton
+                        jobId={job.id}
+                        jobTitle={job.title}
+                        variant="destructive"
                         size="default"
                         showText={true}
                     />
                 </div>
             </div>
 
-            {pendingApproval && (
-                <ApprovalActionCard approval={pendingApproval} />
-            )}
-
-            <AdminJobDetailsTabs
-                job={job}
-                workers={serializedWorkers}
-                teams={serializedTeams}
+            <JobDetailsClientWrapper
+                job={JSON.parse(JSON.stringify(job))}
+                workers={workers}
+                teams={teams}
+                pendingApproval={pendingApproval}
             />
 
             <Card>

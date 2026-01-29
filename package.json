@@ -10,7 +10,8 @@
     "web": "npm run dev --workspace=apps/web",
     "mobile": "npm run start --workspace=apps/mobile",
     "lint": "npm run lint --workspaces",
-    "test": "npm run test --workspaces"
+    "test": "npm run test --workspaces",
+    "vercel-build": "cd apps/web && npm run build"
   },
   "devDependencies": {
     "react-test-renderer": "^19.1.0"
