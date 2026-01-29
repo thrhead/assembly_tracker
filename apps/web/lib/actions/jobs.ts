@@ -340,4 +340,3 @@ export async function deleteJobAction(id: string) {
     throw new Error('İş silinirken bir hata oluştu')
   }
 }
-
