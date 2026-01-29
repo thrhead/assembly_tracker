@@ -268,43 +268,83 @@ export async function updateJobAction(data: z.infer<typeof updateJobSchema>) {
             stepId = newStep.id
           }
 
-          // Handle SubSteps
-          if (stepData.subSteps) {
-            // Fetch existing substeps for THIS step to manage deletions properly
-            const existingSubSteps = await tx.jobSubStep.findMany({
-              where: { stepId: stepId },
-              select: { id: true }
-            })
-            const existingSubStepIds = existingSubSteps.map(s => s.id)
-            const incomingSubStepIds = stepData.subSteps.filter(s => s.id).map(s => s.id!)
-            
-            // Delete only substeps that are missing from the update payload
-            const subStepsToDelete = existingSubStepIds.filter(sid => !incomingSubStepIds.includes(sid))
+                    // Handle SubSteps
 
-            if (subStepsToDelete.length > 0) {
-              await tx.jobSubStep.deleteMany({ where: { id: { in: subStepsToDelete } } })
-            }
+                    if (stepData.subSteps) {
 
-            for (let j = 0; j < stepData.subSteps.length; j++) {
-              const subData = stepData.subSteps[j]
-              if (subData.id) {
-                // Update existing substep
-                await tx.jobSubStep.update({
-                  where: { id: subData.id },
-                  data: { title: stripHtml(subData.title), order: j + 1 }
-                })
-              } else {
-                // Create new substep
-                await tx.jobSubStep.create({
-                  data: {
-                    stepId: stepId!,
-                    title: stripHtml(subData.title),
-                    order: j + 1
-                  }
-                })
-              }
-            }
-          } else {
+                      // Fetch existing substeps for THIS step to manage deletions properly
+
+                      // const existingSubSteps = await tx.jobSubStep.findMany({
+
+                      //   where: { stepId: stepId },
+
+                      //   select: { id: true }
+
+                      // })
+
+                      // const existingSubStepIds = existingSubSteps.map(s => s.id)
+
+                      // const incomingSubStepIds = stepData.subSteps.filter(s => s.id).map(s => s.id!)
+
+                      
+
+                      // CRITICAL FIX: Do NOT delete subSteps automatically. 
+
+                      // This prevents accidental data loss if the UI doesn't send complete subStep data.
+
+                      // const subStepsToDelete = existingSubStepIds.filter(sid => !incomingSubStepIds.includes(sid))
+
+          
+
+                      // if (subStepsToDelete.length > 0) {
+
+                      //   await tx.jobSubStep.deleteMany({ where: { id: { in: subStepsToDelete } } })
+
+                      // }
+
+          
+
+                      for (let j = 0; j < stepData.subSteps.length; j++) {
+
+                        const subData = stepData.subSteps[j]
+
+                        if (subData.id) {
+
+                          // Update existing substep
+
+                          await tx.jobSubStep.update({
+
+                            where: { id: subData.id },
+
+                            data: { title: stripHtml(subData.title), order: j + 1 }
+
+                          })
+
+                        } else {
+
+                          // Create new substep
+
+                          await tx.jobSubStep.create({
+
+                            data: {
+
+                              stepId: stepId!,
+
+                              title: stripHtml(subData.title),
+
+                              order: j + 1
+
+                            }
+
+                          })
+
+                        }
+
+                      }
+
+                    }
+
+           else {
             // If subSteps is NOT provided (undefined/null), DO NOT DELETE existing substeps.
             // Only delete if it's an empty array [].
             if (Array.isArray(stepData.subSteps)) {
