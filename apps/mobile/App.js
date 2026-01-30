@@ -277,10 +277,14 @@ class ErrorBoundary extends React.Component {
 
 export default function App() {
   React.useEffect(() => {
-    // Initialize Offline Queue
-    QueueService.initialize();
-    // Initialize Sync Manager
-    SyncManager.init();
+    try {
+      // Initialize Offline Queue
+      QueueService.initialize().catch(e => console.error('Queue error:', e));
+      // Initialize Sync Manager
+      SyncManager.init();
+    } catch (error) {
+      console.error('App initialization error:', error);
+    }
   }, []);
 
   return (

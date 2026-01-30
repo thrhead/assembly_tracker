@@ -34,8 +34,7 @@ export const LoggerService = {
 
             // Also log to console in development
             if (__DEV__) {
-                const color = level === LogLevel.ERROR ? '\x1b[31m' : level === LogLevel.WARN ? '\x1b[33m' : '\x1b[32m';
-                console.log(`${color}[LoggerService] [${level}] ${message}\x1b[0m`, context || '');
+                console.log(`[LoggerService] [${level}] ${message}`, context || '');
             }
 
             // Trigger sync if batch size reached
