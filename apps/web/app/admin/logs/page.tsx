@@ -1,5 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import prisma from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { Badge } from "@/components/ui/badge";
 
 // Log seviyesine göre renk belirleyen yardımcı fonksiyon

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db';
+import { prisma } from '@/lib/db';
 
 // Bu SADECE GEÇİCİ bir görüntüleme yoludur. İşlem sonrası silinmelidir.
 export async function GET() {
