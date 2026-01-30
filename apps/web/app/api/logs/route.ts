@@ -7,7 +7,8 @@ import { prisma } from '@/lib/db'; // Correct: Import prisma to interact with th
 const logSchema = z.object({
   level: z.enum(['DEBUG', 'INFO', 'WARN', 'ERROR', 'AUDIT']),
   message: z.string(),
-  meta: z.record(z.any()).optional(), // Esnek bir JSON nesnesi için
+  // Corrected: z.record expects key and value types.
+  meta: z.record(z.string(), z.any()).optional(), // Esnek bir JSON nesnesi için
 });
 
 export async function POST(request: Request) {
