@@ -1,26 +1,52 @@
-# Plan: Fix PWA Routing 404 on Refresh
+# Plan: Web & Mobil Özellik Eşitleme (Feature Parity) - Admin & Manager
 
-## Problem
-The mobile app PWA/Web version (deployed on Vercel) returns a 404 error when a dynamic route (e.g., `/jobs/[id]`) is refreshed. This happens because Vercel attempts to find a physical file matching the path instead of serving `index.html` for client-side routing.
+Bu plan, `assembly_tracker` projesindeki Admin ve Manager rollerinin web uygulamasında sahip olduğu tüm yeteneklerin, mobil-optimize bir arayüzle mobil uygulamaya kazandırılmasını kapsamaktadır.
 
-## Goal
-Configure Vercel to correctly handle Single Page Application (SPA) routing by rewriting all requests to `index.html`.
+## 1. Mevcut Durum Analizi ve Eksiklikler (Gap Analysis)
 
-## Proposed Changes
+### Admin Rolü
+| Modül | Web Yeteneği | Mobil Durum | Eksiklik / Geliştirme |
+| :--- | :--- | :--- | :--- |
+| **Dashboard** | Haftalık Performans Grafiği, Takım Durumu, Bütçe Takibi | Özet İstatistikler, Son İşler | Haftalık grafikler ve detaylı bütçe/maliyet widget'ları eklenecek. |
+| **İş Yönetimi** | Gelişmiş Filtreleme, Toplu İşlemler, Gantt Görünümü | Liste ve Detay | Gelişmiş filtreleme ve mobil uyumlu takvim/planlama derinleştirilecek. |
+| **Kullanıcı/Müşteri** | Tam CRUD, Role-based yetkilendirme | Temel CRUD | Detaylı düzenleme ve karmaşık ilişkilerin yönetimi. |
+| **Maliyetler** | Onay Akışı, Bugünün bütçe kullanımı, Kategorizasyon | Temel Listeleme | Admin için web'deki gibi bütçe analiz görünümleri. |
+| **Raporlar** | Dinamik grafikler, Excel/PDF dışa aktarma | Temel Liste | Web'deki grafiklerin (Recharts) mobil karşılıkları (Victory/SVG). |
+| **Entegrasyonlar** | Webhook yönetimi, API anahtarları | Yok | Admin için webhook izleme ve basit kontrol paneli. |
+| **Şablonlar** | PDF/Excel rapor şablonu yönetimi | Yok | Mevcut şablonların önizlenmesi ve seçilmesi. |
 
-### [DevOps/Infrastructure] [apps/mobile/vercel.json]
-- Add a `rewrites` array to redirect all paths to `/index.html`.
-- This ensures that React Navigation's `linking` configuration can handle the URL parsing on the client side.
+### Manager Rolü
+| Modül | Web Yeteneği | Mobil Durum | Eksiklik / Geliştirme |
+| :--- | :--- | :--- | :--- |
+| **Dashboard** | Yönetilen ekip metrikleri, atanmış işler | Özet İstatistikler | Ekip verimliliği grafikleri. |
+| **Onaylar** | Alt adımların ve maliyetlerin onayı | Onay Ekranı | Eksik kalan onay detayları (fotoğraflı/imzalı kontrol listesi doğrulaması). |
+| **Raporlar** | Ekip bazlı performans raporları | Yok/Kısıtlı | Manager için saha performans tabloları. |
 
-### [Verification]
-- Deploy the change to a preview branch (if possible) or verify the configuration locally.
-- Test the following scenarios:
-    1. Navigate to a job detail page via UI, then refresh.
-    2. Directly enter a job detail URL in the browser address bar.
-    3. Ensure static assets (images, manifest.json) still load correctly.
+## 2. Uygulama Adımları (Phases)
 
-## Agents Involved
-1. **Explorer Agent**: (Completed) Investigated the cause and identified missing rewrites.
-2. **Project Planner**: (Current) Created this implementation plan.
-3. **DevOps Engineer**: Will implement the `vercel.json` changes.
-4. **Test Engineer**: Will verify the fix.
+### Phase 1: Ortak Altyapı ve API Hazırlığı (Backend Specialist)
+- [x] Mobil için eksik olan raporlama endpoint'lerinin (Haftalık trend, bütçe analizi vb.) optimize edilmesi.
+- [x] Admin/Manager rolleri için özel `meta-data` (istatistik) endpoint'lerinin güncellenmesi.
+
+### Phase 2: Core Admin Modülleri Sync (Mobile Developer)
+- [x] **Dashboard Revizyonu:** Web'deki performans grafiklerinin mobil-uyumlu (Victory Native veya benzeri) versiyonlarının eklenmesi.
+- [x] **Gelişmiş Filtreleme Component'i:** Tüm yönetim ekranlarına web'deki zengin filtreleme yeteneklerinin eklenmesi.
+- [x] **Maliyet Kontrol Paneli:** Admin için bütçe ilerleme barı ve günlük limit takibi.
+
+### Phase 3: Manager ve Saha Onay Modülleri (Mobile Developer)
+- [x] Manager Dashboard'una ekip verimlilik skorlarının eklenmesi.
+- [x] Onay süreçlerinde web'deki tüm detayların (belgeler, detaylı notlar) görünür hale getirilmesi.
+
+### Phase 4: Gelişmiş Özellikler (Admin Extras)
+- [x] **Entegrasyon Paneli:** Basit webhook izleme ekranı.
+- [x] **Şablon Seçimi:** İş raporu oluştururken şablon seçebilme özelliği.
+
+## 3. Teknik Detaylar ve Kullanılacak Araçlar
+ - **Grafikler:** `react-native-gifted-charts`.
+- **UI:** Mevcut `GlassCard` ve `LinearGradient` yapısı korunarak mobil-optimize dashboard widget'ları.
+- **State Management:** Veri tutarlılığı için `Context API` + `Hooks`.
+
+## 4. Doğrulama ve Test Planı
+- [ ] Admin rolüyle tüm web aksiyonlarının mobilde simülasyonu.
+- [ ] Manager rolüyle ekip onay süreçlerinin doğrulanması.
+- [ ] `lighthouse_audit.py` ve `mobile_audit.py` ile performans kontrolü.

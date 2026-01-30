@@ -29,11 +29,16 @@ export async function getManagerDashboardData() {
         })
     ])
 
+    const efficiencyScore = totalJobs > 0
+        ? Math.min(Math.round((completedJobsThisMonth / totalJobs) * 100), 100)
+        : 0
+
     return {
         totalJobs,
         activeTeams,
         completedJobsThisMonth,
         pendingApprovals,
-        recentJobs
+        recentJobs,
+        efficiencyScore
     }
 }

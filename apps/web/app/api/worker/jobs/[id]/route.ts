@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { emitToUser } from '@/lib/socket'
 import { sendAdminNotification } from '@/lib/notification-helper'
+import { checkConflict } from '@/lib/conflict-check'
 
 export async function GET(
   req: Request,
@@ -98,6 +99,15 @@ export async function PATCH(
     if (!session || !['WORKER', 'TEAM_LEAD', 'ADMIN', 'MANAGER'].includes(session.user.role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    // Seviye 3: Çatışma Kontrolü
+    const currentJob = await prisma.job.findUnique({
+      where: { id: params.id },
+      select: { updatedAt: true }
+    })
+
+    const conflict = await checkConflict(req, currentJob?.updatedAt)
+    if (conflict) return conflict
 
     const body = await req.json()
     const { status } = body

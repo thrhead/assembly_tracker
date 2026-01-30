@@ -8,7 +8,8 @@ import {
   BellIcon,
   ClockIcon,
   CheckCircleIcon,
-  CalendarIcon
+  CalendarIcon,
+  ActivityIcon
 } from 'lucide-react'
 import { getAdminDashboardData } from "@/lib/data/admin-dashboard"
 import { PerformanceChart } from "@/components/charts/performance-chart"
@@ -69,7 +70,7 @@ export default async function AdminDashboard() {
       {/* Quick Actions (Hızlı İşlemler) */}
       <div>
         <h2 className="text-xl font-bold text-foreground mb-4">Hızlı İşlemler</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Link href="/admin/jobs" className="bg-card border border-border p-6 rounded-2xl flex flex-col items-center justify-center gap-4 hover:border-primary/50 hover:shadow-md transition-all group cursor-pointer">
             <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
               <BriefcaseIcon className="w-8 h-8 text-primary" />
@@ -87,6 +88,12 @@ export default async function AdminDashboard() {
               <ReceiptIcon className="w-8 h-8 text-primary" />
             </div>
             <span className="text-foreground font-semibold group-hover:text-primary transition-colors">Maliyetler</span>
+          </Link>
+          <Link href="/admin/logs" className="bg-card border border-border p-6 rounded-2xl flex flex-col items-center justify-center gap-4 hover:border-primary/50 hover:shadow-md transition-all group cursor-pointer">
+            <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
+              <ActivityIcon className="w-8 h-8 text-primary" />
+            </div>
+            <span className="text-foreground font-semibold group-hover:text-primary transition-colors">Sistem Logları</span>
           </Link>
         </div>
       </div>

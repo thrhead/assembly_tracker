@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
+import { checkConflict } from '@/lib/conflict-check'
 
 export async function POST(
   req: Request,
@@ -14,12 +15,17 @@ export async function POST(
     }
 
     const step = await prisma.jobStep.findUnique({
-      where: { id: params.stepId }
+      where: { id: params.stepId },
+      include: { job: { select: { updatedAt: true } } }
     })
 
     if (!step) {
       return NextResponse.json({ error: 'Step not found' }, { status: 404 })
     }
+
+    // Seviye 3: Ebeveyn iş üzerinden çakışma kontrolü
+    const conflict = await checkConflict(req, step.job.updatedAt)
+    if (conflict) return conflict
 
     // 1. Check if previous steps are completed
     if (!step.isCompleted && step.order > 1) {

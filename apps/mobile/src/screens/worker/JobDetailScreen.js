@@ -24,6 +24,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import * as Location from 'expo-location';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -208,7 +209,7 @@ export default function JobDetailScreen({ route, navigation }) {
             }
 
             const isCompleted = !currentStatus;
-            await jobService.toggleSubstep(jobId, stepId, substepId, isCompleted);
+            await jobService.toggleSubstep(jobId, stepId, substepId, isCompleted, job.updatedAt);
             loadJobDetails();
         } catch (error) {
             console.error('[MOBILE] Error toggling substep:', error);
@@ -241,11 +242,26 @@ export default function JobDetailScreen({ route, navigation }) {
             }
 
             const isCompleted = !currentStatus;
-            await jobService.toggleStep(jobId, stepId, isCompleted);
+            await jobService.toggleStep(jobId, stepId, isCompleted, job.updatedAt);
             loadJobDetails();
         } catch (error) {
             console.error('[MOBILE] Error toggling step:', error);
             Alert.alert(t('common.error'), t('alerts.processError'));
+        }
+    };
+
+    const optimizeImage = async (uri) => {
+        try {
+            // Seviye 1/Boyut Azaltma: Resmi 1200px genişliğe sığdır ve %70 kaliteyle sıkıştır
+            const result = await ImageManipulator.manipulateAsync(
+                uri,
+                [{ resize: { width: 1200 } }],
+                { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG, base64: true }
+            );
+            return result;
+        } catch (error) {
+            console.error("Image optimization error:", error);
+            return null;
         }
     };
 
@@ -286,9 +302,14 @@ export default function JobDetailScreen({ route, navigation }) {
             }
 
             if (!result.canceled) {
-                const uri = result.assets[0].uri;
-                const base64 = result.assets[0].base64;
-                uploadPhoto(stepId, substepId, uri, base64);
+                setUploading(true);
+                const optimized = await optimizeImage(result.assets[0].uri);
+                if (optimized) {
+                    uploadPhoto(stepId, substepId, optimized.uri, optimized.base64);
+                } else {
+                    // Fallback to original if optimization fails
+                    uploadPhoto(stepId, substepId, result.assets[0].uri, result.assets[0].base64);
+                }
             }
         } catch (error) {
             console.error("ImagePicker error:", error);
@@ -479,7 +500,7 @@ export default function JobDetailScreen({ route, navigation }) {
     const handleStartJob = async () => {
         try {
             setLoading(true);
-            await jobService.startJob(jobId);
+            await jobService.startJob(jobId, job.updatedAt);
             Alert.alert(t('common.success'), t('alerts.jobStartSuccess'));
             loadJobDetails();
         } catch (error) {
@@ -493,7 +514,7 @@ export default function JobDetailScreen({ route, navigation }) {
     const handleStartStep = async (stepId) => {
         try {
             setLoading(true);
-            await jobService.startStep(jobId, stepId);
+            await jobService.startStep(jobId, stepId, job.updatedAt);
             loadJobDetails();
         } catch (error) {
             console.error('Error starting step:', error);
@@ -638,7 +659,8 @@ export default function JobDetailScreen({ route, navigation }) {
             await jobService.completeJob(
                 jobId,
                 job.signature || null,
-                job.signatureCoords || null
+                job.signatureCoords || null,
+                job.updatedAt
             );
 
             setSuccessMessage("İş başarıyla bitirildi ve admin onayına gönderildi.");
@@ -786,37 +808,37 @@ Assembly Tracker Ltd. Şti.
                             contentContainerStyle={[styles.contentContainer, { flexGrow: 1 }]}
                         >
                             {/* Job Approval Card (Manager/Admin only) */}
-                            {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && 
-                             job.status === 'PENDING_APPROVAL' && (
-                                <GlassCard style={[styles.card, { borderColor: theme.colors.warning, backgroundColor: theme.colors.warningBg }]} theme={theme}>
-                                    <View style={styles.infoRow}>
-                                        <MaterialIcons name="error-outline" size={24} color={theme.colors.tertiary} />
-                                        <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 0, marginLeft: 8 }]}>Onay Bekliyor</Text>
-                                    </View>
-                                    <Text style={[styles.infoText, { color: theme.colors.subText, marginLeft: 0, marginBottom: 16 }]}>
-                                        Bu iş tamamlandı olarak işaretlendi ve yönetici onayını bekliyor. Lütfen detayları inceleyip karar verin.
-                                    </Text>
-                                    <View style={{ flexDirection: 'row', gap: 12 }}>
-                                        <TouchableOpacity
-                                            style={[styles.managerButton, { backgroundColor: theme.colors.error, paddingVertical: 12 }]}
-                                            onPress={() => {
-                                                setRejectionType('JOB');
-                                                setRejectionModalVisible(true);
-                                            }}
-                                        >
-                                            <MaterialIcons name="close" size={20} color="#fff" />
-                                            <Text style={styles.managerButtonText}>Reddet</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            style={[styles.managerButton, { backgroundColor: theme.colors.success, paddingVertical: 12 }]}
-                                            onPress={handleAcceptJob}
-                                        >
-                                            <MaterialIcons name="check" size={20} color="#fff" />
-                                            <Text style={styles.managerButtonText}>Onayla</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                </GlassCard>
-                            )}
+                            {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) &&
+                                job.status === 'PENDING_APPROVAL' && (
+                                    <GlassCard style={[styles.card, { borderColor: theme.colors.warning, backgroundColor: theme.colors.warningBg }]} theme={theme}>
+                                        <View style={styles.infoRow}>
+                                            <MaterialIcons name="error-outline" size={24} color={theme.colors.tertiary} />
+                                            <Text style={[styles.sectionTitle, { color: theme.colors.text, marginTop: 0, marginLeft: 8 }]}>Onay Bekliyor</Text>
+                                        </View>
+                                        <Text style={[styles.infoText, { color: theme.colors.subText, marginLeft: 0, marginBottom: 16 }]}>
+                                            Bu iş tamamlandı olarak işaretlendi ve yönetici onayını bekliyor. Lütfen detayları inceleyip karar verin.
+                                        </Text>
+                                        <View style={{ flexDirection: 'row', gap: 12 }}>
+                                            <TouchableOpacity
+                                                style={[styles.managerButton, { backgroundColor: theme.colors.error, paddingVertical: 12 }]}
+                                                onPress={() => {
+                                                    setRejectionType('JOB');
+                                                    setRejectionModalVisible(true);
+                                                }}
+                                            >
+                                                <MaterialIcons name="close" size={20} color="#fff" />
+                                                <Text style={styles.managerButtonText}>Reddet</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={[styles.managerButton, { backgroundColor: theme.colors.success, paddingVertical: 12 }]}
+                                                onPress={handleAcceptJob}
+                                            >
+                                                <MaterialIcons name="check" size={20} color="#fff" />
+                                                <Text style={styles.managerButtonText}>Onayla</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </GlassCard>
+                                )}
 
                             <JobInfoCard job={job} />
 
@@ -852,7 +874,7 @@ Assembly Tracker Ltd. Şti.
                                                 {assignment.team ? (
                                                     <>
                                                         <Text style={[styles.infoText, { fontWeight: 'bold', color: theme.colors.text }]}>{assignment.team.name}</Text>
-                                                        
+
                                                         {/* Çalışanlar Gösterimi - Lider Hariç */}
                                                         {assignment.team.members && assignment.team.members.length > 0 && (
                                                             <View style={{ marginTop: 8 }}>
@@ -901,28 +923,28 @@ Assembly Tracker Ltd. Şti.
                                             >
                                                 {step.isCompleted && <MaterialIcons name="check" size={16} color="#FFFFFF" />}
                                             </TouchableOpacity>
-                                                                                <View style={{ flex: 1 }}>
-                                                                                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                                                        <Text style={[styles.stepTitle, step.isCompleted && styles.completedText, { color: theme.colors.text }]}>
-                                                                                            {step.title || step.name}
-                                                                                        </Text>
-                                                                                        {step.isCompleted && (
-                                                                                            <View style={[
-                                                                                                styles.badge,
-                                                                                                step.approvalStatus === 'APPROVED' ? { backgroundColor: theme.colors.success } :
-                                                                                                    step.approvalStatus === 'REJECTED' ? { backgroundColor: theme.colors.error } :
-                                                                                                        { backgroundColor: theme.colors.warning }
-                                                                                            ]}>
-                                                                                                <Text style={styles.badgeText}>
-                                                                                                    {step.approvalStatus === 'APPROVED' ? 'ONAYLANDI' :
-                                                                                                        step.approvalStatus === 'REJECTED' ? 'REDDEDİLDİ' : 'ONAY BEKLİYOR'}
-                                                                                                </Text>
-                                                                                            </View>
-                                                                                        )}
-                                                                                    </View>
-                                                                                    {step.startedAt && (                                                    <Text style={[styles.dateText, { color: theme.colors.subText }]}>
-                                                        {t('worker.started')}: {formatDate(step.startedAt)}
+                                            <View style={{ flex: 1 }}>
+                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                    <Text style={[styles.stepTitle, step.isCompleted && styles.completedText, { color: theme.colors.text }]}>
+                                                        {step.title || step.name}
                                                     </Text>
+                                                    {step.isCompleted && (
+                                                        <View style={[
+                                                            styles.badge,
+                                                            step.approvalStatus === 'APPROVED' ? { backgroundColor: theme.colors.success } :
+                                                                step.approvalStatus === 'REJECTED' ? { backgroundColor: theme.colors.error } :
+                                                                    { backgroundColor: theme.colors.warning }
+                                                        ]}>
+                                                            <Text style={styles.badgeText}>
+                                                                {step.approvalStatus === 'APPROVED' ? 'ONAYLANDI' :
+                                                                    step.approvalStatus === 'REJECTED' ? 'REDDEDİLDİ' : 'ONAY BEKLİYOR'}
+                                                            </Text>
+                                                        </View>
+                                                    )}
+                                                </View>
+                                                {step.startedAt && (<Text style={[styles.dateText, { color: theme.colors.subText }]}>
+                                                    {t('worker.started')}: {formatDate(step.startedAt)}
+                                                </Text>
                                                 )}
                                                 {step.completedAt && (
                                                     <View>
@@ -953,123 +975,123 @@ Assembly Tracker Ltd. Şti.
                                             </View>
                                         </View>
 
-                                                                        {step.approvalStatus === 'REJECTED' && step.rejectionReason && (
-                                                                            <Text style={[styles.rejectionReasonText, { color: theme.colors.error }]}>{t('worker.rejectionReason')}: {step.rejectionReason}</Text>
-                                                                        )}
-                                        
-                                                                        {/* Manager Actions for Step */}
-                                                                        {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && step.isCompleted && step.approvalStatus === 'PENDING' && (
-                                                                            <View style={styles.managerActionRow}>
-                                                                                <TouchableOpacity
-                                                                                    style={[styles.managerButton, { backgroundColor: theme.colors.error }]}
-                                                                                    onPress={() => {
-                                                                                        setSelectedStepId(step.id);
-                                                                                        setRejectionType('STEP');
-                                                                                        setRejectionModalVisible(true);
-                                                                                    }}
-                                                                                >
-                                                                                    <MaterialIcons name="close" size={16} color="#fff" />
-                                                                                    <Text style={styles.managerButtonText}>Reddet</Text>
-                                                                                </TouchableOpacity>
-                                                                                <TouchableOpacity
-                                                                                    style={[styles.managerButton, { backgroundColor: theme.colors.success }]}
-                                                                                    onPress={() => handleApproveStep(step.id)}
-                                                                                >
-                                                                                    <MaterialIcons name="check" size={16} color="#fff" />
-                                                                                    <Text style={styles.managerButtonText}>Onayla</Text>
-                                                                                </TouchableOpacity>
-                                                                            </View>
-                                                                        )}
-                                        
-                                                                        {!isLocked && step.subSteps && (                                            <View style={styles.substepsContainer}>
-                                                {step.subSteps.map((substep, subIndex) => {
-                                                    const isSubstepLocked = subIndex > 0 && !step.subSteps[subIndex - 1].isCompleted;
-                                                    return (
-                                                        <GlassCard key={substep.id} style={[styles.substepWrapper, isSubstepLocked && styles.lockedCard]} theme={theme}>
-                                                            <View style={styles.substepRow}>
-                                                                <TouchableOpacity
-                                                                    style={[styles.checkbox, { width: 20, height: 20 }, substep.isCompleted && styles.checkedBox]}
-                                                                    onPress={() => handleSubstepToggle(step.id, substep.id, substep.isCompleted)}
-                                                                    disabled={isSubstepLocked || user?.role?.toUpperCase() === 'ADMIN'}
-                                                                >
-                                                                    {substep.isCompleted && <MaterialIcons name="check" size={14} color="#FFFFFF" />}
-                                                                </TouchableOpacity>
-                                                                                                                        <View style={styles.substepInfo}>
-                                                                                                                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                                                                                                <Text style={[styles.substepTitle, substep.isCompleted && styles.completedText, { color: theme.colors.text, flex: 1 }]}>
-                                                                                                                                    {substep.title}
-                                                                                                                                </Text>
-                                                                                                                                {substep.isCompleted && (
-                                                                                                                                    <View style={[
-                                                                                                                                        styles.badge,
-                                                                                                                                        { paddingHorizontal: 6, paddingVertical: 2 },
-                                                                                                                                        substep.approvalStatus === 'APPROVED' ? { backgroundColor: theme.colors.success } :
-                                                                                                                                            substep.approvalStatus === 'REJECTED' ? { backgroundColor: theme.colors.error } :
-                                                                                                                                                { backgroundColor: theme.colors.warning }
-                                                                                                                                    ]}>
-                                                                                                                                        <Text style={[styles.badgeText, { fontSize: 10 }]}>
-                                                                                                                                            {substep.approvalStatus === 'APPROVED' ? 'ONAYLI' :
-                                                                                                                                                substep.approvalStatus === 'REJECTED' ? 'RED' : 'BEKLİYOR'}
-                                                                                                                                        </Text>
-                                                                                                                                    </View>
-                                                                                                                                )}
-                                                                
-                                                                                                                                {/* Alt adım için fotoğraf yükleme butonu - Sadece saha personeli için */}                                                                        {!isSubstepLocked && !substep.isCompleted && user?.role?.toUpperCase() !== 'ADMIN' && (
-                                                                            <TouchableOpacity
-                                                                                onPress={() => pickImage(step.id, substep.id, 'camera')}
-                                                                                style={[styles.actionButton, { padding: 4, marginLeft: 8 }]}
-                                                                            >
-                                                                                <MaterialIcons name="add-a-photo" size={18} color={theme.colors.primary} />
-                                                                            </TouchableOpacity>
-                                                                        )}
-                                                                    </View>
-                                                                    <Text style={[styles.substepText, substep.isCompleted && styles.completedText, { color: theme.colors.text }]}>
-                                                                        {substep.title || substep.name}
-                                                                    </Text>
-                                                                </View>
-                                                                                                                        {substep.photos && substep.photos.length > 0 && (
-                                                                                                                            <FlatList
-                                                                                                                                data={substep.photos}
-                                                                                                                                renderItem={renderPhotoItem}
-                                                                                                                                keyExtractor={(p, i) => i.toString()}
-                                                                                                                                horizontal
-                                                                                                                                showsHorizontalScrollIndicator={false}
-                                                                                                                            />
-                                                                                                                        )}
-                                                                
-                                                                                                                        {substep.approvalStatus === 'REJECTED' && substep.rejectionReason && (
-                                                                                                                            <Text style={[styles.rejectionReasonText, { color: theme.colors.error, marginTop: 4 }]}>
-                                                                                                                                {t('worker.rejectionReason')}: {substep.rejectionReason}
-                                                                                                                            </Text>
-                                                                                                                        )}
-                                                                
-                                                                                                                        {/* Manager Actions for Substep */}
-                                                                                                                        {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && substep.isCompleted && substep.approvalStatus === 'PENDING' && (
-                                                                                                                            <View style={[styles.managerActionRow, { marginTop: 8 }]}>
-                                                                                                                                <TouchableOpacity
-                                                                                                                                    style={[styles.managerButton, { backgroundColor: theme.colors.error, padding: 6 }]}
-                                                                                                                                    onPress={() => {
-                                                                                                                                        setSelectedSubstepId(substep.id);
-                                                                                                                                        setRejectionType('SUBSTEP');
-                                                                                                                                        setRejectionModalVisible(true);
-                                                                                                                                    }}
-                                                                                                                                >
-                                                                                                                                    <MaterialIcons name="close" size={14} color="#fff" />
-                                                                                                                                    <Text style={[styles.managerButtonText, { fontSize: 11 }]}>Reddet</Text>
-                                                                                                                                </TouchableOpacity>
-                                                                                                                                <TouchableOpacity
-                                                                                                                                    style={[styles.managerButton, { backgroundColor: theme.colors.success, padding: 6 }]}
-                                                                                                                                    onPress={() => handleApproveSubstep(substep.id)}
-                                                                                                                                >
-                                                                                                                                    <MaterialIcons name="check" size={14} color="#fff" />
-                                                                                                                                    <Text style={[styles.managerButtonText, { fontSize: 11 }]}>Onayla</Text>
-                                                                                                                                </TouchableOpacity>
-                                                                                                                            </View>
-                                                                                                                        )}
-                                                                                                                    </View>
-                                                                                                                </GlassCard>                                                    );
-                                                })}
+                                        {step.approvalStatus === 'REJECTED' && step.rejectionReason && (
+                                            <Text style={[styles.rejectionReasonText, { color: theme.colors.error }]}>{t('worker.rejectionReason')}: {step.rejectionReason}</Text>
+                                        )}
+
+                                        {/* Manager Actions for Step */}
+                                        {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && step.isCompleted && step.approvalStatus === 'PENDING' && (
+                                            <View style={styles.managerActionRow}>
+                                                <TouchableOpacity
+                                                    style={[styles.managerButton, { backgroundColor: theme.colors.error }]}
+                                                    onPress={() => {
+                                                        setSelectedStepId(step.id);
+                                                        setRejectionType('STEP');
+                                                        setRejectionModalVisible(true);
+                                                    }}
+                                                >
+                                                    <MaterialIcons name="close" size={16} color="#fff" />
+                                                    <Text style={styles.managerButtonText}>Reddet</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={[styles.managerButton, { backgroundColor: theme.colors.success }]}
+                                                    onPress={() => handleApproveStep(step.id)}
+                                                >
+                                                    <MaterialIcons name="check" size={16} color="#fff" />
+                                                    <Text style={styles.managerButtonText}>Onayla</Text>
+                                                </TouchableOpacity>
                                             </View>
+                                        )}
+
+                                        {!isLocked && step.subSteps && (<View style={styles.substepsContainer}>
+                                            {step.subSteps.map((substep, subIndex) => {
+                                                const isSubstepLocked = subIndex > 0 && !step.subSteps[subIndex - 1].isCompleted;
+                                                return (
+                                                    <GlassCard key={substep.id} style={[styles.substepWrapper, isSubstepLocked && styles.lockedCard]} theme={theme}>
+                                                        <View style={styles.substepRow}>
+                                                            <TouchableOpacity
+                                                                style={[styles.checkbox, { width: 20, height: 20 }, substep.isCompleted && styles.checkedBox]}
+                                                                onPress={() => handleSubstepToggle(step.id, substep.id, substep.isCompleted)}
+                                                                disabled={isSubstepLocked || user?.role?.toUpperCase() === 'ADMIN'}
+                                                            >
+                                                                {substep.isCompleted && <MaterialIcons name="check" size={14} color="#FFFFFF" />}
+                                                            </TouchableOpacity>
+                                                            <View style={styles.substepInfo}>
+                                                                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                    <Text style={[styles.substepTitle, substep.isCompleted && styles.completedText, { color: theme.colors.text, flex: 1 }]}>
+                                                                        {substep.title}
+                                                                    </Text>
+                                                                    {substep.isCompleted && (
+                                                                        <View style={[
+                                                                            styles.badge,
+                                                                            { paddingHorizontal: 6, paddingVertical: 2 },
+                                                                            substep.approvalStatus === 'APPROVED' ? { backgroundColor: theme.colors.success } :
+                                                                                substep.approvalStatus === 'REJECTED' ? { backgroundColor: theme.colors.error } :
+                                                                                    { backgroundColor: theme.colors.warning }
+                                                                        ]}>
+                                                                            <Text style={[styles.badgeText, { fontSize: 10 }]}>
+                                                                                {substep.approvalStatus === 'APPROVED' ? 'ONAYLI' :
+                                                                                    substep.approvalStatus === 'REJECTED' ? 'RED' : 'BEKLİYOR'}
+                                                                            </Text>
+                                                                        </View>
+                                                                    )}
+
+                                                                    {/* Alt adım için fotoğraf yükleme butonu - Sadece saha personeli için */}                                                                        {!isSubstepLocked && !substep.isCompleted && user?.role?.toUpperCase() !== 'ADMIN' && (
+                                                                        <TouchableOpacity
+                                                                            onPress={() => pickImage(step.id, substep.id, 'camera')}
+                                                                            style={[styles.actionButton, { padding: 4, marginLeft: 8 }]}
+                                                                        >
+                                                                            <MaterialIcons name="add-a-photo" size={18} color={theme.colors.primary} />
+                                                                        </TouchableOpacity>
+                                                                    )}
+                                                                </View>
+                                                                <Text style={[styles.substepText, substep.isCompleted && styles.completedText, { color: theme.colors.text }]}>
+                                                                    {substep.title || substep.name}
+                                                                </Text>
+                                                            </View>
+                                                            {substep.photos && substep.photos.length > 0 && (
+                                                                <FlatList
+                                                                    data={substep.photos}
+                                                                    renderItem={renderPhotoItem}
+                                                                    keyExtractor={(p, i) => i.toString()}
+                                                                    horizontal
+                                                                    showsHorizontalScrollIndicator={false}
+                                                                />
+                                                            )}
+
+                                                            {substep.approvalStatus === 'REJECTED' && substep.rejectionReason && (
+                                                                <Text style={[styles.rejectionReasonText, { color: theme.colors.error, marginTop: 4 }]}>
+                                                                    {t('worker.rejectionReason')}: {substep.rejectionReason}
+                                                                </Text>
+                                                            )}
+
+                                                            {/* Manager Actions for Substep */}
+                                                            {['ADMIN', 'MANAGER'].includes(user?.role?.toUpperCase()) && substep.isCompleted && substep.approvalStatus === 'PENDING' && (
+                                                                <View style={[styles.managerActionRow, { marginTop: 8 }]}>
+                                                                    <TouchableOpacity
+                                                                        style={[styles.managerButton, { backgroundColor: theme.colors.error, padding: 6 }]}
+                                                                        onPress={() => {
+                                                                            setSelectedSubstepId(substep.id);
+                                                                            setRejectionType('SUBSTEP');
+                                                                            setRejectionModalVisible(true);
+                                                                        }}
+                                                                    >
+                                                                        <MaterialIcons name="close" size={14} color="#fff" />
+                                                                        <Text style={[styles.managerButtonText, { fontSize: 11 }]}>Reddet</Text>
+                                                                    </TouchableOpacity>
+                                                                    <TouchableOpacity
+                                                                        style={[styles.managerButton, { backgroundColor: theme.colors.success, padding: 6 }]}
+                                                                        onPress={() => handleApproveSubstep(substep.id)}
+                                                                    >
+                                                                        <MaterialIcons name="check" size={14} color="#fff" />
+                                                                        <Text style={[styles.managerButtonText, { fontSize: 11 }]}>Onayla</Text>
+                                                                    </TouchableOpacity>
+                                                                </View>
+                                                            )}
+                                                        </View>
+                                                    </GlassCard>);
+                                            })}
+                                        </View>
                                         )}
                                     </GlassCard>
                                 );
@@ -1140,41 +1162,41 @@ Assembly Tracker Ltd. Şti.
                             )
                         ) : (
                             <View style={{ width: '100%' }}>
-                        <View style={[styles.acceptanceStatusContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
-                            <Text style={[styles.acceptanceStatusLabel, { color: theme.colors.text }]}>Montaj Onay Durumu:</Text>
-                            <Text style={[
-                                styles.acceptanceStatusValue,
-                                job.acceptanceStatus === 'ACCEPTED' ? { color: theme.colors.success } :
-                                    (job.status === 'PENDING_APPROVAL') ? { color: theme.colors.warning } :
-                                        job.acceptanceStatus === 'REJECTED' ? { color: theme.colors.error } : { color: theme.colors.subText }
-                            ]}>
-                                {job.acceptanceStatus === 'ACCEPTED' ? 'ONAYLANMIŞ' :
-                                    job.acceptanceStatus === 'REJECTED' ? 'REDDEDİLMİŞ' :
-                                        job.status === 'PENDING_APPROVAL' ? 'ONAY BEKLİYOR' : 'MONTAJ DEVAM EDİYOR'}
-                            </Text>
-                        </View>
-                        {job.acceptanceStatus === 'PENDING' && (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL') && (
-                            <View style={{ flexDirection: 'row', gap: 8 }}>
-                                <TouchableOpacity
-                                    style={[styles.mainCompleteButton, styles.rejectButton, { flex: 1, padding: 12, backgroundColor: theme.colors.error }]}
-                                    onPress={() => {
-                                        setRejectionType('JOB');
-                                        setRejectionModalVisible(true);
-                                    }}
-                                >
-                                    <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>Reddet</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={[styles.mainCompleteButton, styles.acceptJobButton, { flex: 1, padding: 12, backgroundColor: theme.colors.success }]}
-                                    onPress={handleAcceptJob}
-                                >
-                                    <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>Kabul Et</Text>
-                                </TouchableOpacity>
+                                <View style={[styles.acceptanceStatusContainer, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+                                    <Text style={[styles.acceptanceStatusLabel, { color: theme.colors.text }]}>Montaj Onay Durumu:</Text>
+                                    <Text style={[
+                                        styles.acceptanceStatusValue,
+                                        job.acceptanceStatus === 'ACCEPTED' ? { color: theme.colors.success } :
+                                            (job.status === 'PENDING_APPROVAL') ? { color: theme.colors.warning } :
+                                                job.acceptanceStatus === 'REJECTED' ? { color: theme.colors.error } : { color: theme.colors.subText }
+                                    ]}>
+                                        {job.acceptanceStatus === 'ACCEPTED' ? 'ONAYLANMIŞ' :
+                                            job.acceptanceStatus === 'REJECTED' ? 'REDDEDİLMİŞ' :
+                                                job.status === 'PENDING_APPROVAL' ? 'ONAY BEKLİYOR' : 'MONTAJ DEVAM EDİYOR'}
+                                    </Text>
+                                </View>
+                                {job.acceptanceStatus === 'PENDING' && (job.status === 'COMPLETED' || job.status === 'PENDING_APPROVAL') && (
+                                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                                        <TouchableOpacity
+                                            style={[styles.mainCompleteButton, styles.rejectButton, { flex: 1, padding: 12, backgroundColor: theme.colors.error }]}
+                                            onPress={() => {
+                                                setRejectionType('JOB');
+                                                setRejectionModalVisible(true);
+                                            }}
+                                        >
+                                            <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>Reddet</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={[styles.mainCompleteButton, styles.acceptJobButton, { flex: 1, padding: 12, backgroundColor: theme.colors.success }]}
+                                            onPress={handleAcceptJob}
+                                        >
+                                            <Text style={[styles.mainCompleteButtonText, { color: theme.colors.textInverse }]}>Kabul Et</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
                             </View>
                         )}
                     </View>
-                )}
-            </View>
                 </>
             )}
 
@@ -1211,8 +1233,8 @@ Assembly Tracker Ltd. Şti.
                     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                         <View style={[styles.formCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
                             <Text style={[styles.modalTitle, { color: theme.colors.text }]}>
-                                {rejectionType === 'JOB' ? 'İşi Reddet' : 
-                                 rejectionType === 'STEP' ? 'Adımı Reddet' : 'Alt Adımı Reddet'}
+                                {rejectionType === 'JOB' ? 'İşi Reddet' :
+                                    rejectionType === 'STEP' ? 'Adımı Reddet' : 'Alt Adımı Reddet'}
                             </Text>
                             <Text style={[styles.inputLabel, { color: theme.colors.subText }]}>{t('worker.rejectionReason')}</Text>
                             <TextInput

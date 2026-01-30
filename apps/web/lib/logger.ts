@@ -1,88 +1,121 @@
-import { PrismaClient, LogLevel, LogSource } from '@prisma/client';
+import { offlineDB, LocalLog } from './offline-db'
 
-// 'db.ts' dosyasından mevcut Prisma istemcisini alıyoruz
-import prisma from './db'; 
-
-// İstemci tarafında API'ye istek atmak için
-const API_ENDPOINT = '/api/logs';
-
-// Logger'ın temel yapısı
-interface ILogger {
-  log(level: LogLevel, message: string, meta?: Record<string, any>): Promise<void>;
-  info(message: string, meta?: Record<string, any>): Promise<void>;
-  warn(message: string, meta?: Record<string, any>): Promise<void>;
-  error(message: string, meta?: Record<string, any>): Promise<void>;
-  audit(message: string, meta?: Record<string, any>): Promise<void>;
+export const LogLevel = {
+    DEBUG: 'DEBUG',
+    INFO: 'INFO',
+    WARN: 'WARN',
+    ERROR: 'ERROR',
+    AUDIT: 'AUDIT',
 }
 
-// Sunucu tarafında çalışacak logger
-const createServerLogger = (source: LogSource): ILogger => ({
-  async log(level: LogLevel, message: string, meta: Record<string, any> = {}) {
-    try {
-      await prisma.systemLog.create({
-        data: {
-          level,
-          message,
-          meta,
-          source,
-        },
-      });
-    } catch (error) {
-      console.error("Failed to write log to database:", error);
+const BATCH_SIZE = 30
+const SYNC_INTERVAL = 60000 // 1 minute
+
+class Logger {
+    private isSyncing = false
+
+    constructor() {
+        if (typeof window !== 'undefined') {
+            // Periodic sync
+            setInterval(() => this.sync(), SYNC_INTERVAL)
+
+            // Sync on online event
+            window.addEventListener('online', () => this.sync())
+
+            // Catch unhandled errors
+            window.addEventListener('error', (event) => {
+                this.error('Unhandled UI Error', {
+                    message: event.message,
+                    filename: event.filename,
+                    lineno: event.lineno,
+                    colno: event.colno
+                }, event.error?.stack)
+            })
+
+            window.addEventListener('unhandledrejection', (event) => {
+                this.error('Unhandled Promise Rejection', {
+                    reason: String(event.reason)
+                }, event.reason?.stack)
+            })
+        }
     }
-  },
-  info(message, meta) {
-    return this.log('INFO', message, meta);
-  },
-  warn(message, meta) {
-    return this.log('WARN', message, meta);
-  },
-  error(message, meta) {
-    return this.log('ERROR', message, meta);
-  },
-  audit(message, meta) {
-    return this.log('AUDIT', message, meta);
-  },
-});
 
-// İstemci tarafında çalışacak logger
-const createClientLogger = (): ILogger => ({
-  async log(level: LogLevel, message: string, meta?: Record<string, any>) {
-    try {
-      await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ level, message, meta }),
-      });
-    } catch (error) {
-      console.error("Failed to send log to server:", error);
+    async log(level: string, message: string, context?: any, stack?: string) {
+        try {
+            const newLog: LocalLog = {
+                level,
+                message,
+                context,
+                stack,
+                platform: typeof window !== 'undefined' ? 'web' : 'server',
+                createdAt: new Date().toISOString()
+            }
+
+            if (typeof window !== 'undefined') {
+                await offlineDB.systemLogs.add(newLog)
+
+                if (process.env.NODE_ENV === 'development') {
+                    console.log(`[Logger] [${level}] ${message}`, context || '')
+                }
+
+                const count = await offlineDB.systemLogs.count()
+                if (count >= BATCH_SIZE) {
+                    this.sync()
+                }
+            } else {
+                // Server-side logging
+                console.log(`[Server Logger] [${level}] ${message}`)
+                // We could also call the internal Batch sync logic here if needed
+                // But usually server logs go to stdout/Vercel logs
+            }
+        } catch (error) {
+            console.error('Error adding log to repository:', error)
+        }
     }
-  },
-  info(message, meta) {
-    return this.log('INFO', message, meta);
-  },
-  warn(message, meta) {
-    return this.log('WARN', message, meta);
-  },
-  error(message, meta) {
-    return this.log('ERROR', message, meta);
-  },
-  audit(message, meta) {
-    return this.log('AUDIT', message, meta);
-  },
-});
 
-// Ana factory fonksiyonu
-// Bu fonksiyon, kodun nerede çalıştığını kontrol eder ve uygun logger'ı döndürür.
-export const createLogger = (source: LogSource = 'SERVER'): ILogger => {
-  if (typeof window === 'undefined') {
-    // Sunucu tarafı
-    return createServerLogger(source);
-  } else {
-    // İstemci tarafı
-    return createClientLogger();
-  }
-};
+    debug(msg: string, ctx?: any) { this.log(LogLevel.DEBUG, msg, ctx) }
+    info(msg: string, ctx?: any) { this.log(LogLevel.INFO, msg, ctx) }
+    warn(msg: string, ctx?: any) { this.log(LogLevel.WARN, msg, ctx) }
+    error(msg: string, ctx?: any, stack?: string) { this.log(LogLevel.ERROR, msg, ctx, stack) }
+    audit(msg: string, ctx?: any) { this.log(LogLevel.AUDIT, msg, ctx) }
 
-// Varsayılan bir sunucu logger'ı ihraç edelim (sunucu tarafı modüllerde doğrudan kullanım için)
-export const serverLogger = createLogger('SERVER');
+    async sync() {
+        if (this.isSyncing || typeof window === 'undefined') return
+        if (!navigator.onLine) return
+
+        this.isSyncing = true
+        try {
+            const logs = await offlineDB.systemLogs.toArray()
+            if (logs.length === 0) {
+                this.isSyncing = false
+                return
+            }
+
+            // Map to remove Dexie IDs before sending
+            const logsToSend = logs.map(({ id, ...rest }) => rest)
+
+            const response = await fetch('/api/logs/batch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(logsToSend)
+            })
+
+            if (response.ok) {
+                // Clear the logs we just sent
+                const ids = logs.map(l => l.id as number)
+                await offlineDB.systemLogs.bulkDelete(ids)
+                if (process.env.NODE_ENV === 'development') {
+                    console.log(`[Logger] Successfully synced ${logs.length} logs.`)
+                }
+            } else {
+                 console.error('[Logger] Sync failed with status:', response.status)
+            }
+        } catch (error) {
+            console.error('[Logger] Sync failed:', error)
+        } finally {
+            this.isSyncing = false
+        }
+    }
+}
+
+export const logger = new Logger()

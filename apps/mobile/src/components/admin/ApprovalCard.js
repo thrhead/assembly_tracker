@@ -5,13 +5,12 @@ import { useTheme } from '../../context/ThemeContext';
 // import { COLORS } from '../../constants/theme'; // Removed
 
 const ApprovalCard = ({ item, onApprove, onReject, theme: propTheme }) => {
-    // Ideally use context if prop not passed, or rely on prop content.
-    // Since we passed theme prop from ApprovalsScreen, we can use it, or fallback to hook.
     const { theme: contextTheme } = useTheme();
     const theme = propTheme || contextTheme;
+    const [isExpanded, setIsExpanded] = React.useState(false);
 
     const cardBg = theme.colors.card;
-    const border = theme.colors.border;
+    const border = theme.colors.cardBorder;
     const textMain = theme.colors.text;
     const textSub = theme.colors.subText;
     const primary = theme.colors.primary;
@@ -19,7 +18,11 @@ const ApprovalCard = ({ item, onApprove, onReject, theme: propTheme }) => {
 
     return (
         <View style={[styles.card, { backgroundColor: cardBg, borderColor: border }]}>
-            <View style={styles.cardHeader}>
+            <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setIsExpanded(!isExpanded)}
+                style={styles.cardHeader}
+            >
                 <View style={[styles.typeBadge, { backgroundColor: item.type === 'JOB' ? primary + '15' : 'rgba(255, 165, 0, 0.1)' }]}>
                     <MaterialIcons
                         name={item.type === 'JOB' ? 'work' : 'receipt'}
@@ -30,11 +33,50 @@ const ApprovalCard = ({ item, onApprove, onReject, theme: propTheme }) => {
                         {item.type === 'JOB' ? 'İŞ ONAYI' : 'MASRAF ONAYI'}
                     </Text>
                 </View>
-                <Text style={[styles.dateText, { color: textSub }]}>{item.date}</Text>
-            </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={[styles.dateText, { color: textSub }]}>{item.date}</Text>
+                    <MaterialIcons
+                        name={isExpanded ? "expand-less" : "expand-more"}
+                        size={20}
+                        color={textSub}
+                    />
+                </View>
+            </TouchableOpacity>
 
             <Text style={[styles.title, { color: textMain }]}>{item.title}</Text>
-            <Text style={[styles.requester, { color: textSub }]}>Talep Eden: {item.requester}</Text>
+            <Text style={[styles.requester, { color: textSub }]}>{item.requester}</Text>
+
+            {isExpanded && (
+                <View style={[styles.details, { borderTopColor: border }]}>
+                    {item.type === 'COST' ? (
+                        <>
+                            <View style={styles.detailRow}>
+                                <Text style={[styles.detailLabel, { color: textSub }]}>Kategori:</Text>
+                                <Text style={[styles.detailValue, { color: textMain }]}>{item.raw?.category}</Text>
+                            </View>
+                            {item.raw?.notes && (
+                                <View style={styles.detailRow}>
+                                    <Text style={[styles.detailLabel, { color: textSub }]}>Notlar:</Text>
+                                    <View style={[styles.noteContainer, { backgroundColor: theme.colors.background + '80' }]}>
+                                        <Text style={[styles.noteText, { color: textMain }]}>{item.raw?.notes}</Text>
+                                    </View>
+                                </View>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <View style={styles.detailRow}>
+                                <Text style={[styles.detailLabel, { color: textSub }]}>Müşteri:</Text>
+                                <Text style={[styles.detailValue, { color: textMain }]}>{item.raw?.customer?.company || 'Bilinmiyor'}</Text>
+                            </View>
+                            <View style={styles.detailRow}>
+                                <Text style={[styles.detailLabel, { color: textSub }]}>Lokasyon:</Text>
+                                <Text style={[styles.detailValue, { color: textMain }]}>{item.raw?.customer?.address || 'Bilinmiyor'}</Text>
+                            </View>
+                        </>
+                    )}
+                </View>
+            )}
 
             <View style={styles.actions}>
                 <TouchableOpacity
@@ -116,6 +158,37 @@ const styles = StyleSheet.create({
     },
     approveText: {
         fontWeight: 'bold',
+    },
+    details: {
+        marginTop: 12,
+        paddingTop: 12,
+        borderTopWidth: 1,
+        gap: 8,
+    },
+    detailRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+    },
+    detailLabel: {
+        fontSize: 12,
+        flex: 0.3,
+    },
+    detailValue: {
+        fontSize: 12,
+        fontWeight: '600',
+        flex: 0.7,
+        textAlign: 'right',
+    },
+    noteContainer: {
+        marginTop: 4,
+        padding: 8,
+        borderRadius: 8,
+        flex: 0.7,
+    },
+    noteText: {
+        fontSize: 12,
+        fontStyle: 'italic',
     },
 });
 

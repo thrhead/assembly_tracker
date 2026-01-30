@@ -8,20 +8,6 @@ datasource db {
   url       = env("DATABASE_URL")
 }
 
-enum LogLevel {
-  INFO
-  WARN
-  ERROR
-  AUDIT
-}
-
-enum LogSource {
-  CLIENT
-  SERVER
-  DATABASE
-  EXTERNAL
-}
-
 model User {
   id                 String          @id @default(cuid())
   name               String?
@@ -420,15 +406,15 @@ model WebhookLog {
 
 model SystemLog {
   id        String    @id @default(cuid())
-  level     LogLevel
+  level     String    // e.g., INFO, WARN, ERROR, AUDIT
   message   String
-  source    LogSource
-  meta      Json?     // Hata nesneleri, yığın izleri (stack traces), cihaz bilgisi vb. için
+  meta      Json?     // Context, stack trace, etc.
+  platform  String?   // "web", "mobile", "server"
   userId    String?
   user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt DateTime  @default(now())
 
   @@index([level, createdAt])
-  @@index([source, createdAt])
+  @@index([platform, createdAt])
   @@map("system_logs")
 }

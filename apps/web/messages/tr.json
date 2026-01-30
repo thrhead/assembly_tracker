@@ -127,5 +127,19 @@
       "CANCELLED": "İptal",
       "ON_HOLD": "Beklemede"
     }
+  },
+  "Admin": {
+    "logs": {
+      "title": "Sistem Logları",
+      "subtitle": "Hata ve sistem hareketlerini izleyin.",
+      "level": "Seviye",
+      "platform": "Platform",
+      "message": "Mesaj",
+      "user": "Kullanıcı",
+      "time": "Zaman",
+      "prune": "Eski Logları Temizle",
+      "pruneConfirm": "90 günden eski teknik loglar silinecek. Onaylıyor musunuz?",
+      "noLogs": "Log kaydı bulunamadı."
+    }
   }
 }

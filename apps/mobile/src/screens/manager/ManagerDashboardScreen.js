@@ -5,11 +5,17 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import GlassCard from '../../components/ui/GlassCard';
-import StatCard from '../../components/StatCard'; // TODO: Update StatCard to support theme or wrap it
+import StatCard from '../../components/StatCard';
+import { useManagerDashboardStats } from '../../hooks/useManagerDashboardStats';
 
 export default function ManagerDashboardScreen({ navigation }) {
     const { user, logout } = useAuth();
     const { theme, toggleTheme, isDark } = useTheme();
+    const { statsData, fetchStats, loading } = useManagerDashboardStats();
+
+    React.useEffect(() => {
+        fetchStats();
+    }, []);
 
     const handleLogout = async () => {
         const performLogout = async () => {
@@ -91,20 +97,20 @@ export default function ManagerDashboardScreen({ navigation }) {
                     <GlassCard theme={theme} style={{ flex: 1, margin: 6, padding: 16 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                             <View>
-                                <Text style={{ color: theme.colors.subText, fontSize: 12, fontWeight: '600' }}>EKİP ÜYELERİ</Text>
-                                <Text style={{ color: theme.colors.text, fontSize: 24, fontWeight: 'bold' }}>8</Text>
+                                <Text style={{ color: theme.colors.subText, fontSize: 10, fontWeight: '600' }}>TÜM İŞLER</Text>
+                                <Text style={{ color: theme.colors.text, fontSize: 24, fontWeight: 'bold' }}>{statsData.totalJobs}</Text>
                             </View>
-                            <MaterialIcons name="group" size={32} color={theme.colors.primary} />
+                            <MaterialIcons name="work" size={28} color={theme.colors.primary} />
                         </View>
                     </GlassCard>
 
                     <GlassCard theme={theme} style={{ flex: 1, margin: 6, padding: 16 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                             <View>
-                                <Text style={{ color: theme.colors.subText, fontSize: 12, fontWeight: '600' }}>AKTİF İŞLER</Text>
-                                <Text style={{ color: theme.colors.text, fontSize: 24, fontWeight: 'bold' }}>12</Text>
+                                <Text style={{ color: theme.colors.subText, fontSize: 10, fontWeight: '600' }}>AKTİF EKİPLER</Text>
+                                <Text style={{ color: theme.colors.text, fontSize: 24, fontWeight: 'bold' }}>{statsData.activeTeams}</Text>
                             </View>
-                            <MaterialIcons name="assignment" size={32} color="#3b82f6" />
+                            <MaterialIcons name="groups" size={28} color="#3b82f6" />
                         </View>
                     </GlassCard>
                 </View>
@@ -113,54 +119,71 @@ export default function ManagerDashboardScreen({ navigation }) {
                     <GlassCard theme={theme} style={{ flex: 1, margin: 6, padding: 16 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                             <View>
-                                <Text style={{ color: theme.colors.subText, fontSize: 12, fontWeight: '600' }}>ONAY BEKLEYEN</Text>
-                                <Text style={{ color: theme.colors.text, fontSize: 24, fontWeight: 'bold' }}>5</Text>
+                                <Text style={{ color: theme.colors.subText, fontSize: 10, fontWeight: '600' }}>BEKLEYEN ONAYLAR</Text>
+                                <Text style={{ color: theme.colors.text, fontSize: 24, fontWeight: 'bold' }}>{statsData.pendingApprovals}</Text>
                             </View>
-                            <MaterialIcons name="pending-actions" size={32} color="#f59e0b" />
+                            <MaterialIcons name="pending-actions" size={28} color="#f59e0b" />
                         </View>
                     </GlassCard>
 
                     <GlassCard theme={theme} style={{ flex: 1, margin: 6, padding: 16 }}>
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                             <View>
-                                <Text style={{ color: theme.colors.subText, fontSize: 12, fontWeight: '600' }}>TAMAMLANMA</Text>
-                                <Text style={{ color: theme.colors.text, fontSize: 24, fontWeight: 'bold' }}>87%</Text>
+                                <Text style={{ color: theme.colors.subText, fontSize: 10, fontWeight: '600' }}>AYLIK TAMAMLANAN</Text>
+                                <Text style={{ color: theme.colors.text, fontSize: 24, fontWeight: 'bold' }}>{statsData.completedJobsThisMonth}</Text>
                             </View>
-                            <MaterialIcons name="check-circle" size={32} color="#22c55e" />
+                            <MaterialIcons name="check-circle" size={28} color="#22c55e" />
                         </View>
                     </GlassCard>
                 </View>
 
-                {/* Coming Soon Section */}
-                <GlassCard theme={theme} style={styles.comingSoonContainer}>
-                    <MaterialIcons name="rocket-launch" size={64} color={theme.colors.primary} style={{ marginBottom: 16 }} />
-                    <Text style={[styles.comingSoonTitle, { color: theme.colors.text }]}>Daha Fazla Özellik Yakında!</Text>
-                    <Text style={[styles.comingSoonText, { color: theme.colors.subText }]}>
-                        Şu anda kullanılabilir özellikler:
-                    </Text>
-                    <View style={styles.featureList}>
-                        <View style={styles.featureItemRow}>
-                            <MaterialIcons name="check" size={16} color={theme.colors.primary} />
-                            <Text style={[styles.featureItemActive, { color: theme.colors.primary }]}>Ekip performans görüntüleme</Text>
+                {/* Team Performance Section */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Ekip Performansı</Text>
+                    <GlassCard theme={theme} style={{ padding: 20 }}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                            <Text style={{ color: theme.colors.text, fontWeight: '700' }}>Genel Verimlilik Skoru</Text>
+                            <View style={{ backgroundColor: '#6366f120', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 }}>
+                                <Text style={{ color: '#6366f1', fontWeight: 'bold' }}>%{statsData.efficiencyScore || 0}</Text>
+                            </View>
                         </View>
-                        <View style={styles.featureItemRow}>
-                            <MaterialIcons name="check" size={16} color={theme.colors.primary} />
-                            <Text style={[styles.featureItemActive, { color: theme.colors.primary }]}>İş atama ve yönetimi</Text>
+                        <View style={styles.progressContainer}>
+                            <View style={[styles.progressBg, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }]} />
+                            <View style={[styles.progressFill, { backgroundColor: '#6366f1', width: `${statsData.efficiencyScore || 0}%` }]} />
                         </View>
-                        <View style={styles.featureItemRow}>
-                            <MaterialIcons name="fiber-manual-record" size={8} color={theme.colors.subText} style={{ marginTop: 6 }} />
-                            <Text style={[styles.featureItem, { color: theme.colors.subText }]}>Onay bekleyen işlemler</Text>
-                        </View>
-                        <View style={styles.featureItemRow}>
-                            <MaterialIcons name="fiber-manual-record" size={8} color={theme.colors.subText} style={{ marginTop: 6 }} />
-                            <Text style={[styles.featureItem, { color: theme.colors.subText }]}>Müşteri yönetimi</Text>
-                        </View>
-                        <View style={styles.featureItemRow}>
-                            <MaterialIcons name="fiber-manual-record" size={8} color={theme.colors.subText} style={{ marginTop: 6 }} />
-                            <Text style={[styles.featureItem, { color: theme.colors.subText }]}>Detaylı istatistikler</Text>
-                        </View>
-                    </View>
-                </GlassCard>
+                    </GlassCard>
+                </View>
+
+                {/* Recent Activity Section */}
+                <View style={styles.section}>
+                    <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Son Faaliyetler</Text>
+                    {statsData.recentJobs?.length > 0 ? (
+                        statsData.recentJobs.map((job) => (
+                            <TouchableOpacity
+                                key={job.id}
+                                style={[styles.jobItem, { backgroundColor: theme.colors.card, borderColor: theme.colors.cardBorder }]}
+                                onPress={() => navigation.navigate('JobDetail', { jobId: job.id })}
+                            >
+                                <View style={[styles.jobIcon, { backgroundColor: theme.colors.primaryBg }]}>
+                                    <MaterialIcons name="business" size={20} color={theme.colors.primary} />
+                                </View>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{ color: theme.colors.text, fontWeight: '600', fontSize: 14 }} numberOfLines={1}>{job.title}</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                        <Text style={{ color: theme.colors.subText, fontSize: 12 }}>{job.customer?.company}</Text>
+                                        <Text style={{ color: theme.colors.subText, fontSize: 12 }}>•</Text>
+                                        <Text style={{ color: theme.colors.subText, fontSize: 12 }}>{new Date(job.createdAt).toLocaleDateString('tr-TR')}</Text>
+                                    </View>
+                                </View>
+                                <MaterialIcons name="chevron-right" size={24} color={theme.colors.icon} />
+                            </TouchableOpacity>
+                        ))
+                    ) : (
+                        <GlassCard theme={theme} style={{ padding: 20, alignItems: 'center' }}>
+                            <Text style={{ color: theme.colors.subText, fontStyle: 'italic' }}>Henüz faaliyet bulunamadı.</Text>
+                        </GlassCard>
+                    )}
+                </View>
 
                 {/* Quick Actions */}
                 <View style={styles.section}>
@@ -197,12 +220,9 @@ export default function ManagerDashboardScreen({ navigation }) {
                         </GlassCard>
                     </View>
                     <View style={[styles.quickActions, { marginTop: 12 }]}>
-                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 12, opacity: 0.6 }}>
-                            <MaterialIcons name="bar-chart" size={32} color={theme.colors.subText} />
-                            <Text style={{ color: theme.colors.subText, fontWeight: '600' }}>Raporlar</Text>
-                            <View style={{ position: 'absolute', top: 8, right: 8, backgroundColor: theme.colors.cardBorder, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
-                                <Text style={{ fontSize: 9, color: theme.colors.subText }}>Yakında</Text>
-                            </View>
+                        <GlassCard theme={theme} style={{ flex: 1, padding: 16, alignItems: 'center', gap: 12 }} onPress={() => navigation.navigate('Reports')}>
+                            <MaterialIcons name="bar-chart" size={32} color="#ec4899" />
+                            <Text style={{ color: theme.colors.text, fontWeight: '600' }}>Raporlar</Text>
                         </GlassCard>
                     </View>
                 </View>
@@ -303,5 +323,42 @@ const styles = StyleSheet.create({
     quickActions: {
         flexDirection: 'row',
         gap: 12,
+    },
+    jobItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+        borderRadius: 16,
+        borderWidth: 1,
+        marginBottom: 8,
+        gap: 12,
+    },
+    jobIcon: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    progressContainer: {
+        height: 12,
+        width: '100%',
+        position: 'relative',
+        borderRadius: 6,
+        overflow: 'hidden',
+    },
+    progressBg: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+    },
+    progressFill: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        bottom: 0,
+        borderRadius: 6,
     },
 });
