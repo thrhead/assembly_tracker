@@ -171,6 +171,20 @@ export const SocketProvider = ({ children }) => {
         }
     };
 
+    const joinJobRoom = (jobId) => {
+        if (socketRef.current && socketRef.current.connected) {
+            console.log('[Socket] Joining job room:', jobId);
+            socketRef.current.emit('join:job', jobId);
+        }
+    };
+
+    const leaveJobRoom = (jobId) => {
+        if (socketRef.current && socketRef.current.connected) {
+            console.log('[Socket] Leaving job room:', jobId);
+            socketRef.current.emit('leave:job', jobId);
+        }
+    };
+
     return (
         <SocketContext.Provider value={{
             socket,
@@ -178,7 +192,9 @@ export const SocketProvider = ({ children }) => {
             unreadCount,
             notifications,
             markAsRead,
-            markAllAsRead
+            markAllAsRead,
+            joinJobRoom,
+            leaveJobRoom
         }}>
             {children}
         </SocketContext.Provider>

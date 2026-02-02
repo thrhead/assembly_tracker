@@ -73,10 +73,21 @@
 - **Status:** Completed.
 - **GitHub Issue:** #30 Closed.
 
+### 10. Concurrent Data Entry & Real-time Updates (Issue #29)
+- **Goal:** Prevent data conflicts when multiple users edit the same job and provide real-time updates.
+- **Action:**
+  - **Backend:** Added `emitToJob` to `start` and `toggle` endpoints to broadcast `job:updated` events. Added `leave:job` handler to socket server.
+  - **Mobile:**
+    - Updated `SocketContext` to support `joinJobRoom`/`leaveJobRoom`.
+    - Updated `JobDetailScreen` to listen for `job:updated` events and alert the user ("Başkası güncelledi, yenileniyor").
+    - Ensured `useFocusEffect` handles socket room subscription/unsubscription correctly during navigation.
+- **Status:** Completed.
+- **GitHub Issue:** #29 Closed.
+
 ## Repository Status
 - **Remote:** `https://github.com/thrhead/assembly_tracker.git`
 - **Branch:** `main`
-- **Push Status:** Successfully pushed changes for Issues #15, #20, #19, #16, #32, #31, #30.
+- **Push Status:** Successfully pushed changes for Issues #15, #20, #19, #16, #32, #31, #30, #29.
 
 ## Open Issues / Ongoing Work
 - **#14 (Manuel Test):** Remains open per user request.

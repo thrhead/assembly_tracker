@@ -43,7 +43,7 @@ import GlassCard from '../../components/ui/GlassCard';
 import { CreateExpenseModal } from '../../components/worker/expense/CreateExpenseModal';
 import SignaturePad from '../../components/SignaturePad';
 import { COLORS, Z_INDEX } from '../../constants/theme';
-import { SocketProvider } from '../../context/SocketContext';
+import { SocketProvider, useSocket } from '../../context/SocketContext';
 import { useTranslation } from 'react-i18next';
 import { useAlert } from '../../context/AlertContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -81,6 +81,7 @@ export default function JobDetailScreen({ route, navigation }) {
     const { theme, isDark } = useTheme();
     const { t, i18n } = useTranslation();
     const { showAlert } = useAlert();
+    const { socket, joinJobRoom, leaveJobRoom } = useSocket();
     const [job, setJob] = useState(null);
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
@@ -124,7 +125,37 @@ export default function JobDetailScreen({ route, navigation }) {
     useFocusEffect(
         React.useCallback(() => {
             loadJobDetails();
-        }, [jobId])
+
+            if (!socket) return;
+
+            console.log('[JobDetail] Joining room:', jobId);
+            joinJobRoom(jobId);
+
+            const handleJobUpdate = (data) => {
+                console.log('[JobDetail] Received update:', data);
+
+                if (modalVisible || costModalVisible || rejectionModalVisible) {
+                    console.log('[JobDetail] Modal open, silent refresh');
+                    loadJobDetails();
+                    return;
+                }
+
+                showAlert(
+                    t('common.info'),
+                    "Bu iş başka bir kullanıcı tarafından güncellendi.",
+                    [{ text: "Yenile", onPress: () => loadJobDetails() }],
+                    'info'
+                );
+            };
+
+            socket.on('job:updated', handleJobUpdate);
+
+            return () => {
+                console.log('[JobDetail] Leaving room (focus lost):', jobId);
+                socket.off('job:updated', handleJobUpdate);
+                leaveJobRoom(jobId);
+            };
+        }, [jobId, socket, modalVisible, costModalVisible, rejectionModalVisible])
     );
 
     const openImageModal = (image) => {

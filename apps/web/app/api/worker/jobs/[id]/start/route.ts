@@ -4,6 +4,7 @@ import { verifyAuth } from '@/lib/auth-helper';
 import { sendAdminNotification } from '@/lib/notification-helper';
 import { triggerWebhook } from '@/lib/webhook-service';
 import { checkConflict } from '@/lib/conflict-check';
+import { emitToJob } from '@/lib/socket';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
@@ -74,6 +75,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             session.user.id
         );
         console.log('[JOB START] Admin notification sent successfully');
+
+        // Real-time update for concurrent users
+        emitToJob(id, 'job:updated', updatedJob);
 
         // Trigger webhook
         await triggerWebhook('job.started', {

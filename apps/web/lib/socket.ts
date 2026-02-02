@@ -39,6 +39,11 @@ export const initSocketServer = (httpServer: HTTPServer): SocketIOServer => {
             console.log(`💬 Socket joined job room: job:${jobId}`)
         })
 
+        socket.on('leave:job', (jobId: string) => {
+            socket.leave(`job:${jobId}`)
+            console.log(`👋 Socket left job room: job:${jobId}`)
+        })
+
         // Handle sending messages (Real-time distribution)
         // Note: Persistence should ideally happen via API call, but we can handle it here too
         socket.on('send:message', (message: Record<string, any>) => {
