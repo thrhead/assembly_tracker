@@ -5,6 +5,8 @@ import { emitToUser } from '@/lib/socket'
 import { sendAdminNotification } from '@/lib/notification-helper'
 import { checkConflict } from '@/lib/conflict-check'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   req: Request,
   props: { params: Promise<{ id: string }> }

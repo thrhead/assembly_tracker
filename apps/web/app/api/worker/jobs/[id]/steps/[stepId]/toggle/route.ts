@@ -23,6 +23,23 @@ export async function POST(
       return NextResponse.json({ error: 'Step not found' }, { status: 404 })
     }
 
+    // Check Access
+    if (!['ADMIN', 'MANAGER'].includes(session.user.role)) {
+      const hasAccess = await prisma.jobAssignment.findFirst({
+        where: {
+          jobId: step.jobId,
+          OR: [
+            { workerId: session.user.id },
+            { team: { members: { some: { userId: session.user.id } } } }
+          ]
+        }
+      })
+
+      if (!hasAccess) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    }
+
     // Seviye 3: Ebeveyn iş üzerinden çakışma kontrolü
     const conflict = await checkConflict(req, step.job.updatedAt)
     if (conflict) return conflict

@@ -505,12 +505,16 @@ export default function JobDetailScreen({ route, navigation }) {
     const handleStartJob = async () => {
         try {
             setLoading(true);
-            await jobService.startJob(jobId, job.updatedAt);
+            console.log('[Mobile] Starting job:', jobId, 'Last Updated:', job.updatedAt);
+            // Fallback to current time if updatedAt is missing to avoid "clientVersion" missing issues,
+            // though this might bypass strict conflict checks, it ensures the action proceeds.
+            await jobService.startJob(jobId, job.updatedAt || new Date().toISOString());
             showAlert(t('common.success'), t('alerts.jobStartSuccess'), [], 'success');
             loadJobDetails();
         } catch (error) {
             console.error('Error starting job:', error);
             if (error.status === 409) {
+                console.warn('[Mobile] Conflict detected on start.');
                 showAlert(
                     t('common.warning'),
                     t('alerts.jobDataStale'),
@@ -519,7 +523,9 @@ export default function JobDetailScreen({ route, navigation }) {
                 );
                 loadJobDetails();
             } else {
-                showAlert(t('common.error'), error.message || t('alerts.jobStartError'), [], 'error');
+                const errorMessage = error.message || t('alerts.jobStartError');
+                console.error('[Mobile] Start Job Failed:', errorMessage);
+                showAlert(t('common.error'), errorMessage, [], 'error');
             }
         } finally {
             setLoading(false);

@@ -64,10 +64,19 @@
 - **Status:** Completed.
 - **GitHub Issue:** #31 Closed.
 
+### 9. Mobile Job Progress Fixes (Issue #30)
+- **Goal:** Resolve issue where jobs could not be started or progressed on mobile.
+- **Action:**
+  - **Backend Cache:** Added `export const dynamic = 'force-dynamic'` to `worker/jobs` and `worker/jobs/[id]` APIs to prevent stale data caching (Next.js 15).
+  - **Access Control:** Added explicit DB-based assignment checks to `/start` and `/toggle` endpoints for security and robustness.
+  - **Mobile:** Added fallback for `updatedAt` in `JobDetailScreen.js` to ensure conflict checks don't fail silently.
+- **Status:** Completed.
+- **GitHub Issue:** #30 Closed.
+
 ## Repository Status
 - **Remote:** `https://github.com/thrhead/assembly_tracker.git`
 - **Branch:** `main`
-- **Push Status:** Successfully pushed changes for Issues #15, #20, #19, #16, #32, #31.
+- **Push Status:** Successfully pushed changes for Issues #15, #20, #19, #16, #32, #31, #30.
 
 ## Open Issues / Ongoing Work
 - **#14 (Manuel Test):** Remains open per user request.

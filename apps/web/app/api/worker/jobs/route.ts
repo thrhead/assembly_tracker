@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(req: Request) {
   try {
     // logToFile('Worker Jobs API: GET Request received');

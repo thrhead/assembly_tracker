@@ -37,6 +37,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             return NextResponse.json({ error: 'Job already started or completed' }, { status: 400 });
         }
 
+        // Check Access: Ensure the user is assigned to this job or is an admin/manager
+        if (!['ADMIN', 'MANAGER'].includes(session.user.role)) {
+            const hasAccess = await prisma.jobAssignment.findFirst({
+                where: {
+                    jobId: id,
+                    OR: [
+                        { workerId: session.user.id },
+                        { team: { members: { some: { userId: session.user.id } } } }
+                    ]
+                }
+            });
+
+            if (!hasAccess) {
+                console.warn(`[JOB START] Unauthorized access attempt by ${session.user.email} for job ${id}`);
+                return NextResponse.json({ error: 'Forbidden: You are not assigned to this job' }, { status: 403 });
+            }
+        }
+
         const updatedJob = await prisma.job.update({
             where: { id },
             data: {
