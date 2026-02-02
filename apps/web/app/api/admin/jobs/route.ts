@@ -21,6 +21,8 @@ function buildJobFilter(searchParams: URLSearchParams) {
     if (search && search.length > 0) {
         where.OR = [
             { title: { contains: search, mode: 'insensitive' } },
+            { jobNo: { contains: search, mode: 'insensitive' } },
+            { projectNo: { contains: search, mode: 'insensitive' } },
             { customer: { company: { contains: search, mode: 'insensitive' } } }
         ]
     }

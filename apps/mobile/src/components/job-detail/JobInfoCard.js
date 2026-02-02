@@ -88,37 +88,26 @@ const JobInfoCard = ({ job }) => {
     <GlassCard style={styles.card} theme={theme}>
       <View style={styles.headerRow}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.jobTitle, { color: theme.colors.text }]}>
-            {job.title}
-          </Text>
+          <View style={styles.infoRow}>
+            <MaterialIcons
+              name="business"
+              size={16}
+              color={theme.colors.subText}
+            />
+            <Text style={[styles.infoText, { color: theme.colors.subText, fontWeight: 'bold' }]}>
+              {job.customer?.company || job.customer?.name || "Müşteri"}
+            </Text>
+          </View>
+
           <View
             style={{
               flexDirection: "row",
               flexWrap: "wrap",
               gap: 12,
               marginBottom: 8,
+              marginTop: 4
             }}
           >
-            <View>
-              <Text
-                style={{
-                  fontSize: 10,
-                  color: theme.colors.subText,
-                  fontWeight: "bold",
-                }}
-              >
-                KAYIT ID
-              </Text>
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: "bold",
-                  color: theme.colors.text,
-                }}
-              >
-                #{job.id?.toString().slice(-6).toUpperCase()}
-              </Text>
-            </View>
             {job.projectNo && (
               <View>
                 <Text
@@ -163,17 +152,32 @@ const JobInfoCard = ({ job }) => {
                 </Text>
               </View>
             )}
+            <View>
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: theme.colors.subText,
+                  fontWeight: "bold",
+                }}
+              >
+                KAYIT ID
+              </Text>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "bold",
+                  color: theme.colors.text,
+                }}
+              >
+                #{job.id?.toString().slice(-6).toUpperCase()}
+              </Text>
+            </View>
           </View>
-          <View style={styles.infoRow}>
-            <MaterialIcons
-              name="business"
-              size={16}
-              color={theme.colors.subText}
-            />
-            <Text style={[styles.infoText, { color: theme.colors.subText }]}>
-              {job.customer?.company || job.customer?.name || "Müşteri"}
-            </Text>
-          </View>
+
+          <Text style={[styles.jobTitle, { color: theme.colors.text, marginTop: 4 }]}>
+            {job.title}
+          </Text>
+
           {(job.budget || job.estimatedDuration) && (
             <View style={{ flexDirection: "row", gap: 12, marginTop: 4 }}>
               {job.budget > 0 && (

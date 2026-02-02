@@ -164,9 +164,20 @@ export default function JobDetailScreen({ route, navigation }) {
     };
 
     const handleDeletePhoto = (photo) => {
+        if (!photo || !photo.id) {
+            console.warn('[Mobile] Cannot delete photo without ID');
+            return;
+        }
+
+        // Optional: Client-side permission check (but backend handles it too)
+        // if (user.role === 'WORKER' && photo.uploadedById !== user.id) {
+        //    showAlert(t('common.error'), "Sadece kendi yüklediğiniz fotoğrafları silebilirsiniz.", [], 'error');
+        //    return;
+        // }
+
         showAlert(
-            t('common.delete'),
-            t('common.confirmDelete'),
+            t('common.warning'),
+            t('alerts.deletePhotoConfirm'),
             [
                 { text: t('common.cancel'), style: 'cancel' },
                 {
@@ -175,14 +186,21 @@ export default function JobDetailScreen({ route, navigation }) {
                     onPress: async () => {
                         try {
                             setLoading(true);
+                            console.log('[Mobile] Deleting photo:', photo.id, 'Step:', photo.stepId);
+                            // Fallback for stepId if missing (unlikely if from Prisma)
+                            if (!photo.stepId) {
+                                throw new Error("Fotoğraf bilgisi eksik (Step ID)");
+                            }
                             await jobService.deletePhoto(jobId, photo.stepId, photo.id);
+
+                            // Close modal first
                             setModalVisible(false);
-                            setSuccessMessage(t('common.success'));
-                            setSuccessModalVisible(true);
+                            // Then refresh
                             loadJobDetails();
+                            showAlert(t('common.success'), t('alerts.deleteSuccess'), [], 'success');
                         } catch (error) {
-                            console.error('Error deleting photo:', error);
-                            showAlert(t('common.error'), "Fotoğraf silinemedi.", [], 'error');
+                            console.error('[Mobile] Delete photo error:', error);
+                            showAlert(t('common.error'), t('alerts.processError') + ": " + (error.message || ""), [], 'error');
                         } finally {
                             setLoading(false);
                         }

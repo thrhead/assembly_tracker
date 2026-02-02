@@ -84,10 +84,19 @@
 - **Status:** Completed.
 - **GitHub Issue:** #29 Closed.
 
+### 11. Additional Bug Fixes & Enhancements (Issues #28, #27, #26, #25, #22)
+- **#28 Mobile Expense Photo (Bug):** Fixed failure to upload photos when adding expenses by removing manual `Content-Type` header (letting Axios handle FormData boundary).
+- **#27 Job Details Layout (Enhancement):** Updated mobile `JobInfoCard` to match Web order (Customer -> Project -> JobNo -> Title).
+- **#26 Description Formatting (Bug):** Added `whitespace-pre-wrap` to Admin Job Details view to correctly display newlines in job descriptions.
+- **#25 Mobile Photo Delete (Bug):** Enhanced error handling and safety checks for photo deletion in mobile app to ensure workers can delete photos.
+- **#22 Search Filtering (Enhancement):** Updated Admin Job Search API to include `jobNo` and `projectNo` in search criteria.
+
+- **Status:** All Completed & Closed.
+
 ## Repository Status
 - **Remote:** `https://github.com/thrhead/assembly_tracker.git`
 - **Branch:** `main`
-- **Push Status:** Successfully pushed changes for Issues #15, #20, #19, #16, #32, #31, #30, #29.
+- **Push Status:** Successfully pushed changes for Issues #15, #20, #19, #16, #32, #31, #30, #29, #28, #27, #26, #25, #22.
 
 ## Open Issues / Ongoing Work
 - **#14 (Manuel Test):** Remains open per user request.

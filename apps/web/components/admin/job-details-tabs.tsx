@@ -210,6 +210,12 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                     <span className="text-gray-500">Proje No:</span>
                                     <span className="font-bold text-orange-600">{job.jobNo || '-'}</span>
                                 </div>
+                                <div className="space-y-1 pt-2">
+                                    <span className="text-gray-500 block">Açıklama:</span>
+                                    <div className="p-3 bg-gray-50 rounded-md border text-gray-700 whitespace-pre-wrap">
+                                        {job.description || 'Açıklama yok'}
+                                    </div>
+                                </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Durum:</span>
                                     <span className="font-medium">{job.status}</span>
@@ -287,15 +293,15 @@ export function AdminJobDetailsTabs({ job, workers, teams }: AdminJobDetailsTabs
                                                         const now = new Date().getTime()
                                                         const elapsed = now - start
                                                         const progress = completedSteps / totalSteps
-                                                        
+
                                                         if (progress <= 0 || isNaN(progress)) return '-'
-                                                        
+
                                                         const totalEst = elapsed / progress
                                                         if (!isFinite(totalEst)) return '-'
-                                                        
+
                                                         const finishDate = new Date(start + totalEst)
                                                         if (isNaN(finishDate.getTime())) return '-'
-                                                        
+
                                                         return finishDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
                                                     } catch (e) {
                                                         return '-'
