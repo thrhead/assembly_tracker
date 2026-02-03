@@ -4,12 +4,22 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    dedupe: ['react', 'react-dom'],
+    alias: {
+      '@': path.resolve(__dirname, './'),
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
-    alias: {
-      '@': path.resolve(__dirname, './')
-    }
+    deps: {
+      optimizer: {
+        web: {
+          include: ['react', 'react-dom'],
+        },
+      },
+    },
   },
 })
