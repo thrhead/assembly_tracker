@@ -24,7 +24,7 @@ const mockJob = {
   ]
 }
 
-describe.skip('JobDetailsView Progress Calculation', () => {
+describe('JobDetailsView Progress Calculation', () => {
   it('should correctly calculate and display the progress percentage', () => {
     render(<JobDetailsView job={mockJob as any} />)
 

@@ -11,7 +11,8 @@ vi.mock('@/lib/data/reports', () => ({
     getCategoriesForFilter: vi.fn(),
     getCostTrend: vi.fn(),
     getTotalCostTrend: vi.fn(),
-    getPendingCostsList: vi.fn()
+    getPendingCostsList: vi.fn(),
+    getCostList: vi.fn()
 }))
 
 // Mock UI components that might cause issues in test environment
@@ -19,12 +20,23 @@ vi.mock('@/components/admin/reports/charts/CostTrendChart', () => ({
     default: () => <div data-testid="cost-trend-chart">Chart</div>
 }))
 
+vi.mock('@/components/excel-download-button', () => ({
+    ExcelDownloadButton: () => <button>Excel Download</button>
+}))
+
+vi.mock('@/components/pdf-download-button', () => ({
+    PDFDownloadButton: () => <button>PDF Download</button>
+}))
+
 vi.mock('next/navigation', () => ({
     useRouter: () => ({ push: vi.fn() }),
     useSearchParams: () => ({ get: vi.fn(), toString: () => '' }),
+    usePathname: () => '',
+    redirect: vi.fn(),
+    permanentRedirect: vi.fn(),
 }))
 
-describe.skip('CostReportPage', () => {
+describe('CostReportPage', () => {
     it('should render page title', async () => {
         // Mock return value
         vi.mocked(reportData.getCostBreakdown).mockResolvedValue({ 'MATERIAL': 1000 })
@@ -36,6 +48,7 @@ describe.skip('CostReportPage', () => {
         vi.mocked(reportData.getCostTrend).mockResolvedValue({ data: [], categories: [] })
         vi.mocked(reportData.getTotalCostTrend).mockResolvedValue([])
         vi.mocked(reportData.getPendingCostsList).mockResolvedValue([])
+        vi.mocked(reportData.getCostList).mockResolvedValue([])
 
         const Page = await CostReportPage({ searchParams: Promise.resolve({}) });
         render(Page)
