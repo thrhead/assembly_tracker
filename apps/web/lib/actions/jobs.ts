@@ -69,8 +69,6 @@ export async function createJobAction(prevState: CreateJobState, formData: FormD
     scheduledEndDate: formData.get('scheduledEndDate'),
     budget: formData.get('budget') ? parseFloat(formData.get('budget') as string) : null,
     estimatedDuration: formData.get('estimatedDuration') ? parseInt(formData.get('estimatedDuration') as string) : null,
-    scheduledDate: formData.get('scheduledDate'),
-    scheduledEndDate: formData.get('scheduledEndDate'),
     steps: JSON.parse(formData.get('steps') as string || '[]')
   }
 
