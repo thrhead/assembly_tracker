@@ -4,6 +4,7 @@ const getBaseUrl = () => {
     // Check if we have a production URL defined in environment variables (for EAS builds)
     const prodUrl = process.env.EXPO_PUBLIC_API_URL;
     if (prodUrl && !__DEV__) {
+        console.log('[Config] Using Environment URL:', prodUrl);
         return prodUrl;
     }
 
@@ -27,6 +28,7 @@ const getBaseUrl = () => {
     }
 
     // Fallback for production if no env var is set
+    console.log('[Config] Using Fallback URL: https://assemblyweb.vercel.app');
     return 'https://assemblyweb.vercel.app';
 };
 
