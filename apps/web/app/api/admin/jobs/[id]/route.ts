@@ -4,6 +4,7 @@ import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { EventBus } from '@/lib/event-bus'
 import { checkConflict } from '@/lib/conflict-check'
+import { logger } from '@/lib/logger'
 
 const updateJobSchema = z.object({
     startedAt: z.string().optional().nullable(),
@@ -82,9 +83,16 @@ export async function PUT(
         // Trigger side effects
         await EventBus.emit('job.updated', updatedJob);
 
+        logger.audit(`Job updated (PUT): ${updatedJob.title}`, {
+            jobId: updatedJob.id,
+            updaterId: session.user.id,
+            updates: Object.keys(data)
+        });
+
         return NextResponse.json({ success: true, job: updatedJob })
     } catch (error) {
         console.error('Update job (PUT) error:', error)
+        logger.error('Failed to update job (PUT)', { error: (error as Error).message });
         if (error instanceof z.ZodError) {
             return NextResponse.json({ error: error.message }, { status: 400 })
         }
@@ -128,9 +136,16 @@ export async function PATCH(
         // Trigger side effects
         await EventBus.emit('job.updated', updatedJob);
 
+        logger.audit(`Job updated (PATCH): ${updatedJob.title}`, {
+            jobId: updatedJob.id,
+            updaterId: session.user.id,
+            updates: Object.keys(body)
+        });
+
         return NextResponse.json({ success: true, job: updatedJob })
     } catch (error) {
         console.error('Update job error:', error)
+        logger.error('Failed to update job (PATCH)', { error: (error as Error).message });
         if (error instanceof z.ZodError) {
             return NextResponse.json({ error: error.message }, { status: 400 })
         }
@@ -166,9 +181,15 @@ export async function DELETE(
         // Trigger side effects
         await EventBus.emit('job.deleted', { id: params.id });
 
+        logger.audit(`Job deleted: ${job.title}`, {
+            jobId: params.id,
+            deleterId: session.user.id
+        });
+
         return NextResponse.json({ success: true, message: 'Job deleted successfully' })
     } catch (error) {
         console.error('Delete job error:', error)
+        logger.error('Failed to delete job', { error: (error as Error).message });
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }

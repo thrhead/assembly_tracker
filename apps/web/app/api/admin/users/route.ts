@@ -4,6 +4,7 @@ import { verifyAdmin } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { hash } from 'bcryptjs'
 import { createUserAdminSchema } from '@/lib/validations-edge'
+import { logger } from '@/lib/logger'
 
 export async function GET(req: Request) {
     try {
@@ -92,9 +93,15 @@ export async function POST(req: Request) {
             }
         })
 
+        logger.audit(`User created: ${newUser.name} (${newUser.role})`, {
+            userId: newUser.id,
+            adminId: session.user.id
+        });
+
         return NextResponse.json(newUser, { status: 201 })
     } catch (error) {
         console.error('User creation error:', error)
+        logger.error('Failed to create user', { error: (error as Error).message });
         if (error instanceof z.ZodError) {
             const errorMessage = error.issues.map(issue => issue.message).join(', ')
             return NextResponse.json({ error: errorMessage, details: error.issues }, { status: 400 })

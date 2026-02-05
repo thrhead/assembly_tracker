@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
 import { hash } from 'bcryptjs'
 import { sanitizeHtml, stripHtml } from '@/lib/security'
+import { logger } from '@/lib/logger'
 
 // Define schema here if not in validations, or import it.
 // Assuming we want a specific schema for customer creation which includes company info.
@@ -36,7 +37,7 @@ export async function createCustomerAction(data: z.infer<typeof customerCreateSc
     const { name, email, password, phone, company, address, taxId, notes } = validated.data
 
     try {
-        await prisma.$transaction(async (tx) => {
+        const customer = await prisma.$transaction(async (tx) => {
             // Check email
             const existingUser = await tx.user.findUnique({ where: { email } })
             if (existingUser) {
@@ -58,7 +59,7 @@ export async function createCustomerAction(data: z.infer<typeof customerCreateSc
             })
 
             // Create Customer Profile
-            await tx.customer.create({
+            return await tx.customer.create({
                 data: {
                     userId: user.id,
                     company: stripHtml(company),
@@ -69,10 +70,16 @@ export async function createCustomerAction(data: z.infer<typeof customerCreateSc
             })
         })
 
+        logger.audit(`Customer created: ${customer.company}`, {
+            customerId: customer.id,
+            adminId: session.user.id
+        });
+
         revalidatePath('/admin/customers')
         return { success: true }
     } catch (error: any) {
         console.error('Customer creation error:', error)
+        logger.error('Failed to create customer', { error: error.message });
         throw new Error(error.message || 'Müşteri oluşturulurken bir hata oluştu')
     }
 }
@@ -145,10 +152,16 @@ export async function updateCustomerAction(data: z.infer<typeof customerUpdateSc
             })
         })
 
+        logger.audit(`Customer updated: ${company || name}`, {
+            customerId: id,
+            updaterId: session.user.id
+        });
+
         revalidatePath('/admin/customers')
         return { success: true }
     } catch (error: any) {
         console.error('Customer update error:', error)
+        logger.error('Failed to update customer', { error: error.message, customerId: id });
         throw new Error(error.message || 'Müşteri güncellenirken bir hata oluştu')
     }
 }

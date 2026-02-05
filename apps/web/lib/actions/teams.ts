@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { prisma } from '@/lib/db'
 import { revalidatePath } from 'next/cache'
 import { auth } from '@/lib/auth'
+import { logger } from '@/lib/logger'
 
 const teamSchema = z.object({
   name: z.string().min(2, 'Ekip adı en az 2 karakter olmalıdır'),
@@ -29,8 +30,8 @@ export async function createTeamAction(data: z.infer<typeof teamSchema>) {
     const { name, description, leadId, isActive, memberIds } = validated.data
 
     try {
-        await prisma.$transaction(async (tx) => {
-            const team = await tx.team.create({
+        const team = await prisma.$transaction(async (tx) => {
+            const newTeam = await tx.team.create({
                 data: {
                     name,
                     description,
@@ -42,17 +43,24 @@ export async function createTeamAction(data: z.infer<typeof teamSchema>) {
             if (memberIds && memberIds.length > 0) {
                 await tx.teamMember.createMany({
                     data: memberIds.map(userId => ({
-                        teamId: team.id,
+                        teamId: newTeam.id,
                         userId
                     }))
                 })
             }
+            return newTeam;
         })
+
+        logger.audit(`Team created: ${team.name}`, {
+            teamId: team.id,
+            adminId: session.user.id
+        });
 
         revalidatePath('/admin/teams')
         return { success: true }
     } catch (error: any) {
         console.error('Team creation error:', error)
+        logger.error('Failed to create team', { error: error.message });
         throw new Error(error.message || 'Ekip oluşturulurken bir hata oluştu')
     }
 }
@@ -104,11 +112,17 @@ export async function updateTeamAction(id: string, data: z.infer<typeof teamSche
             }
         })
 
+        logger.audit(`Team updated: ${name}`, {
+            teamId: id,
+            updaterId: session.user.id
+        });
+
         revalidatePath('/admin/teams')
         revalidatePath(`/admin/teams/${id}`)
         return { success: true }
     } catch (error: any) {
         console.error('Team update error:', error)
+        logger.error('Failed to update team', { error: error.message, teamId: id });
         throw new Error(error.message || 'Ekip güncellenirken bir hata oluştu')
     }
 }

@@ -3,20 +3,7 @@ import { prisma } from '@/lib/db'
 import { verifyAuth } from '@/lib/auth-helper'
 import { z } from 'zod'
 import { hash } from 'bcryptjs'
-import * as fs from 'fs';
-import * as path from 'path';
-
-const LOG_FILE = path.join(process.cwd(), 'api_debug.log');
-
-function logToFile(message: string) {
-    const timestamp = new Date().toISOString();
-    const logMessage = `${timestamp} - ${message}\n`;
-    try {
-        fs.appendFileSync(LOG_FILE, logMessage);
-    } catch (e) {
-        console.error('Failed to write to log file:', e);
-    }
-}
+import { logger } from '@/lib/logger'
 
 const updateUserSchema = z.object({
     name: z.string().min(2).optional(),
@@ -31,16 +18,13 @@ export async function PUT(
     props: { params: Promise<{ id: string }> }
 ) {
     const params = await props.params
-    logToFile(`[API] User Update Request for ID: ${params.id}`)
     try {
         const session = await verifyAuth(req)
         if (!session || session.user.role !== 'ADMIN') {
-            logToFile(`[API] User Update Unauthorized: ${session?.user?.role}`)
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
         const body = await req.json()
-        logToFile(`[API] User Update Body: ${JSON.stringify(body)}`)
         const data = updateUserSchema.parse(body)
 
         const updateData: any = { ...data }
@@ -63,11 +47,16 @@ export async function PUT(
             }
         })
 
-        logToFile(`[API] User Updated Successfully: ${updatedUser.email}`)
+        logger.audit(`User updated: ${updatedUser.name} (${updatedUser.role})`, {
+            userId: updatedUser.id,
+            updaterId: session.user.id,
+            updates: Object.keys(data)
+        });
 
         return NextResponse.json(updatedUser)
     } catch (error) {
-        logToFile(`[API] User Update Error: ${error}`)
+        console.error('User update error:', error)
+        logger.error('Failed to update user', { error: (error as Error).message, userId: (await props.params).id });
         if (error instanceof z.ZodError) {
             const errorMessage = error.issues.map(issue => issue.message).join(', ')
             return NextResponse.json({ error: errorMessage, details: error.issues }, { status: 400 })
@@ -81,7 +70,6 @@ export async function DELETE(
     props: { params: Promise<{ id: string }> }
 ) {
     const params = await props.params
-    logToFile(`[API] User Delete Request for ID: ${params.id}`)
     try {
         const session = await verifyAuth(req)
         if (!session || session.user.role !== 'ADMIN') {
@@ -93,15 +81,26 @@ export async function DELETE(
             return NextResponse.json({ error: 'Kendinizi silemezsiniz' }, { status: 400 })
         }
 
+        // Get user details before deleting for log
+        const userToDelete = await prisma.user.findUnique({
+            where: { id: params.id },
+            select: { name: true, email: true }
+        })
+
         await prisma.user.delete({
             where: { id: params.id }
         })
 
-        logToFile(`[API] User Deleted Successfully: ${params.id}`)
+        logger.audit(`User deleted: ${userToDelete?.name || params.id}`, {
+            userId: params.id,
+            deleterId: session.user.id,
+            userEmail: userToDelete?.email
+        });
 
         return NextResponse.json({ success: true })
     } catch (error) {
-        logToFile(`[API] User Delete Error: ${error}`)
+        console.error('User delete error:', error)
+        logger.error('Failed to delete user', { error: (error as Error).message, userId: params.id });
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }
