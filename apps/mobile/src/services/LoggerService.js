@@ -78,11 +78,12 @@ export const LoggerService = {
      * Synchronizes logs with the server
      */
     sync: async () => {
+        let logs = [];
         try {
             const netState = await NetInfo.fetch();
             if (!netState.isConnected) return;
 
-            const logs = await LoggerService.getLogs();
+            logs = await LoggerService.getLogs();
             if (logs.length === 0) return;
 
             // Use the batch endpoint
@@ -94,9 +95,12 @@ export const LoggerService = {
                 if (__DEV__) {
                     console.log(`[LoggerService] Synced ${logs.length} logs.`);
                 }
+            } else {
+                 console.warn(`[LoggerService] Server responded with status ${response.status}. Keeping logs.`);
             }
         } catch (error) {
             // Silently fail to avoid infinite loops if API itself logs errors
+            // IMPORTANT: We do NOT remove logs from storage here, they will retry next time.
             if (__DEV__) {
                 console.warn('[LoggerService] Sync failed:', error.message);
             }
