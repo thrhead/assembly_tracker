@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       data: {
         level,
         message,
-        meta: meta || null, // Ensure meta is not undefined for schema consistency
+        meta: meta || undefined, // Use undefined instead of null
         platform: 'web', // Set default platform for web logs
       },
     });

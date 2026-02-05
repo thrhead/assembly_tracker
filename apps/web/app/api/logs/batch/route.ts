@@ -57,7 +57,7 @@ export async function POST(req: Request) {
                 context: log.context || null,
                 stack: log.stack || null,
               }
-            : null, // Use null instead of undefined to ensure all objects have the same shape for createMany
+            : undefined, // Use undefined instead of null to satisfy Prisma's NullableJsonNullValueInput type
       };
     });
 

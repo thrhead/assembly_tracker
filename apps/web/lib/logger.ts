@@ -80,7 +80,7 @@ class Logger {
                                 meta: (context || stack) ? {
                                     context: context || null,
                                     stack: stack || null
-                                } : null
+                                } : undefined
                             }
                         });
                     }
