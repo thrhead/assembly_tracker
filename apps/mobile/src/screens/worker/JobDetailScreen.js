@@ -49,6 +49,7 @@ import { useAlert } from '../../context/AlertContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { API_URL } from '../../config';
+import { LoggerService } from '../../services/LoggerService';
 
 const AppModal = ({ visible, children, ...props }) => {
     if (Platform.OS === 'web') {
@@ -425,6 +426,9 @@ export default function JobDetailScreen({ route, navigation }) {
         try {
             setLoading(true);
             await jobService.approveStep(stepId);
+            
+            LoggerService.audit('Job step approved', { jobId, stepId });
+            
             showAlert(t('common.success'), t('alerts.stepApproveSuccess'), [], 'success');
             loadJobDetails();
         } catch (error) {
@@ -555,9 +559,10 @@ export default function JobDetailScreen({ route, navigation }) {
         try {
             setLoading(true);
             console.log('[Mobile] Starting job:', jobId, 'Last Updated:', job.updatedAt);
-            // Fallback to current time if updatedAt is missing to avoid "clientVersion" missing issues,
-            // though this might bypass strict conflict checks, it ensures the action proceeds.
             await jobService.startJob(jobId, job.updatedAt || new Date().toISOString());
+            
+            LoggerService.audit('Job started', { jobId, jobTitle: job.title, workerId: user.id });
+            
             showAlert(t('common.success'), t('alerts.jobStartSuccess'), [], 'success');
             loadJobDetails();
         } catch (error) {
@@ -735,6 +740,8 @@ export default function JobDetailScreen({ route, navigation }) {
                 job.signatureCoords || null,
                 job.updatedAt
             );
+
+            LoggerService.audit('Job completed by worker', { jobId, jobTitle: job.title });
 
             setSuccessMessage("İş başarıyla bitirildi ve admin onayına gönderildi.");
             setSuccessModalVisible(true);

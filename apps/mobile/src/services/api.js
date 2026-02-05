@@ -5,6 +5,7 @@ import NetInfo from '@react-native-community/netinfo';
 import { QueueService } from './QueueService';
 import { ToastService } from './ToastService';
 import { API_URL } from '../config';
+import { LoggerService } from './LoggerService';
 
 export const API_BASE_URL = API_URL;
 
@@ -151,6 +152,14 @@ api.interceptors.response.use(
 
         if (error.response) {
             const { status, data } = error.response;
+
+            // Log API error
+            LoggerService.error(`API Error ${status}: ${error.config?.url}`, {
+                status,
+                data,
+                method: error.config?.method,
+                url: error.config?.url
+            });
 
             if (status === 401) {
                 await AsyncStorage.removeItem('authToken');

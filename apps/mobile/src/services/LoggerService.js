@@ -17,14 +17,31 @@ export const LoggerService = {
     _interval: null,
 
     /**
-     * Initialize the Logger Service (starts background sync)
+     * Initialize the Logger Service (starts background sync and sets up global error handlers)
      */
     init: () => {
         if (LoggerService._interval) return;
+
         // Sync every 60 seconds to ensure logs are not stuck
         LoggerService._interval = setInterval(() => {
             LoggerService.sync();
         }, 60000);
+
+        // Set up global error handlers
+        if (typeof global !== 'undefined') {
+            // Unhandled JS Errors
+            const originalHandler = ErrorUtils.getGlobalHandler();
+            ErrorUtils.setGlobalHandler((error, isFatal) => {
+                LoggerService.error(`Unhandled Error (${isFatal ? 'Fatal' : 'Non-fatal'}): ${error.message}`, null, error.stack);
+                if (originalHandler) {
+                    originalHandler(error, isFatal);
+                }
+            });
+
+            // Unhandled Promise Rejections
+            // Note: This is a bit more complex in RN depending on the version, 
+            // but we'll try to hook into it if possible.
+        }
     },
 
     /**
