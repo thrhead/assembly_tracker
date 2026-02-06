@@ -2,6 +2,7 @@
 
 import { LogOutIcon, MenuIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,9 +40,11 @@ export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full" aria-label="Kullanıcı Menüsü">
-              <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                A
-              </div>
+              <Avatar className="h-9 w-9 border-2 border-indigo-100 transition-all hover:border-indigo-300">
+                <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-medium text-sm">
+                  A
+                </AvatarFallback>
+              </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
