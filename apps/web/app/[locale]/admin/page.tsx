@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { redirect, Link } from "@/lib/navigation"
 import Image from "next/image"
 import {
@@ -36,14 +37,12 @@ export default async function AdminDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between bg-card p-6 rounded-2xl shadow-sm border border-border">
         <div className="flex items-center gap-4">
-          <div className="relative w-14 h-14">
-            <Image
-              src={session?.user?.image || "https://ui-avatars.com/api/?name=Admin&background=random"}
-              alt="Avatar"
-              fill
-              className="rounded-full border-2 border-primary/20 object-cover"
-            />
-          </div>
+          <Avatar className="h-14 w-14 border-2 border-primary/20">
+            <AvatarImage src={session?.user?.image || undefined} alt="Avatar" className="object-cover" />
+            <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-xl">
+              {session?.user?.name ? session.user.name.charAt(0).toUpperCase() : 'A'}
+            </AvatarFallback>
+          </Avatar>
           <div>
             <p className="text-muted-foreground text-sm font-medium">Tekrar Hoşgeldiniz,</p>
             <h1 className="text-2xl font-bold text-foreground">{session?.user?.name || 'Admin Kullanıcı'}</h1>
