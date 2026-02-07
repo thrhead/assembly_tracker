@@ -99,7 +99,8 @@ const withPWA = require("@ducanh2912/next-pwa").default({
 });
 
 const nextConfig = {
-    serverExternalPackages: ['@prisma/client', 'bcryptjs'],
+    transpilePackages: ['swagger-ui-react'],
+    serverExternalPackages: ['@prisma/client', 'bcryptjs', 'swagger-jsdoc'],
     images: {
         remotePatterns: [
             {
