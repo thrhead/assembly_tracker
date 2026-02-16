@@ -1,48 +1,42 @@
-# Orchestration Plan: Resolving GitHub Issues #35, #23, #22
+# Orchestration Plan: Automatic Job Number Generation for Mobile
 
-## Overview
-This plan addresses 3 critical issues reported in the `thrhead/assembly_tracker` repository. The goal is to resolve the mobile job creation bug, improve job visibility (Job ID), and enhance search filtering capabilities across both web and mobile platforms.
+## Task Overview
+The mobile app currently creates jobs with "no-code" or missing job numbers. The goal is to implement automatic job number generation (`jobNo`) in the mobile job creation flow, consistent with the web application's logic.
+
+## Analysis
+- **Web App Logic:** Uses `generateJobNumber()` from `@/lib/utils/job-number` which finds the last sequence for the current year and increments it.
+- **Problem:** The API endpoint `POST /api/admin/jobs` (used by mobile) does not explicitly call `generateJobNumber()` during job creation, whereas the Server Action `createJobAction` in the web app does.
+- **Solution:** Move the `jobNo` generation logic into the API route or ensure the API route correctly triggers it.
 
 ## Phase 1: Planning
-- [x] Analyze Issues
-- [x] Create this Plan
-- [x] User Approval
+- [x] Analyze codebase for `jobNo` generation logic.
+- [x] Identify the mismatch between Web Server Actions and API Routes.
+- [ ] Create detailed implementation steps.
 
 ## Phase 2: Implementation
 
-### 1. Fix Mobile Job Creation (Issue #35)
-**Status:** ✅ Completed
-**Problem:** `POST /api/admin/jobs` returns 500 Internal Server Error when called from mobile app.
-**Agent:** `backend-specialist`
-**Dependencies:** `apps/web/app/api/admin/jobs/route.ts`
-**Steps:**
-1. [x] Investigate api route logic for `jobs`.
-2. [x] Identify potential payload structure mismatches between mobile app and web API.
-3. [x] Add proper error handling and validation to prevent 500 errors.
-4. [x] Verify fix with mock request.
+### 1. Backend Enhancement (Agent: `backend-specialist`)
+- **File:** `apps/web/app/api/admin/jobs/route.ts`
+- **Steps:**
+    1. Import `generateJobNumber`, `generateStepNumber`, and `generateSubStepNumber` from `@/lib/utils/job-number`.
+    2. Update `POST` handler to generate a new `jobNo` if not provided.
+    3. Generate `stepNo` for each step and `subStepNo` for each substep during the creation process.
+    4. Ensure the transaction handles hierarchical numbering correctly.
 
-### 2. Job ID Display (Issue #23)
-**Problem:** Job ID is not displayed in the mobile application list/detail views.
-**Agent:** `mobile-developer`
-**Dependencies:** `apps/mobile` (Job List/Detail Components)
-**Steps:**
-1.  Verify API returns `jobNo` (or `id`) in the job object.
-2.  Update Mobile UI (`JobCard` or `JobDetailScreen`) to display `Job ID: #123`.
-3.  Ensure consistent styling.
+### 2. Mobile Integration (Agent: `mobile-developer`)
+- **File:** `apps/mobile/src/screens/admin/CreateJobScreen.js`, `apps/mobile/src/hooks/useJobForm.js`
+- **Steps:**
+    1. Verify if the mobile app needs to display the generated number after creation.
+    2. Update UI to reflect that the Job Number is "Automatic" during creation.
 
-### 3. Enhanced Filtering (Issue #22)
-**Problem:** Search functionality only covers Client/Company names. Users cannot search by Job ID or Project No.
-**Agent:** `backend-specialist` & `frontend-specialist` (if UI needs update)
-**Dependencies:** `apps/web/app/api/admin/jobs/route.ts` (Search Logic), Mobile Search UI.
-**Steps:**
-1.  Update backend search query (Prisma `where` clause) to include:
-    -   `jobNo` (contains/equals query)
-    -   `projectNo` (contains/equals query)
-2.  Verify search works efficiently.
-3.  Test on both Web and Mobile search bars.
+### 3. Verification (Agent: `test-engineer`)
+- **Steps:**
+    1. Create a job via mobile API.
+    2. Verify `jobNo` format (e.g., `AS-2026-XXXX`).
+    3. Verify hierarchical numbers for steps/substeps.
+    4. Verify consistency between web and mobile created jobs.
 
-## Verification
-**Agent:** `test-engineer`
-1.  Run backend tests for API endpoints.
-2.  Verify mobile app builds correctly.
-3.  Perform manual verification steps (if automated tests are difficult for UI).
+## Success Criteria
+- Jobs created from the mobile app have sequential `jobNo` values.
+- Steps and substeps have correct hierarchical numbers.
+- No "no-code" or placeholder values in the database for new jobs.

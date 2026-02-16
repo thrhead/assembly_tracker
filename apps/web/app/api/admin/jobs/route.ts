@@ -10,6 +10,7 @@ import { EventBus } from '@/lib/event-bus';
 import { sanitizeHtml, stripHtml } from '@/lib/security';
 import { logger } from '@/lib/logger';
 import { logAudit, AuditAction } from '@/lib/audit';
+import { generateJobNumber, generateStepNumber, generateSubStepNumber } from '@/lib/utils/job-number';
 
 // Helper function to build where clause for filtering
 function buildJobFilter(searchParams: URLSearchParams) {
@@ -194,8 +195,15 @@ export async function POST(req: Request) {
             }
         }
 
+        // Generate sequential job number
+        const jobNo = await generateJobNumber();
+
         const newJob = await prisma.job.create({
             data: {
+                jobNo: jobNo,
+                projectNo: (body.projectNo && body.projectNo.trim() !== '') 
+                    ? stripHtml(body.projectNo) 
+                    : jobNo,
                 title: stripHtml(data.title),
                 description: data.description ? sanitizeHtml(data.description) : undefined,
                 customerId: data.customerId,
@@ -208,20 +216,29 @@ export async function POST(req: Request) {
                 status: 'PENDING',
                 steps: data.steps && data.steps.length > 0
                     ? {
-                        create: data.steps.map((step, idx) => ({
-                            title: stripHtml(step.title),
-                            description: step.description ? sanitizeHtml(step.description) : undefined,
-                            order: step.order || (idx + 1),
-                            subSteps: step.subSteps && step.subSteps.length > 0
-                                ? {
-                                    create: step.subSteps.map((sub, sIdx) => ({
-                                        title: stripHtml(sub.title),
-                                        description: sub.description ? sanitizeHtml(sub.description) : undefined,
-                                        order: sub.order || (sIdx + 1)
-                                    }))
-                                }
-                                : undefined
-                        }))
+                        create: data.steps.map((step, idx) => {
+                            const stepOrder = idx + 1;
+                            const stepNo = generateStepNumber(jobNo, stepOrder);
+                            return {
+                                title: stripHtml(step.title),
+                                stepNo: stepNo,
+                                description: step.description ? sanitizeHtml(step.description) : undefined,
+                                order: stepOrder,
+                                subSteps: step.subSteps && step.subSteps.length > 0
+                                    ? {
+                                        create: step.subSteps.map((sub, sIdx) => {
+                                            const subOrder = sIdx + 1;
+                                            return {
+                                                title: stripHtml(sub.title),
+                                                subStepNo: generateSubStepNumber(stepNo, subOrder),
+                                                description: sub.description ? sanitizeHtml(sub.description) : undefined,
+                                                order: subOrder
+                                            };
+                                        })
+                                    }
+                                    : undefined
+                            };
+                        })
                     }
                     : undefined
             },
@@ -230,6 +247,7 @@ export async function POST(req: Request) {
                 steps: { include: { subSteps: true } }
             }
         })
+
 
         if (data.teamId || data.workerId) {
             await prisma.jobAssignment.create({

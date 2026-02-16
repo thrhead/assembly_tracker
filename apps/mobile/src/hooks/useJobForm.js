@@ -6,7 +6,7 @@ import { CHECKLIST_TEMPLATES } from "../constants/templates";
 export const useJobForm = (job = null) => {
   const [formData, setFormData] = useState({
     title: job?.title || "",
-    projectNo: job?.projectNo || "",
+    projectNo: job?.projectNo || (job ? "" : "OTOMATİK"),
     description: job?.description || "",
     customerId: job?.customerId || "",
     teamId: job?.assignments?.[0]?.teamId || "",
