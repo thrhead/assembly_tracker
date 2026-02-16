@@ -1,8 +1,0 @@
-{
-  "id": "web-ui-hardcoded-cleanup",
-  "title": "Web UI Hardcoded Color Cleanup",
-  "status": "Completed",
-  "createdAt": "2026-01-28",
-  "completedAt": "2026-01-28",
-  "description": "Input ve Skeleton bileşenlerindeki hardcoded Tailwind renkleri temizlendi ve tema tokenlarına geçirildi."
-}

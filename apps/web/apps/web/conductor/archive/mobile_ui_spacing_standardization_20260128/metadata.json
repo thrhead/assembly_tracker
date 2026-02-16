@@ -1,8 +1,0 @@
-{
-  "id": "mobile-ui-spacing-standardization",
-  "title": "Mobile UI Spacing Standardization",
-  "status": "Completed",
-  "createdAt": "2026-01-28",
-  "completedAt": "2026-01-28",
-  "description": "Mobil tema sistemindeki boşluk (SPACING) tokenları genişletildi ve JobCard bileşenine uygulandı."
-}

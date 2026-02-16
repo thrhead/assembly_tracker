@@ -1,8 +1,0 @@
-{
-  "track_id": "push_notifications_20260114",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-01-14T22:37:00Z",
-  "updated_at": "2026-01-14T22:37:00Z",
-  "description": "Expo Push Notification entegrasyonu ve sunucu tarafı yapılandırması."
-}

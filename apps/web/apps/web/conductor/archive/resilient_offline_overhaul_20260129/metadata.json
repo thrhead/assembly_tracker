@@ -1,8 +1,0 @@
-{
-    "id": "resilient-offline-overhaul-20260129",
-    "title": "Saha Dayanıklılığı: Offline Medya ve Çakışma Yönetimi",
-    "description": "Büyük medya dosyalarının FileSystem ile yönetimi, görüntü sıkıştırma (ImageManipulator) ve Level 3 veritabanı çakışma (Conflict Resolution) sisteminin entegrasyonu.",
-    "date": "2026-01-29",
-    "status": "COMPLETED",
-    "author": "Maestro"
-}

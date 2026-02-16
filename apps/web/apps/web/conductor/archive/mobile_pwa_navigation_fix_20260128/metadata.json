@@ -1,8 +1,0 @@
-{
-  "id": "mobile-pwa-navigation-fix",
-  "title": "Mobile PWA Navigation & Back Button Fix",
-  "status": "Completed",
-  "createdAt": "2026-01-28",
-  "completedAt": "2026-01-28",
-  "description": "PWA üzerinde sayfa yenilendiğinde kaybolan geri tuşu ve sıfırlanan navigasyon geçmişi için akıllı yönlendirme ve header kalıcılığı çözümü."
-}

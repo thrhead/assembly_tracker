@@ -1,7 +1,0 @@
-{
-  "track_id": "mobile_audit_fixes_20260120",
-  "type": "maintenance",
-  "status": "new",
-  "created_at": "2026-01-20T12:00:00Z",
-  "description": "Mobil uygulama performans, dokunma ve UX denetim bulgularının düzeltilmesi."
-}

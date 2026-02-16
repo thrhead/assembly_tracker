@@ -1,8 +1,0 @@
-{
-  "track_id": "offline_sync_20260105",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-01-05T10:00:00Z",
-  "updated_at": "2026-01-05T10:00:00Z",
-  "description": "Mobil uygulama için çevrimdışı senkronizasyon ve dayanıklılık modülü"
-}

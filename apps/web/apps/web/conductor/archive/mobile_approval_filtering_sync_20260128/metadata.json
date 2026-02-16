@@ -1,8 +1,0 @@
-{
-  "id": "mobile-approval-filtering-sync",
-  "title": "Mobile Approval & Filtering Synchronization",
-  "status": "Completed",
-  "createdAt": "2026-01-28",
-  "completedAt": "2026-01-28",
-  "description": "Mobil uygulama onay mekanizmasının ve iş filtreleme sisteminin web uygulaması ile senkronize edilmesi, statü uyuşmazlıklarının giderilmesi ve UI/UX iyileştirmeleri."
-}

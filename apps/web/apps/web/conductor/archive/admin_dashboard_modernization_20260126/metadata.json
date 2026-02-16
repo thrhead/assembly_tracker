@@ -1,8 +1,0 @@
-{
-  "id": "admin-dashboard-modernization",
-  "title": "Admin Dashboard Modernizasyonu ve Hata Düzeltmeleri",
-  "status": "Completed",
-  "createdAt": "2026-01-26",
-  "completedAt": "2026-01-26",
-  "description": "Admin Jobs API 500 hatasının giderilmesi ve haftalık tamamlanan adımlar grafiğinin modernize edilmesi."
-}
